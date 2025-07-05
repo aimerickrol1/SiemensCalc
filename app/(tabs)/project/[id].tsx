@@ -378,8 +378,8 @@ export default function ProjectDetailScreen() {
 
   // Trier les bâtiments : favoris en premier
   const sortedBuildings = project ? [...project.buildings].sort((a, b) => {
-    const aIsFavorite = favoriteBuildings.includes(a.id);
-    const bIsFavorite = favoriteBuildings.includes(b.id);
+    const aIsFavorite = Array.isArray(favoriteBuildings) && favoriteBuildings.includes(a.id);
+    const bIsFavorite = Array.isArray(favoriteBuildings) && favoriteBuildings.includes(b.id);
     
     if (aIsFavorite && !bIsFavorite) return -1;
     if (!aIsFavorite && bIsFavorite) return 1;
@@ -389,7 +389,7 @@ export default function ProjectDetailScreen() {
   const renderBuilding = ({ item }: { item: BuildingType }) => {
     const stats = getBuildingStats(item);
     const isSelected = selectedBuildings.has(item.id);
-    const isFavorite = favoriteBuildings.includes(item.id);
+    const isFavorite = Array.isArray(favoriteBuildings) && favoriteBuildings.includes(item.id);
     const hasActions = !selectionMode;
     const adaptiveFontSize = getAdaptiveFontSize(item.name, hasActions);
 
