@@ -9,10 +9,12 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { StorageProvider } from '@/contexts/StorageContext';
 import { Platform } from 'react-native';
 
-// Prévenir l'auto-hide du splash screen
-SplashScreen.preventAutoHideAsync().catch(() => {
-  // Ignorer l'erreur si le splash screen est déjà caché
-});
+// Prévenir l'auto-hide du splash screen seulement si disponible
+if (SplashScreen?.preventAutoHideAsync) {
+  SplashScreen.preventAutoHideAsync().catch(() => {
+    // Ignorer l'erreur si le splash screen est déjà caché
+  });
+}
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -26,7 +28,10 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync().catch(() => {});
+      // Seulement cacher le splash screen si la fonction existe
+      if (SplashScreen?.hideAsync) {
+        SplashScreen.hideAsync().catch(() => {});
+      }
     }
   }, [fontsLoaded, fontError]);
 
@@ -42,8 +47,9 @@ export default function RootLayout() {
           <Stack 
             screenOptions={{ 
               headerShown: false,
-              animation: Platform?.OS === 'web' ? 'none' : 'slide_from_right',
-              animationDuration: Platform?.OS === 'web' ? 0 : 300,
+              // Optimisé pour Android
+              animation: Platform.OS === 'android' ? 'slide_from_right' : 'default',
+              animationDuration: Platform.OS === 'android' ? 250 : 300,
             }}
           >
             <Stack.Screen name="(tabs)" />

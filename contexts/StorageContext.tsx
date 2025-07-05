@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { Project, Building, FunctionalZone, Shutter, SearchResult } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 // Interface pour l'historique des calculs rapides
 export interface QuickCalcHistoryItem {
@@ -71,19 +72,35 @@ interface StorageContextType {
 
 const StorageContext = createContext<StorageContextType | undefined>(undefined);
 
-// Clés de stockage
+// Clés de stockage optimisées pour Android
 const STORAGE_KEYS = {
-  PROJECTS: 'SIEMENS_PROJECTS_STORAGE',
-  FAVORITE_PROJECTS: 'SIEMENS_FAVORITE_PROJECTS',
-  FAVORITE_BUILDINGS: 'SIEMENS_FAVORITE_BUILDINGS',
-  FAVORITE_ZONES: 'SIEMENS_FAVORITE_ZONES',
-  FAVORITE_SHUTTERS: 'SIEMENS_FAVORITE_SHUTTERS',
-  QUICK_CALC_HISTORY: 'SIEMENS_QUICK_CALC_HISTORY',
+  PROJECTS: 'SIEMENS_PROJECTS_V2',
+  FAVORITE_PROJECTS: 'SIEMENS_FAV_PROJECTS_V2',
+  FAVORITE_BUILDINGS: 'SIEMENS_FAV_BUILDINGS_V2',
+  FAVORITE_ZONES: 'SIEMENS_FAV_ZONES_V2',
+  FAVORITE_SHUTTERS: 'SIEMENS_FAV_SHUTTERS_V2',
+  QUICK_CALC_HISTORY: 'SIEMENS_CALC_HISTORY_V2',
 };
 
-// Fonction utilitaire pour générer un ID unique
+// Fonction utilitaire pour générer un ID unique optimisé pour Android
 function generateUniqueId(): string {
-  return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substr(2, 9);
+  return `${timestamp}_${random}`;
+}
+
+// Fonction utilitaire pour gérer les erreurs AsyncStorage
+async function safeAsyncStorageOperation<T>(
+  operation: () => Promise<T>,
+  fallback: T,
+  operationName: string
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    console.warn(`AsyncStorage ${operationName} failed:`, error);
+    return fallback;
+  }
 }
 
 interface StorageProviderProps {
@@ -101,7 +118,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
   const [favoriteShutters, setFavoriteShuttersState] = useState<string[]>([]);
   const [quickCalcHistory, setQuickCalcHistoryState] = useState<QuickCalcHistoryItem[]>([]);
 
-  // CRITIQUE : Ref pour maintenir la version la plus récente des projets
+  // Ref pour maintenir la version la plus récente des projets
   const projectsRef = useRef<Project[]>([]);
 
   // Mettre à jour la ref chaque fois que l'état projects change
@@ -118,104 +135,104 @@ export function StorageProvider({ children }: StorageProviderProps) {
     try {
       setIsLoading(true);
       
-      // Charger toutes les données en parallèle
-      const [
-        projectsData,
-        favProjectsData,
-        favBuildingsData,
-        favZonesData,
-        favShuttersData,
-        historyData
-      ] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_KEYS.PROJECTS),
-        AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_PROJECTS),
-        AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_BUILDINGS),
-        AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_ZONES),
-        AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_SHUTTERS),
-        AsyncStorage.getItem(STORAGE_KEYS.QUICK_CALC_HISTORY),
+      // Charger toutes les données en parallèle avec gestion d'erreur robuste
+      const results = await Promise.allSettled([
+        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.PROJECTS), null, 'getProjects'),
+        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_PROJECTS), null, 'getFavProjects'),
+        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_BUILDINGS), null, 'getFavBuildings'),
+        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_ZONES), null, 'getFavZones'),
+        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_SHUTTERS), null, 'getFavShutters'),
+        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.QUICK_CALC_HISTORY), null, 'getHistory'),
       ]);
 
-      // Parser et convertir les projets
+      // Parser et convertir les projets avec gestion d'erreur robuste
+      const projectsData = results[0].status === 'fulfilled' ? results[0].value : null;
       if (projectsData) {
         try {
           const parsedProjects = JSON.parse(projectsData);
-          const processedProjects = parsedProjects.map((project: any) => ({
+          const processedProjects = Array.isArray(parsedProjects) ? parsedProjects.map((project: any) => ({
             ...project,
-            createdAt: new Date(project.createdAt),
-            updatedAt: new Date(project.updatedAt),
+            createdAt: new Date(project.createdAt || Date.now()),
+            updatedAt: new Date(project.updatedAt || Date.now()),
             startDate: project.startDate ? new Date(project.startDate) : undefined,
             endDate: project.endDate ? new Date(project.endDate) : undefined,
             buildings: (project.buildings || []).map((building: any) => ({
               ...building,
-              createdAt: new Date(building.createdAt),
+              createdAt: new Date(building.createdAt || Date.now()),
               functionalZones: (building.functionalZones || []).map((zone: any) => ({
                 ...zone,
-                createdAt: new Date(zone.createdAt),
+                createdAt: new Date(zone.createdAt || Date.now()),
                 shutters: (zone.shutters || []).map((shutter: any) => ({
                   ...shutter,
-                  createdAt: new Date(shutter.createdAt),
-                  updatedAt: new Date(shutter.updatedAt)
+                  createdAt: new Date(shutter.createdAt || Date.now()),
+                  updatedAt: new Date(shutter.updatedAt || Date.now())
                 }))
               }))
             }))
-          }));
+          })) : [];
           setProjects(processedProjects);
         } catch (error) {
-          console.error('Erreur parsing projets:', error);
+          console.warn('Erreur parsing projets:', error);
           setProjects([]);
         }
       }
 
-      // Parser les favoris
+      // Parser les favoris avec gestion d'erreur
+      const favProjectsData = results[1].status === 'fulfilled' ? results[1].value : null;
+      const favBuildingsData = results[2].status === 'fulfilled' ? results[2].value : null;
+      const favZonesData = results[3].status === 'fulfilled' ? results[3].value : null;
+      const favShuttersData = results[4].status === 'fulfilled' ? results[4].value : null;
+      const historyData = results[5].status === 'fulfilled' ? results[5].value : null;
+
       setFavoriteProjectsState(favProjectsData ? JSON.parse(favProjectsData) : []);
       setFavoriteBuildingsState(favBuildingsData ? JSON.parse(favBuildingsData) : []);
       setFavoriteZonesState(favZonesData ? JSON.parse(favZonesData) : []);
       setFavoriteShuttersState(favShuttersData ? JSON.parse(favShuttersData) : []);
 
-      // Parser l'historique
+      // Parser l'historique avec gestion d'erreur
       if (historyData) {
         try {
           const parsedHistory = JSON.parse(historyData);
-          const processedHistory = parsedHistory.map((item: any) => ({
+          const processedHistory = Array.isArray(parsedHistory) ? parsedHistory.map((item: any) => ({
             ...item,
-            timestamp: new Date(item.timestamp)
-          }));
+            timestamp: new Date(item.timestamp || Date.now())
+          })) : [];
           setQuickCalcHistoryState(processedHistory);
         } catch (error) {
-          console.error('Erreur parsing historique:', error);
+          console.warn('Erreur parsing historique:', error);
           setQuickCalcHistoryState([]);
         }
       }
 
       setIsInitialized(true);
     } catch (error) {
-      console.error('Erreur initialisation storage:', error);
+      console.warn('Erreur initialisation storage:', error);
       setIsInitialized(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // CORRIGÉ : Fonction utilitaire pour sauvegarder les projets ET mettre à jour l'état React
-  const saveProjects = async (newProjects: Project[]) => {
-    try {
-      console.log('💾 Sauvegarde de', newProjects.length, 'projets...');
-      await AsyncStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(newProjects));
-      console.log('✅ Projets sauvegardés dans AsyncStorage');
-      
-      // CRITIQUE : Mettre à jour l'état React immédiatement
-      setProjects(newProjects);
-      console.log('✅ État React mis à jour avec', newProjects.length, 'projets');
-    } catch (error) {
-      console.error('❌ Erreur sauvegarde projets:', error);
-      throw error;
+  // Fonction utilitaire pour sauvegarder les projets avec retry
+  const saveProjects = async (newProjects: Project[], retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        await AsyncStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(newProjects));
+        setProjects(newProjects);
+        return;
+      } catch (error) {
+        console.warn(`Tentative ${i + 1} de sauvegarde échouée:`, error);
+        if (i === retries - 1) {
+          throw error;
+        }
+        // Attendre un peu avant de réessayer
+        await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
+      }
     }
   };
 
   // Actions pour les projets
   const createProject = async (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'buildings'>): Promise<Project> => {
-    console.log('🚀 StorageContext.createProject appelé avec:', projectData);
-    
     const newProject: Project = {
       ...projectData,
       id: generateUniqueId(),
@@ -224,21 +241,14 @@ export function StorageProvider({ children }: StorageProviderProps) {
       buildings: []
     };
     
-    console.log('📦 Nouveau projet créé:', newProject);
-    
     const newProjects = [...projectsRef.current, newProject];
     await saveProjects(newProjects);
-    
-    console.log('✅ Projet ajouté à la liste, total:', newProjects.length);
     return newProject;
   };
 
   const updateProject = async (id: string, updates: Partial<Project>): Promise<Project | null> => {
-    console.log('✏️ StorageContext.updateProject appelé pour:', id, 'avec:', updates);
-    
     const projectIndex = projectsRef.current.findIndex(p => p.id === id);
     if (projectIndex === -1) {
-      console.error('❌ Projet non trouvé:', id);
       return null;
     }
     
@@ -247,16 +257,12 @@ export function StorageProvider({ children }: StorageProviderProps) {
     newProjects[projectIndex] = updatedProject;
     
     await saveProjects(newProjects);
-    console.log('✅ Projet mis à jour:', updatedProject.id);
     return updatedProject;
   };
 
   const deleteProject = async (id: string): Promise<boolean> => {
-    console.log('🗑️ StorageContext.deleteProject appelé pour:', id);
-    
     const projectIndex = projectsRef.current.findIndex(p => p.id === id);
     if (projectIndex === -1) {
-      console.error('❌ Projet non trouvé pour suppression:', id);
       return false;
     }
     
@@ -268,17 +274,13 @@ export function StorageProvider({ children }: StorageProviderProps) {
       setFavoriteProjects(newFavoriteProjects)
     ]);
     
-    console.log('✅ Projet supprimé:', id);
     return true;
   };
 
   // Actions pour les bâtiments
   const createBuilding = async (projectId: string, buildingData: Omit<Building, 'id' | 'projectId' | 'createdAt' | 'functionalZones'>): Promise<Building | null> => {
-    console.log('🏗️ StorageContext.createBuilding appelé pour projet:', projectId, 'avec:', buildingData);
-    
     const projectIndex = projectsRef.current.findIndex(p => p.id === projectId);
     if (projectIndex === -1) {
-      console.error('❌ Projet non trouvé pour création bâtiment:', projectId);
       return null;
     }
 
@@ -290,8 +292,6 @@ export function StorageProvider({ children }: StorageProviderProps) {
       functionalZones: []
     };
 
-    console.log('🏢 Nouveau bâtiment créé:', newBuilding);
-
     const newProjects = [...projectsRef.current];
     newProjects[projectIndex] = {
       ...newProjects[projectIndex],
@@ -300,13 +300,10 @@ export function StorageProvider({ children }: StorageProviderProps) {
     };
 
     await saveProjects(newProjects);
-    console.log('✅ Bâtiment ajouté au projet:', newBuilding.id);
     return newBuilding;
   };
 
   const updateBuilding = async (buildingId: string, updates: Partial<Building>): Promise<Building | null> => {
-    console.log('✏️ StorageContext.updateBuilding appelé pour:', buildingId, 'avec:', updates);
-    
     const newProjects = [...projectsRef.current];
     
     for (let i = 0; i < newProjects.length; i++) {
@@ -324,18 +321,14 @@ export function StorageProvider({ children }: StorageProviderProps) {
         };
         
         await saveProjects(newProjects);
-        console.log('✅ Bâtiment mis à jour:', updatedBuilding.id);
         return updatedBuilding;
       }
     }
     
-    console.error('❌ Bâtiment non trouvé pour mise à jour:', buildingId);
     return null;
   };
 
   const deleteBuilding = async (buildingId: string): Promise<boolean> => {
-    console.log('🗑️ StorageContext.deleteBuilding appelé pour:', buildingId);
-    
     const newProjects = [...projectsRef.current];
     let found = false;
     
@@ -358,9 +351,6 @@ export function StorageProvider({ children }: StorageProviderProps) {
         saveProjects(newProjects),
         setFavoriteBuildings(newFavoriteBuildings)
       ]);
-      console.log('✅ Bâtiment supprimé:', buildingId);
-    } else {
-      console.error('❌ Bâtiment non trouvé pour suppression:', buildingId);
     }
     
     return found;
@@ -368,8 +358,6 @@ export function StorageProvider({ children }: StorageProviderProps) {
 
   // Actions pour les zones
   const createFunctionalZone = async (buildingId: string, zoneData: Omit<FunctionalZone, 'id' | 'buildingId' | 'createdAt' | 'shutters'>): Promise<FunctionalZone | null> => {
-    console.log('🏢 StorageContext.createFunctionalZone appelé pour bâtiment:', buildingId, 'avec:', zoneData);
-    
     const newProjects = [...projectsRef.current];
     
     for (let i = 0; i < newProjects.length; i++) {
@@ -382,8 +370,6 @@ export function StorageProvider({ children }: StorageProviderProps) {
           createdAt: new Date(),
           shutters: []
         };
-        
-        console.log('🏗️ Nouvelle zone créée:', newZone);
         
         newProjects[i] = {
           ...newProjects[i],
@@ -399,18 +385,14 @@ export function StorageProvider({ children }: StorageProviderProps) {
         };
         
         await saveProjects(newProjects);
-        console.log('✅ Zone ajoutée au bâtiment:', newZone.id);
         return newZone;
       }
     }
     
-    console.error('❌ Bâtiment non trouvé pour création zone:', buildingId);
     return null;
   };
 
   const updateFunctionalZone = async (zoneId: string, updates: Partial<FunctionalZone>): Promise<FunctionalZone | null> => {
-    console.log('✏️ StorageContext.updateFunctionalZone appelé pour:', zoneId, 'avec:', updates);
-    
     const newProjects = [...projectsRef.current];
     
     for (let i = 0; i < newProjects.length; i++) {
@@ -437,19 +419,15 @@ export function StorageProvider({ children }: StorageProviderProps) {
           };
           
           await saveProjects(newProjects);
-          console.log('✅ Zone mise à jour:', updatedZone.id);
           return updatedZone;
         }
       }
     }
     
-    console.error('❌ Zone non trouvée pour mise à jour:', zoneId);
     return null;
   };
 
   const deleteFunctionalZone = async (zoneId: string): Promise<boolean> => {
-    console.log('🗑️ StorageContext.deleteFunctionalZone appelé pour:', zoneId);
-    
     const newProjects = [...projectsRef.current];
     let found = false;
     
@@ -482,9 +460,6 @@ export function StorageProvider({ children }: StorageProviderProps) {
         saveProjects(newProjects),
         setFavoriteZones(newFavoriteZones)
       ]);
-      console.log('✅ Zone supprimée:', zoneId);
-    } else {
-      console.error('❌ Zone non trouvée pour suppression:', zoneId);
     }
     
     return found;
@@ -492,8 +467,6 @@ export function StorageProvider({ children }: StorageProviderProps) {
 
   // Actions pour les volets
   const createShutter = async (zoneId: string, shutterData: Omit<Shutter, 'id' | 'zoneId' | 'createdAt' | 'updatedAt'>): Promise<Shutter | null> => {
-    console.log('🔲 StorageContext.createShutter appelé pour zone:', zoneId, 'avec:', shutterData);
-    
     const newProjects = [...projectsRef.current];
     
     for (let i = 0; i < newProjects.length; i++) {
@@ -507,8 +480,6 @@ export function StorageProvider({ children }: StorageProviderProps) {
             createdAt: new Date(),
             updatedAt: new Date()
           };
-          
-          console.log('🎯 Nouveau volet créé:', newShutter);
           
           newProjects[i] = {
             ...newProjects[i],
@@ -531,19 +502,15 @@ export function StorageProvider({ children }: StorageProviderProps) {
           };
           
           await saveProjects(newProjects);
-          console.log('✅ Volet ajouté à la zone:', newShutter.id);
           return newShutter;
         }
       }
     }
     
-    console.error('❌ Zone non trouvée pour création volet:', zoneId);
     return null;
   };
 
   const updateShutter = async (shutterId: string, updates: Partial<Shutter>): Promise<Shutter | null> => {
-    console.log('✏️ StorageContext.updateShutter appelé pour:', shutterId, 'avec:', updates);
-    
     const newProjects = [...projectsRef.current];
     
     for (let i = 0; i < newProjects.length; i++) {
@@ -582,20 +549,16 @@ export function StorageProvider({ children }: StorageProviderProps) {
             };
             
             await saveProjects(newProjects);
-            console.log('✅ Volet mis à jour:', updatedShutter.id);
             return updatedShutter;
           }
         }
       }
     }
     
-    console.error('❌ Volet non trouvé pour mise à jour:', shutterId);
     return null;
   };
 
   const deleteShutter = async (shutterId: string): Promise<boolean> => {
-    console.log('🗑️ StorageContext.deleteShutter appelé pour:', shutterId);
-    
     const newProjects = [...projectsRef.current];
     let found = false;
     
@@ -638,21 +601,18 @@ export function StorageProvider({ children }: StorageProviderProps) {
         saveProjects(newProjects),
         setFavoriteShutters(newFavoriteShutters)
       ]);
-      console.log('✅ Volet supprimé:', shutterId);
-    } else {
-      console.error('❌ Volet non trouvé pour suppression:', shutterId);
     }
     
     return found;
   };
 
-  // Actions pour les favoris
+  // Actions pour les favoris avec gestion d'erreur
   const setFavoriteProjects = async (favorites: string[]) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_PROJECTS, JSON.stringify(favorites));
       setFavoriteProjectsState(favorites);
     } catch (error) {
-      console.error('Erreur sauvegarde favoris projets:', error);
+      console.warn('Erreur sauvegarde favoris projets:', error);
     }
   };
 
@@ -661,7 +621,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       await AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_BUILDINGS, JSON.stringify(favorites));
       setFavoriteBuildingsState(favorites);
     } catch (error) {
-      console.error('Erreur sauvegarde favoris bâtiments:', error);
+      console.warn('Erreur sauvegarde favoris bâtiments:', error);
     }
   };
 
@@ -670,7 +630,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       await AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_ZONES, JSON.stringify(favorites));
       setFavoriteZonesState(favorites);
     } catch (error) {
-      console.error('Erreur sauvegarde favoris zones:', error);
+      console.warn('Erreur sauvegarde favoris zones:', error);
     }
   };
 
@@ -679,11 +639,11 @@ export function StorageProvider({ children }: StorageProviderProps) {
       await AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_SHUTTERS, JSON.stringify(favorites));
       setFavoriteShuttersState(favorites);
     } catch (error) {
-      console.error('Erreur sauvegarde favoris volets:', error);
+      console.warn('Erreur sauvegarde favoris volets:', error);
     }
   };
 
-  // Actions pour l'historique
+  // Actions pour l'historique avec gestion d'erreur
   const addQuickCalcHistory = async (item: Omit<QuickCalcHistoryItem, 'id' | 'timestamp'>) => {
     try {
       const newItem: QuickCalcHistoryItem = {
@@ -697,7 +657,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       await AsyncStorage.setItem(STORAGE_KEYS.QUICK_CALC_HISTORY, JSON.stringify(newHistory));
       setQuickCalcHistoryState(newHistory);
     } catch (error) {
-      console.error('Erreur ajout historique:', error);
+      console.warn('Erreur ajout historique:', error);
     }
   };
 
@@ -706,7 +666,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       await AsyncStorage.setItem(STORAGE_KEYS.QUICK_CALC_HISTORY, JSON.stringify([]));
       setQuickCalcHistoryState([]);
     } catch (error) {
-      console.error('Erreur effacement historique:', error);
+      console.warn('Erreur effacement historique:', error);
     }
   };
 
@@ -714,7 +674,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     return quickCalcHistory;
   };
 
-  // Recherche
+  // Recherche optimisée
   const searchShutters = (query: string): SearchResult[] => {
     const results: SearchResult[] = [];
     const queryWords = query.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0);
@@ -757,7 +717,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       setFavoriteShuttersState([]);
       setQuickCalcHistoryState([]);
     } catch (error) {
-      console.error('Erreur suppression données:', error);
+      console.warn('Erreur suppression données:', error);
       throw error;
     }
   };
@@ -778,7 +738,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     };
   };
 
-  // Fonctions de compatibilité pour l'ancienne interface
+  // Fonctions de compatibilité
   const getProjects = async (): Promise<Project[]> => {
     return projectsRef.current;
   };

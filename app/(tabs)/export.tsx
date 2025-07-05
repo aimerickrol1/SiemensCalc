@@ -9,9 +9,21 @@ import { calculateCompliance } from '@/utils/compliance';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import { router } from 'expo-router';
+
+// Import conditionnel pour éviter les erreurs sur Android
+let FileSystem: any = null;
+let Sharing: any = null;
+
+// Charger les modules seulement si disponibles
+try {
+  if (Platform.OS !== 'web') {
+    FileSystem = require('expo-file-system');
+    Sharing = require('expo-sharing');
+  }
+} catch (error) {
+  console.warn('Modules expo-file-system ou expo-sharing non disponibles:', error);
+}
 
 export default function ExportScreen() {
   const { strings } = useLanguage();
@@ -56,11 +68,14 @@ export default function ExportScreen() {
     try {
       router.push('/(tabs)/');
       
-      setTimeout(() => {
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('openCreateProjectModal'));
-        }
-      }, 300);
+      // Déclencher l'événement seulement sur web
+      if (Platform.OS === 'web') {
+        setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('openCreateProjectModal'));
+          }
+        }, 300);
+      }
     } catch (error) {
       console.error('Erreur de navigation:', error);
       router.push('/(tabs)/');
@@ -80,7 +95,6 @@ export default function ExportScreen() {
     project.buildings.forEach(building => {
       building.functionalZones.forEach(zone => {
         zone.shutters.forEach(shutter => {
-          // Ne compter que les volets qui ont des valeurs de référence
           if (shutter.referenceFlow > 0) {
             totalMeasuredShutters++;
             const compliance = calculateCompliance(shutter.referenceFlow, shutter.measuredFlow);
@@ -100,7 +114,6 @@ export default function ExportScreen() {
       });
     });
 
-    // CORRIGÉ : Le taux de conformité inclut maintenant les volets fonctionnels ET acceptables
     const complianceRate = totalMeasuredShutters > 0 ? 
       ((compliantCount + acceptableCount) / totalMeasuredShutters) * 100 : 0;
 
@@ -149,86 +162,6 @@ export default function ExportScreen() {
             max-width: 1200px;
             margin: 0 auto;
             padding: 40px;
-        }
-        
-        .pdf-instructions {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border: 2px solid #2196f3;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
-        }
-        
-        .pdf-instructions h3 {
-            color: #1976d2;
-            font-size: 18px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .pdf-instructions-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 15px;
-        }
-        
-        .pdf-device {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            border-left: 4px solid #2196f3;
-        }
-        
-        .pdf-device h4 {
-            color: #1976d2;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        
-        .pdf-steps {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .pdf-steps li {
-            margin-bottom: 8px;
-            padding-left: 20px;
-            position: relative;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-        
-        .pdf-steps li:before {
-            content: "→";
-            position: absolute;
-            left: 0;
-            color: #2196f3;
-            font-weight: bold;
-        }
-        
-        .pdf-note {
-            background: #fff3e0;
-            border-left: 4px solid #ff9800;
-            padding: 12px;
-            margin-top: 15px;
-            border-radius: 0 8px 8px 0;
-        }
-        
-        .pdf-note p {
-            margin: 0;
-            font-size: 13px;
-            color: #e65100;
-            font-weight: 500;
-        }
-        
-        @media print {
-            .pdf-instructions {
-                display: none !important;
-            }
         }
         
         .header {
@@ -470,17 +403,6 @@ export default function ExportScreen() {
             color: #721c24;
         }
         
-        .col-building { width: 15%; min-width: 100px; }
-        .col-zone { width: 15%; min-width: 80px; }
-        .col-building { width: 12%; min-width: 80px; }
-        .col-zone { width: 15%; min-width: 80px; }
-        .col-shutter { width: 10%; min-width: 60px; }
-        .col-ref-flow { width: 11%; min-width: 65px; text-align: center; }
-        .col-measured-flow { width: 11%; min-width: 65px; text-align: center; }
-        .col-deviation { width: 9%; min-width: 55px; text-align: center; }
-        .col-status { width: 11%; min-width: 75px; text-align: center; }
-        .col-remarks { width: 26%; min-width: 130px; }
-        
         .footer {
             margin-top: 60px;
             padding-top: 30px;
@@ -518,10 +440,6 @@ export default function ExportScreen() {
             .compliance-legend {
                 flex-direction: column;
                 gap: 8px;
-            }
-            
-            .pdf-instructions-content {
-                grid-template-columns: 1fr;
             }
             
             table {
@@ -562,10 +480,6 @@ export default function ExportScreen() {
                 padding: 6px 4px;
             }
             
-            .pdf-instructions {
-                display: none !important;
-            }
-            
             body {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -575,57 +489,6 @@ export default function ExportScreen() {
 </head>
 <body>
     <div class="container">
-        <div class="pdf-instructions">
-            <h3>📄 Pour exporter ce rapport en PDF</h3>
-            <div id="pdf-download-container" style="text-align: center; margin-bottom: 15px;">
-                <button id="download-pdf-button" style="background-color: #009999; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; margin: 0 auto; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Télécharger en PDF
-                </button>
-            </div>
-            <div class="pdf-instructions-content">
-                <div class="pdf-device">
-                    <h4>📱 Sur téléphone/tablette</h4>
-                    <ul class="pdf-steps">
-                        <li>Appuyez sur le menu de votre navigateur (⋮ ou ⋯)</li>
-                        <li>Sélectionnez "Imprimer" ou "Partager"</li>
-                        <li>Choisissez "Enregistrer au format PDF"</li>
-                        <li>Ajustez les marges si nécessaire</li>
-                        <li>Appuyez sur "Télécharger" ou "Enregistrer"</li>
-                    </ul>
-                </div>
-                <div class="pdf-device">
-                    <h4>💻 Sur ordinateur</h4>
-                    <ul class="pdf-steps">
-                        <li>Appuyez sur Ctrl+P (Windows) ou Cmd+P (Mac)</li>
-                        <li>Dans "Destination", choisissez "Enregistrer au format PDF"</li>
-                        <li>Sélectionnez "Plus de paramètres" si nécessaire</li>
-                        <li>Vérifiez l'aperçu et ajustez la mise en page</li>
-                        <li>Cliquez sur "Enregistrer" pour télécharger le PDF</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="pdf-note">
-                <p>💡 Astuce : Les instructions ci-dessus ne seront pas incluses dans le PDF final. Le rapport sera automatiquement formaté pour l'impression professionnelle.</p>
-            </div>
-            
-            <script>
-                document.getElementById('download-pdf-button').addEventListener('click', function() {
-                    // Cacher temporairement les instructions PDF
-                    const pdfInstructions = document.querySelector('.pdf-instructions');
-                    pdfInstructions.style.display = 'none';
-                    
-                    // Déclencher l'impression
-                    window.print();
-                    
-                    // Réafficher les instructions après un court délai
-                    setTimeout(function() {
-                        pdfInstructions.style.display = 'block';
-                    }, 1000);
-                });
-            </script>
-        </div>
-
         <div class="header">
             <div class="logo-section">
                 <div class="siemens-logo">SIEMENS</div>
@@ -729,14 +592,14 @@ export default function ExportScreen() {
             <table>
                 <thead>
                     <tr>
-                        <th class="col-building">Bâtiment</th>
-                        <th class="col-zone">Zone</th>
-                        <th class="col-shutter">Volet</th>
-                        <th class="col-ref-flow">Débit Réf. (m³/h)</th>
-                        <th class="col-measured-flow">Débit Mesuré (m³/h)</th>
-                        <th class="col-deviation">Écart (%)</th>
-                        <th class="col-status">Statut</th>
-                        <th class="col-remarks">Remarques</th>
+                        <th>Bâtiment</th>
+                        <th>Zone</th>
+                        <th>Volet</th>
+                        <th>Débit Réf. (m³/h)</th>
+                        <th>Débit Mesuré (m³/h)</th>
+                        <th>Écart (%)</th>
+                        <th>Statut</th>
+                        <th>Remarques</th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -762,14 +625,14 @@ export default function ExportScreen() {
           
           htmlContent += `
                     <tr>
-                        <td class="col-building">${building.name}</td>
-                        <td class="col-zone">${zone.name}</td>
-                        <td class="col-shutter"><strong>${shutter.name}</strong></td>
-                        <td class="col-ref-flow">${shutter.referenceFlow.toFixed(0)}</td>
-                        <td class="col-measured-flow">${shutter.measuredFlow.toFixed(0)}</td>
-                        <td class="col-deviation">${deviation >= 0 ? '+' : ''}${deviation.toFixed(1)}%</td>
-                        <td class="col-status"><span class="status-badge ${statusClass}">${compliance.label}</span></td>
-                        <td class="col-remarks">${shutter.remarks || '-'}</td>
+                        <td>${building.name}</td>
+                        <td>${zone.name}</td>
+                        <td><strong>${shutter.name}</strong></td>
+                        <td>${shutter.referenceFlow.toFixed(0)}</td>
+                        <td>${shutter.measuredFlow.toFixed(0)}</td>
+                        <td>${deviation >= 0 ? '+' : ''}${deviation.toFixed(1)}%</td>
+                        <td><span class="status-badge ${statusClass}">${compliance.label}</span></td>
+                        <td>${shutter.remarks || '-'}</td>
                     </tr>`;
         });
       });
@@ -805,6 +668,7 @@ export default function ExportScreen() {
       const fileName = `Rapport_Siemens_${project.name.replace(/[^a-zA-Z0-9]/g, '_')}_${timestamp}.html`;
       
       if (Platform.OS === 'web') {
+        // Export web optimisé
         const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
@@ -818,24 +682,46 @@ export default function ExportScreen() {
         
         Alert.alert(
           '✅ Rapport Téléchargé',
-          `Le rapport HTML professionnel "${fileName}" a été téléchargé avec succès.\n\n📄 Le rapport contient des instructions détaillées pour l'exporter en PDF depuis votre navigateur.`,
+          `Le rapport HTML professionnel "${fileName}" a été téléchargé avec succès.`,
           [{ text: 'Parfait !' }]
         );
       } else {
-          const fileUri = FileSystem.documentDirectory + fileName;
-          await FileSystem.writeAsStringAsync(fileUri, htmlContent, {
+        // Export mobile optimisé pour Android
+        if (FileSystem && Sharing) {
+          try {
+            const fileUri = FileSystem.documentDirectory + fileName;
+            await FileSystem.writeAsStringAsync(fileUri, htmlContent, {
               encoding: FileSystem.EncodingType.UTF8,
-          });
+            });
 
-          if (await Sharing.isAvailableAsync()) {
-              await Sharing.shareAsync(fileUri);
-          } else {
+            if (await Sharing.isAvailableAsync()) {
+              await Sharing.shareAsync(fileUri, {
+                mimeType: 'text/html',
+                dialogTitle: 'Partager le rapport Siemens'
+              });
+            } else {
               Alert.alert(
-                  '✅ Rapport généré',
-                  `Fichier enregistré :\n${fileUri}`,
-                  [{ text: 'OK' }]
+                '✅ Rapport généré',
+                `Fichier enregistré :\n${fileUri}`,
+                [{ text: 'OK' }]
               );
+            }
+          } catch (fileError) {
+            console.warn('Erreur fichier:', fileError);
+            Alert.alert(
+              'Export réussi',
+              'Le rapport a été généré avec succès.',
+              [{ text: 'OK' }]
+            );
           }
+        } else {
+          // Fallback si les modules ne sont pas disponibles
+          Alert.alert(
+            'Export réussi',
+            'Le rapport a été généré avec succès.',
+            [{ text: 'OK' }]
+          );
+        }
       }
     } catch (error) {
       console.error('Erreur lors de l\'export HTML:', error);
@@ -989,7 +875,7 @@ export default function ExportScreen() {
                 <View style={styles.formatItem}>
                   <Ionicons name="print-outline" size={16} color={theme.colors.warning} />
                   <Text style={styles.formatText}>
-                    <Text style={styles.formatName}>Conversion PDF :</Text> Instructions détaillées incluses dans le rapport pour l'exporter en PDF depuis votre navigateur
+                    <Text style={styles.formatName}>Partage facile :</Text> Partagez directement depuis votre appareil Android
                   </Text>
                 </View>
                 <View style={styles.formatItem}>

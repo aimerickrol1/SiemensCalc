@@ -12,14 +12,15 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        animation: 'shift',
-        animationDuration: 250,
+        // Optimisé pour Android
+        animation: Platform.OS === 'android' ? 'shift' : 'slide_from_right',
+        animationDuration: Platform.OS === 'android' ? 200 : 250,
         tabBarStyle: {
           backgroundColor: theme.colors.tabBarBackground,
           borderTopWidth: 0,
-          paddingBottom: Platform?.OS === 'ios' ? 20 : 8,
+          paddingBottom: Platform.OS === 'android' ? 8 : (Platform.OS === 'ios' ? 20 : 8),
           paddingTop: 12,
-          height: Platform?.OS === 'ios' ? 68 : 56,
+          height: Platform.OS === 'android' ? 56 : (Platform.OS === 'ios' ? 68 : 56),
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.1,

@@ -15,6 +15,28 @@ export interface Building {
   name: string;
   description?: string;
   createdAt: Date;
+  functionalZones: FunctionalZone[];
+}
+
+export interface FunctionalZone {
+  id: string;
+  buildingId: string;
+  name: string;
+  description?: string;
+  createdAt: Date;
+  shutters: Shutter[];
+}
+
+export interface Shutter {
+  id: string;
+  zoneId: string;
+  name: string;
+  type: ShutterType;
+  referenceFlow: number;
+  measuredFlow: number;
+  remarks?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ComplianceResult {
