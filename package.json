@@ -42,7 +42,8 @@
     "react-native-web": "^0.20.0",
     "expo-file-system": "~18.1.11",
     "expo-sharing": "~13.1.5",
-    "expo-updates": "~0.28.15"
+    "expo-updates": "~0.28.15",
+    "react-native-reanimated": "~3.16.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

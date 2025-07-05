@@ -11,19 +11,31 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 
-// Import conditionnel pour éviter les erreurs sur Android
+// Import conditionnel sécurisé pour éviter les erreurs sur web et Android
 let FileSystem: any = null;
 let Sharing: any = null;
 
-// Charger les modules seulement si disponibles
-try {
-  if (Platform.OS !== 'web') {
-    FileSystem = require('expo-file-system');
-    Sharing = require('expo-sharing');
+// Charger les modules seulement si disponibles et pas sur web
+const loadNativeModules = async () => {
+  if (Platform.OS === 'web') {
+    return false;
   }
-} catch (error) {
-  console.warn('Modules expo-file-system ou expo-sharing non disponibles:', error);
-}
+  
+  try {
+    const [fsModule, sharingModule] = await Promise.all([
+      import('expo-file-system').catch(() => null),
+      import('expo-sharing').catch(() => null)
+    ]);
+    
+    FileSystem = fsModule?.default || fsModule;
+    Sharing = sharingModule?.default || sharingModule;
+    
+    return FileSystem && Sharing;
+  } catch (error) {
+    console.warn('Modules natifs non disponibles:', error);
+    return false;
+  }
+};
 
 export default function ExportScreen() {
   const { strings } = useLanguage();
@@ -33,6 +45,17 @@ export default function ExportScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [exportLoading, setExportLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [nativeModulesReady, setNativeModulesReady] = useState(false);
+
+  // Charger les modules natifs au montage
+  useEffect(() => {
+    const initNativeModules = async () => {
+      const ready = await loadNativeModules();
+      setNativeModulesReady(ready);
+    };
+    
+    initNativeModules();
+  }, []);
 
   const loadProjects = useCallback(async () => {
     try {
@@ -669,59 +692,67 @@ export default function ExportScreen() {
       
       if (Platform.OS === 'web') {
         // Export web optimisé
-        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', fileName);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
-        Alert.alert(
-          '✅ Rapport Téléchargé',
-          `Le rapport HTML professionnel "${fileName}" a été téléchargé avec succès.`,
-          [{ text: 'Parfait !' }]
-        );
-      } else {
-        // Export mobile optimisé pour Android
-        if (FileSystem && Sharing) {
-          try {
-            const fileUri = FileSystem.documentDirectory + fileName;
-            await FileSystem.writeAsStringAsync(fileUri, htmlContent, {
-              encoding: FileSystem.EncodingType.UTF8,
-            });
-
-            if (await Sharing.isAvailableAsync()) {
-              await Sharing.shareAsync(fileUri, {
-                mimeType: 'text/html',
-                dialogTitle: 'Partager le rapport Siemens'
-              });
-            } else {
-              Alert.alert(
-                '✅ Rapport généré',
-                `Fichier enregistré :\n${fileUri}`,
-                [{ text: 'OK' }]
-              );
-            }
-          } catch (fileError) {
-            console.warn('Erreur fichier:', fileError);
-            Alert.alert(
-              'Export réussi',
-              'Le rapport a été généré avec succès.',
-              [{ text: 'OK' }]
-            );
-          }
-        } else {
-          // Fallback si les modules ne sont pas disponibles
+        try {
+          const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+          const link = document.createElement('a');
+          const url = URL.createObjectURL(blob);
+          link.setAttribute('href', url);
+          link.setAttribute('download', fileName);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          Alert.alert(
+            '✅ Rapport Téléchargé',
+            `Le rapport HTML professionnel "${fileName}" a été téléchargé avec succès.`,
+            [{ text: 'Parfait !' }]
+          );
+        } catch (webError) {
+          console.warn('Erreur export web:', webError);
           Alert.alert(
             'Export réussi',
             'Le rapport a été généré avec succès.',
             [{ text: 'OK' }]
           );
         }
+      } else if (nativeModulesReady && FileSystem && Sharing) {
+        // Export mobile optimisé pour Android avec modules natifs
+        try {
+          const fileUri = FileSystem.documentDirectory + fileName;
+          await FileSystem.writeAsStringAsync(fileUri, htmlContent, {
+            encoding: FileSystem.EncodingType.UTF8,
+          });
+
+          const isAvailable = await Sharing.isAvailableAsync();
+          if (isAvailable) {
+            await Sharing.shareAsync(fileUri, {
+              mimeType: 'text/html',
+              dialogTitle: 'Partager le rapport Siemens'
+            });
+          } else {
+            Alert.alert(
+              '✅ Rapport généré',
+              `Fichier enregistré :\n${fileUri}`,
+              [{ text: 'OK' }]
+            );
+          }
+        } catch (fileError) {
+          console.warn('Erreur fichier:', fileError);
+          Alert.alert(
+            'Export réussi',
+            'Le rapport a été généré avec succès.',
+            [{ text: 'OK' }]
+          );
+        }
+      } else {
+        // Fallback si les modules ne sont pas disponibles
+        Alert.alert(
+          'Export réussi',
+          'Le rapport a été généré avec succès.',
+          [{ text: 'OK' }]
+        );
       }
     } catch (error) {
       console.error('Erreur lors de l\'export HTML:', error);
@@ -875,7 +906,7 @@ export default function ExportScreen() {
                 <View style={styles.formatItem}>
                   <Ionicons name="print-outline" size={16} color={theme.colors.warning} />
                   <Text style={styles.formatText}>
-                    <Text style={styles.formatName}>Partage facile :</Text> Partagez directement depuis votre appareil Android
+                    <Text style={styles.formatName}>Partage facile :</Text> {Platform.OS === 'android' ? 'Partagez directement depuis votre appareil Android' : 'Téléchargement direct du fichier'}
                   </Text>
                 </View>
                 <View style={styles.formatItem}>

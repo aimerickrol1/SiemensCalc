@@ -4,11 +4,11 @@ import { router } from 'expo-router';
 
 /**
  * Custom hook to handle Android back button presses
- * Optimisé pour APK Android
+ * Optimisé pour APK Android avec gestion d'erreur robuste
  */
 export function useAndroidBackButton(customAction?: () => boolean) {
   useEffect(() => {
-    // Seulement sur Android
+    // Seulement sur Android pour éviter les erreurs sur autres plateformes
     if (Platform.OS !== 'android') return;
 
     const backAction = () => {
@@ -27,23 +27,37 @@ export function useAndroidBackButton(customAction?: () => boolean) {
         // Si on est sur l'écran d'accueil, laisser le comportement par défaut
         return false;
       } catch (error) {
-        console.warn('Erreur dans useAndroidBackButton:', error);
+        if (__DEV__) {
+          console.warn('Erreur dans useAndroidBackButton:', error);
+        }
         return false;
       }
     };
 
-    // Ajouter l'écouteur d'événement
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
+    // Ajouter l'écouteur d'événement avec gestion d'erreur
+    let backHandler: any = null;
+    try {
+      backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backAction
+      );
+    } catch (error) {
+      if (__DEV__) {
+        console.warn('Erreur lors de l\'ajout du BackHandler:', error);
+      }
+      return;
+    }
 
     // Nettoyer l'écouteur au démontage
     return () => {
       try {
-        backHandler.remove();
+        if (backHandler && backHandler.remove) {
+          backHandler.remove();
+        }
       } catch (error) {
-        console.warn('Erreur lors du nettoyage BackHandler:', error);
+        if (__DEV__) {
+          console.warn('Erreur lors du nettoyage BackHandler:', error);
+        }
       }
     };
   }, [customAction]);
@@ -51,7 +65,7 @@ export function useAndroidBackButton(customAction?: () => boolean) {
 
 /**
  * Custom hook pour gérer le double appui pour quitter
- * Optimisé pour APK Android
+ * Optimisé pour APK Android avec gestion d'erreur robuste
  */
 export function useDoubleBackToExit() {
   useEffect(() => {
@@ -79,24 +93,38 @@ export function useDoubleBackToExit() {
         // Laisser le comportement par défaut (quitter l'app)
         return false;
       } catch (error) {
-        console.warn('Erreur dans useDoubleBackToExit:', error);
+        if (__DEV__) {
+          console.warn('Erreur dans useDoubleBackToExit:', error);
+        }
         return false;
       }
     };
 
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      handleBackPress
-    );
+    let backHandler: any = null;
+    try {
+      backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        handleBackPress
+      );
+    } catch (error) {
+      if (__DEV__) {
+        console.warn('Erreur lors de l\'ajout du DoubleBackToExit:', error);
+      }
+      return;
+    }
 
     return () => {
       try {
         if (backPressTimer) {
           clearTimeout(backPressTimer);
         }
-        backHandler.remove();
+        if (backHandler && backHandler.remove) {
+          backHandler.remove();
+        }
       } catch (error) {
-        console.warn('Erreur lors du nettoyage DoubleBackToExit:', error);
+        if (__DEV__) {
+          console.warn('Erreur lors du nettoyage DoubleBackToExit:', error);
+        }
       }
     };
   }, []);

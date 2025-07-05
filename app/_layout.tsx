@@ -9,11 +9,14 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { StorageProvider } from '@/contexts/StorageContext';
 import { Platform } from 'react-native';
 
-// Prévenir l'auto-hide du splash screen seulement si disponible
-if (SplashScreen?.preventAutoHideAsync) {
-  SplashScreen.preventAutoHideAsync().catch(() => {
-    // Ignorer l'erreur si le splash screen est déjà caché
-  });
+// Prévenir l'auto-hide du splash screen seulement si disponible et pas sur web
+if (Platform.OS !== 'web' && SplashScreen?.preventAutoHideAsync) {
+  try {
+    SplashScreen.preventAutoHideAsync();
+  } catch (error) {
+    // Ignorer l'erreur silencieusement pour éviter les crashes
+    console.warn('SplashScreen preventAutoHideAsync failed:', error);
+  }
 }
 
 export default function RootLayout() {
@@ -28,15 +31,20 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      // Seulement cacher le splash screen si la fonction existe
-      if (SplashScreen?.hideAsync) {
-        SplashScreen.hideAsync().catch(() => {});
+      // Seulement cacher le splash screen si la fonction existe et pas sur web
+      if (Platform.OS !== 'web' && SplashScreen?.hideAsync) {
+        try {
+          SplashScreen.hideAsync();
+        } catch (error) {
+          // Ignorer l'erreur silencieusement
+          console.warn('SplashScreen hideAsync failed:', error);
+        }
       }
     }
   }, [fontsLoaded, fontError]);
 
-  // Attendre que les polices soient chargées
-  if (!fontsLoaded && !fontError) {
+  // Attendre que les polices soient chargées seulement sur mobile
+  if (Platform.OS !== 'web' && !fontsLoaded && !fontError) {
     return null;
   }
 
@@ -47,9 +55,18 @@ export default function RootLayout() {
           <Stack 
             screenOptions={{ 
               headerShown: false,
-              // Optimisé pour Android
-              animation: Platform.OS === 'web' ? 'none' : (Platform.OS === 'android' ? 'slide_from_right' : 'default'),
-              animationDuration: Platform.OS === 'android' ? 250 : 300,
+              // Animation optimisée pour chaque plateforme
+              animation: Platform.select({
+                web: 'none',
+                android: 'slide_from_right',
+                ios: 'default',
+                default: 'none'
+              }),
+              animationDuration: Platform.select({
+                android: 250,
+                ios: 300,
+                default: 0
+              }),
             }}
           >
             <Stack.Screen name="(tabs)" />
