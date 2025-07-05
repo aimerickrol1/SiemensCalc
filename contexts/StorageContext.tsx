@@ -483,10 +483,14 @@ export function StorageProvider({ children }: StorageProviderProps) {
   const createShutter = async (zoneId: string, shutterData: Omit<Shutter, 'id' | 'zoneId' | 'createdAt' | 'updatedAt'>): Promise<Shutter | null> => {
     const newProjects = [...projectsRef.current];
     
+    console.log('🔍 Recherche de la zone:', zoneId, 'pour créer le volet:', shutterData.name);
+    
     for (let i = 0; i < newProjects.length; i++) {
       for (let j = 0; j < newProjects[i].buildings.length; j++) {
         const zoneIndex = newProjects[i].buildings[j].functionalZones.findIndex(z => z.id === zoneId);
         if (zoneIndex !== -1) {
+          console.log('✅ Zone trouvée dans le projet:', newProjects[i].name, 'bâtiment:', newProjects[i].buildings[j].name);
+          
           const newShutter: Shutter = {
             ...shutterData,
             id: generateUniqueId(),
@@ -495,7 +499,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
             updatedAt: new Date()
           };
           
-          console.log('💾 Création du volet:', newShutter.name, 'dans la zone:', zoneId);
+          console.log('💾 Préparation du volet:', newShutter.name, 'type:', newShutter.type, 'dans la zone:', zoneId);
           
           newProjects[i] = {
             ...newProjects[i],
@@ -518,13 +522,13 @@ export function StorageProvider({ children }: StorageProviderProps) {
           };
           
           await saveProjects(newProjects);
-          console.log('✅ Volet sauvegardé:', newShutter.name);
+          console.log('✅ Volet sauvegardé avec succès:', newShutter.name, 'ID:', newShutter.id);
           return newShutter;
         }
       }
     }
     
-    console.error('❌ Zone non trouvée pour créer le volet:', zoneId);
+    console.error('❌ Zone non trouvée pour créer le volet:', zoneId, 'Données du volet:', shutterData.name);
     return null;
   };
 

@@ -97,12 +97,12 @@ export default function ProjectsScreen() {
   const handleCreateProject = async (projectData: any, predefinedStructure: PredefinedStructure) => {
     setCreateLoading(true);
     try {
-      console.log('🏗️ Création du projet:', projectData.name);
+      console.log('🏗️ Création du projet:', projectData.name, 'avec structure prédéfinie:', predefinedStructure.enabled);
       
       const project = await createProject(projectData);
       
       if (predefinedStructure.enabled && predefinedStructure.buildings.length > 0) {
-        console.log('🏢 Création de la structure prédéfinie...');
+        console.log('🏢 Création de la structure prédéfinie avec', predefinedStructure.buildings.length, 'bâtiments');
         
         for (const buildingData of predefinedStructure.buildings) {
           console.log('🏗️ Création du bâtiment:', buildingData.name);
@@ -113,7 +113,7 @@ export default function ProjectsScreen() {
           if (building) {
             console.log('✅ Bâtiment créé:', building.id);
             for (const zoneData of buildingData.zones) {
-              console.log('🏢 Création de la zone:', zoneData.name);
+              console.log('🏢 Création de la zone:', zoneData.name, 'avec', zoneData.highShutters, 'VH et', zoneData.lowShutters, 'VB');
               const zone = await createFunctionalZone(building.id, {
                 name: zoneData.name,
               });
@@ -121,25 +121,43 @@ export default function ProjectsScreen() {
               if (zone) {
                 console.log('✅ Zone créée:', zone.id);
                 // Créer les volets hauts
-                for (let i = 1; i <= zoneData.highShutters; i++) {
-                  console.log(`🔲 Création volet haut VH${i.toString().padStart(2, '0')}`);
-                  await createShutter(zone.id, {
-                    name: `VH${i.toString().padStart(2, '0')}`,
-                    type: 'high',
-                    referenceFlow: 0,
-                    measuredFlow: 0,
-                  });
+                if (zoneData.highShutters > 0) {
+                  console.log(`🔲 Création de ${zoneData.highShutters} volets hauts`);
+                  for (let i = 1; i <= zoneData.highShutters; i++) {
+                    const shutterName = `VH${i.toString().padStart(2, '0')}`;
+                    console.log(`  - Création volet ${shutterName}`);
+                    try {
+                      const shutter = await createShutter(zone.id, {
+                        name: shutterName,
+                        type: 'high',
+                        referenceFlow: 0,
+                        measuredFlow: 0,
+                      });
+                      console.log(`  ✅ Volet ${shutterName} créé:`, shutter?.id);
+                    } catch (error) {
+                      console.error(`  ❌ Erreur création volet ${shutterName}:`, error);
+                    }
+                  }
                 }
                 
                 // Créer les volets bas
-                for (let i = 1; i <= zoneData.lowShutters; i++) {
-                  console.log(`🔲 Création volet bas VB${i.toString().padStart(2, '0')}`);
-                  await createShutter(zone.id, {
-                    name: `VB${i.toString().padStart(2, '0')}`,
-                    type: 'low',
-                    referenceFlow: 0,
-                    measuredFlow: 0,
-                  });
+                if (zoneData.lowShutters > 0) {
+                  console.log(`🔲 Création de ${zoneData.lowShutters} volets bas`);
+                  for (let i = 1; i <= zoneData.lowShutters; i++) {
+                    const shutterName = `VB${i.toString().padStart(2, '0')}`;
+                    console.log(`  - Création volet ${shutterName}`);
+                    try {
+                      const shutter = await createShutter(zone.id, {
+                        name: shutterName,
+                        type: 'low',
+                        referenceFlow: 0,
+                        measuredFlow: 0,
+                      });
+                      console.log(`  ✅ Volet ${shutterName} créé:`, shutter?.id);
+                    } catch (error) {
+                      console.error(`  ❌ Erreur création volet ${shutterName}:`, error);
+                    }
+                  }
                 }
               } else {
                 console.error('❌ Erreur: Zone non créée pour', zoneData.name);
@@ -154,10 +172,18 @@ export default function ProjectsScreen() {
       
       setCreateModalVisible(false);
       
-      // Navigation vers le projet créé
-      setTimeout(() => {
-        router.push(`/(tabs)/project/${project.id}`);
-      }, 100);
+      // Navigation vers le projet créé avec délai pour s'assurer que tout est bien créé
+      console.log('⏱️ Attente avant navigation vers le projet...');
+      setTimeout(async () => {
+        try {
+          console.log('🧭 Navigation vers le projet:', project.id);
+          await router.push(`/(tabs)/project/${project.id}`);
+        } catch (navError) {
+          console.error('❌ Erreur de navigation:', navError);
+          // Fallback en cas d'erreur
+          router.push('/(tabs)/');
+        }
+      }, 500);
       
     } catch (error) {
       console.error('❌ Erreur lors de la création du projet:', error);

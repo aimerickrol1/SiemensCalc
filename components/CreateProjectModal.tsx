@@ -150,16 +150,39 @@ export function CreateProjectModal({ visible, onClose, onSubmit, loading }: Crea
   const togglePredefinedStructure = () => {
     setPredefinedStructure(prev => ({
       ...prev,
-      enabled: !prev.enabled,
-      buildings: prev.enabled ? [] : prev.buildings
+      enabled: !prev.enabled
     }));
+    
+    // Si on active la structure prédéfinie et qu'il n'y a pas encore de bâtiments, en ajouter un par défaut
+    if (!predefinedStructure.enabled && predefinedStructure.buildings.length === 0) {
+      const newBuilding: PredefinedBuilding = {
+        id: generateUniqueId(),
+        name: `Bâtiment 1`,
+        zones: [{
+          id: generateUniqueId(),
+          name: 'ZF01',
+          highShutters: 2,
+          lowShutters: 2
+        }]
+      };
+      
+      setPredefinedStructure(prev => ({
+        ...prev,
+        buildings: [newBuilding]
+      }));
+    }
   };
 
   const addBuilding = () => {
     const newBuilding: PredefinedBuilding = {
       id: generateUniqueId(),
       name: `Bâtiment ${predefinedStructure.buildings.length + 1}`,
-      zones: []
+      zones: [{
+        id: generateUniqueId(),
+        name: `ZF${(predefinedStructure.buildings.length + 1).toString().padStart(2, '0')}`,
+        highShutters: 2,
+        lowShutters: 2
+      }]
     };
     
     setPredefinedStructure(prev => ({
