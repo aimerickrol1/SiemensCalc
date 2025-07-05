@@ -11,6 +11,7 @@ import { calculateCompliance, formatDeviation } from '@/utils/compliance';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAndroidBackButton } from '@/utils/BackHandler';
+import { LoadingScreen } from '@/components/LoadingScreen';
 
 export default function ShutterDetailScreen() {
   const { strings } = useLanguage();
@@ -218,14 +219,7 @@ export default function ShutterDetailScreen() {
   const styles = createStyles(theme);
 
   if (loading) {
-    return (
-      <View style={styles.container}>
-        <Header title={strings.loading} onBack={handleBack} />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{strings.loadingData}</Text>
-        </View>
-      </View>
-    );
+    return <LoadingScreen title={strings.loading} message={strings.loadingData} />;
   }
 
   if (!shutter || !zone || !building || !project) {

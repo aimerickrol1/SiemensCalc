@@ -6,6 +6,7 @@ import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
 import { ProjectCard } from '@/components/ProjectCard';
 import { CreateProjectModal } from '@/components/CreateProjectModal';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { Project } from '@/types';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -64,14 +65,7 @@ export default function ProjectsScreen() {
 
   // Affichage conditionnel pour éviter l'écran blanc
   if (isLoading || loading) {
-    return (
-      <View style={styles.container}>
-        <Header title="Chargement..." />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Chargement des projets...</Text>
-        </View>
-      </View>
-    );
+    return <LoadingScreen title="Chargement..." message="Chargement des projets..." />;
   }
 
   const handleCreateModal = () => {

@@ -9,6 +9,7 @@ import { calculateCompliance } from '@/utils/compliance';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { router } from 'expo-router';
 
 // Import conditionnel sécurisé pour éviter les erreurs sur web et Android
@@ -828,14 +829,7 @@ export default function ExportScreen() {
   const styles = createStyles(theme);
 
   if (loading) {
-    return (
-      <View style={styles.container}>
-        <Header title={strings.exportTitle} subtitle={strings.exportSubtitle} />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{strings.loading}</Text>
-        </View>
-      </View>
-    );
+    return <LoadingScreen title={strings.exportTitle} message={strings.loading} />;
   }
 
   if (error) {

@@ -10,6 +10,7 @@ import { useStorage } from '@/contexts/StorageContext';
 import { calculateCompliance, formatDeviation } from '@/utils/compliance';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { useFocusEffect } from '@react-navigation/native';
 
 type SearchMode = 'simple' | 'hierarchical';
@@ -783,9 +784,7 @@ export default function SearchScreen() {
                   </Text>
                   <View style={styles.resultsBadge}>
                     <Text style={styles.resultsBadgeText}>
-                      {results.length}
-                    </Text>
-                  </View>
+                  <LoadingScreen message={strings.searching} />
                 </View>
                 <FlatList
                   data={results}
