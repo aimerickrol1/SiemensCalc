@@ -90,8 +90,8 @@ export default function ExportScreen() {
   const handleCreateFirstProject = () => {
     try {
       router.push('/(tabs)/');
-      
-      // Utiliser notre fonction compatible avec toutes les plateformes
+
+      // Déclencher l'événement après un court délai pour s'assurer que la navigation est terminée
       setTimeout(() => {
         triggerCreateProjectModal();
       }, 300);

@@ -1,11 +1,8 @@
 import { Platform } from 'react-native';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'fbemitter';
 
 // Créer un émetteur d'événements global compatible avec toutes les plateformes
 const globalEventEmitter = new EventEmitter();
-
-// Augmenter le nombre maximum d'écouteurs pour éviter les avertissements
-globalEventEmitter.setMaxListeners(20);
 
 // Fonction pour émettre un événement
 export const emitEvent = (eventName: string, data?: any) => {
@@ -14,17 +11,19 @@ export const emitEvent = (eventName: string, data?: any) => {
 
 // Fonction pour ajouter un écouteur d'événement
 export const addEventListener = (eventName: string, listener: (...args: any[]) => void) => {
-  globalEventEmitter.on(eventName, listener);
+  const subscription = globalEventEmitter.addListener(eventName, listener);
   
   // Retourner une fonction pour supprimer l'écouteur
   return () => {
-    globalEventEmitter.off(eventName, listener);
+    subscription.remove();
   };
 };
 
 // Fonction pour supprimer un écouteur d'événement
 export const removeEventListener = (eventName: string, listener: (...args: any[]) => void) => {
-  globalEventEmitter.off(eventName, listener);
+  // Note: avec fbemitter, on utilise généralement la méthode remove() sur l'objet subscription
+  // Cette méthode est fournie pour compatibilité avec l'API précédente
+  // mais il est préférable d'utiliser la fonction de nettoyage retournée par addEventListener
 };
 
 // Fonction pour déclencher l'ouverture du modal de création de projet
