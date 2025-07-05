@@ -13,7 +13,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         // Optimisé pour Android
-        animation: Platform.OS === 'android' ? 'shift' : 'default',
+        animation: Platform.OS === 'web' ? 'none' : (Platform.OS === 'android' ? 'shift' : 'default'),
         animationDuration: Platform.OS === 'android' ? 200 : 250,
         tabBarStyle: {
           backgroundColor: theme.colors.tabBarBackground,

@@ -48,7 +48,7 @@ export default function RootLayout() {
             screenOptions={{ 
               headerShown: false,
               // Optimisé pour Android
-              animation: Platform.OS === 'android' ? 'slide_from_right' : 'default',
+              animation: Platform.OS === 'web' ? 'none' : (Platform.OS === 'android' ? 'slide_from_right' : 'default'),
               animationDuration: Platform.OS === 'android' ? 250 : 300,
             }}
           >
