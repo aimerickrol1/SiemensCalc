@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Platform } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { addEventListener } from '@/utils/EventEmitter';
+import { addEventListener, triggerCreateProjectModal } from '@/utils/EventEmitter';
 import { Plus, Building, Star, Trash2, SquareCheck as CheckSquare, Square } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
@@ -38,16 +38,16 @@ export default function ProjectsScreen() {
   // Utiliser le hook pour gérer le double appui sur le bouton retour pour quitter
   useDoubleBackToExit();
 
+  // Écouteur d'événement pour ouvrir le modal depuis la page export
   useEffect(() => {
-    // Utiliser notre émetteur d'événements compatible avec toutes les plateformes
     const handleOpenModal = () => {
       handleCreateModal();
     };
     
-    // Ajouter l'écouteur et récupérer la fonction de nettoyage
+    // Ajouter l'écouteur d'événement avec notre émetteur compatible
     const cleanup = addEventListener('openCreateProjectModal', handleOpenModal);
     
-    // Nettoyer l'écouteur au démontage
+    // Nettoyer l'écouteur au démontage du composant
     return cleanup;
   }, []);
 
