@@ -800,10 +800,6 @@ export default function ExportScreen() {
         );
       }
 
-      // Utiliser notre fonction compatible avec toutes les plateformes
-      setTimeout(() => {
-        triggerCreateProjectModal();
-      }, 300);
     } catch (error) {
       console.error('Erreur lors de l\'export HTML:', error);
       Alert.alert(
