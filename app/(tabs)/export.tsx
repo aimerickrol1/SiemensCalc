@@ -443,6 +443,44 @@ export default function ExportScreen() {
             color: #009999;
         }
         
+        /* Styles pour le bouton d'export PDF */
+        #export-pdf-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #009999;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            transition: all 0.2s ease;
+        }
+        
+        #export-pdf-button:hover {
+            background-color: #007a7a;
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        #export-pdf-button svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        @media print {
+            #export-pdf-button {
+                display: none;
+            }
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
@@ -674,6 +712,17 @@ export default function ExportScreen() {
                 © ${new Date().getFullYear()} Siemens - Tous droits réservés
             </div>
         </div>
+        
+        <!-- Bouton d'export PDF -->
+        <button id="export-pdf-button" onclick="window.print()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9v12h12V9"></path>
+                <path d="M6 9H4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-2"></path>
+                <path d="M6 9l6-6 6 6"></path>
+                <path d="M12 12v6"></path>
+            </svg>
+            Exporter en PDF
+        </button>
     </div>
 </body>
 </html>`;
