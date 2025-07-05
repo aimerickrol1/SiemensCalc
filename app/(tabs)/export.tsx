@@ -9,6 +9,7 @@ import { calculateCompliance } from '@/utils/compliance';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
+import { triggerCreateProjectModal } from '@/utils/EventEmitter';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { router } from 'expo-router';
 
@@ -90,14 +91,10 @@ export default function ExportScreen() {
     try {
       router.push('/(tabs)/');
       
-      // Déclencher l'événement seulement sur web
-      if (Platform.OS === 'web') {
-        setTimeout(() => {
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('openCreateProjectModal'));
-          }
-        }, 300);
-      }
+      // Utiliser notre fonction compatible avec toutes les plateformes
+      setTimeout(() => {
+        triggerCreateProjectModal();
+      }, 300);
     } catch (error) {
       console.error('Erreur de navigation:', error);
       router.push('/(tabs)/');

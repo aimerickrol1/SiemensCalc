@@ -12,6 +12,7 @@ import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useDoubleBackToExit } from '@/utils/BackHandler';
+import { addEventListener } from '@/utils/EventEmitter';
 
 export default function ProjectsScreen() {
   const { strings } = useLanguage();
@@ -37,19 +38,16 @@ export default function ProjectsScreen() {
   // Utiliser le hook pour gérer le double appui sur le bouton retour pour quitter
   useDoubleBackToExit();
 
-  // Écouteur d'événement pour ouvrir le modal depuis la page export
-  useEffect(() => {
+    // Utiliser notre émetteur d'événements compatible avec toutes les plateformes
     const handleOpenModal = () => {
       handleCreateModal();
     };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('openCreateProjectModal', handleOpenModal);
-      
-      return () => {
-        window.removeEventListener('openCreateProjectModal', handleOpenModal);
-      };
-    }
+    
+    // Ajouter l'écouteur et récupérer la fonction de nettoyage
+    const cleanup = addEventListener('openCreateProjectModal', handleOpenModal);
+    
+    // Nettoyer l'écouteur au démontage
+    return cleanup;
   }, []);
 
   useFocusEffect(
