@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Platform } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { addEventListener } from '@/utils/EventEmitter';
 import { Plus, Building, Star, Trash2, SquareCheck as CheckSquare, Square } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
@@ -12,6 +13,7 @@ import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useDoubleBackToExit } from '@/utils/BackHandler';
+import { addEventListener } from '@/utils/EventEmitter';
 
 export default function ProjectsScreen() {
   const { strings } = useLanguage();
@@ -38,26 +40,16 @@ export default function ProjectsScreen() {
   useDoubleBackToExit();
 
   useEffect(() => {
-    // Utiliser une approche compatible avec toutes les plateformes
-    if (Platform.OS === 'web') {
-      const handleOpenModal = () => {
-        handleCreateModal();
-      };
-
-      try {
-        // Ajouter l'écouteur d'événement seulement sur web
-        if (typeof window !== 'undefined') {
-          window.addEventListener('openCreateProjectModal', handleOpenModal);
-          
-          // Nettoyer l'écouteur au démontage
-          return () => {
-            window.removeEventListener('openCreateProjectModal', handleOpenModal);
-          };
-        }
-      } catch (error) {
-        console.warn('Erreur avec les événements window:', error);
-      }
-    }
+    // Utiliser notre émetteur d'événements compatible avec toutes les plateformes
+    const handleOpenModal = () => {
+      handleCreateModal();
+    };
+    
+    // Ajouter l'écouteur et récupérer la fonction de nettoyage
+    const cleanup = addEventListener('openCreateProjectModal', handleOpenModal);
+    
+    // Nettoyer l'écouteur au démontage
+    return cleanup;
   }, []);
 
   useFocusEffect(
@@ -187,8 +179,6 @@ export default function ProjectsScreen() {
   };
 
   const handleBulkFavorite = async () => {
-    if (selectedProjects.size === 0) return;
-
     const newFavorites = new Set(favoriteProjects || []);
     for (const projectId of selectedProjects) {
       if (newFavorites.has(projectId)) {
@@ -197,7 +187,6 @@ export default function ProjectsScreen() {
         newFavorites.add(projectId);
       }
     }
-    
     await setFavoriteProjects(Array.from(newFavorites));
     setSelectedProjects(new Set());
     setSelectionMode(false);
