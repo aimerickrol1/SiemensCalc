@@ -72,51 +72,35 @@ interface StorageContextType {
 
 const StorageContext = createContext<StorageContextType | undefined>(undefined);
 
-// Clés de stockage optimisées pour Android
+// Clés de stockage simplifiées
 const STORAGE_KEYS = {
-  PROJECTS: 'SIEMENS_PROJECTS_V2',
-  FAVORITE_PROJECTS: 'SIEMENS_FAV_PROJECTS_V2',
-  FAVORITE_BUILDINGS: 'SIEMENS_FAV_BUILDINGS_V2',
-  FAVORITE_ZONES: 'SIEMENS_FAV_ZONES_V2',
-  FAVORITE_SHUTTERS: 'SIEMENS_FAV_SHUTTERS_V2',
-  QUICK_CALC_HISTORY: 'SIEMENS_CALC_HISTORY_V2',
+  PROJECTS: 'SIEMENS_PROJECTS',
+  FAVORITE_PROJECTS: 'SIEMENS_FAV_PROJECTS',
+  FAVORITE_BUILDINGS: 'SIEMENS_FAV_BUILDINGS',
+  FAVORITE_ZONES: 'SIEMENS_FAV_ZONES',
+  FAVORITE_SHUTTERS: 'SIEMENS_FAV_SHUTTERS',
+  QUICK_CALC_HISTORY: 'SIEMENS_CALC_HISTORY',
 };
 
-// Fonction utilitaire pour générer un ID unique optimisé pour Android
+// Fonction utilitaire pour générer un ID unique
 function generateUniqueId(): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substr(2, 9);
   return `${timestamp}_${random}`;
 }
 
-// Fonction utilitaire pour gérer les erreurs AsyncStorage avec retry automatique
-async function safeAsyncStorageOperation<T>(
+// Fonction utilitaire sécurisée pour AsyncStorage
+async function safeStorageOperation<T>(
   operation: () => Promise<T>,
   fallback: T,
-  operationName: string,
-  maxRetries: number = 3
+  operationName: string
 ): Promise<T> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (__DEV__) {
-        console.warn(`AsyncStorage ${operationName} failed (attempt ${attempt}/${maxRetries}):`, error);
-      }
-      
-      if (attempt === maxRetries) {
-        if (__DEV__) {
-          console.error(`AsyncStorage ${operationName} failed after ${maxRetries} attempts, using fallback`);
-        }
-        return fallback;
-      }
-      
-      // Attendre un peu avant de réessayer (backoff exponentiel)
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));
-    }
+  try {
+    return await operation();
+  } catch (error) {
+    console.warn(`Storage ${operationName} failed:`, error);
+    return fallback;
   }
-  
-  return fallback;
 }
 
 interface StorageProviderProps {
@@ -151,18 +135,13 @@ export function StorageProvider({ children }: StorageProviderProps) {
     try {
       setIsLoading(true);
       
-      // Charger toutes les données en parallèle avec gestion d'erreur robuste
-      const results = await Promise.allSettled([
-        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.PROJECTS), null, 'getProjects'),
-        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_PROJECTS), null, 'getFavProjects'),
-        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_BUILDINGS), null, 'getFavBuildings'),
-        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_ZONES), null, 'getFavZones'),
-        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_SHUTTERS), null, 'getFavShutters'),
-        safeAsyncStorageOperation(() => AsyncStorage.getItem(STORAGE_KEYS.QUICK_CALC_HISTORY), null, 'getHistory'),
-      ]);
+      // Charger les projets
+      const projectsData = await safeStorageOperation(
+        () => AsyncStorage.getItem(STORAGE_KEYS.PROJECTS),
+        null,
+        'getProjects'
+      );
 
-      // Parser et convertir les projets avec gestion d'erreur robuste
-      const projectsData = results[0].status === 'fulfilled' ? results[0].value : null;
       if (projectsData) {
         try {
           const parsedProjects = JSON.parse(projectsData);
@@ -188,89 +167,75 @@ export function StorageProvider({ children }: StorageProviderProps) {
           })) : [];
           setProjects(processedProjects);
         } catch (error) {
-          if (__DEV__) {
-            console.warn('Erreur parsing projets:', error);
-          }
+          console.warn('Erreur parsing projets:', error);
           setProjects([]);
         }
       }
 
-      // Parser les favoris avec gestion d'erreur
-      const favProjectsData = results[1].status === 'fulfilled' ? results[1].value : null;
-      const favBuildingsData = results[2].status === 'fulfilled' ? results[2].value : null;
-      const favZonesData = results[3].status === 'fulfilled' ? results[3].value : null;
-      const favShuttersData = results[4].status === 'fulfilled' ? results[4].value : null;
-      const historyData = results[5].status === 'fulfilled' ? results[5].value : null;
+      // Charger les favoris
+      const favProjectsData = await safeStorageOperation(
+        () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_PROJECTS),
+        '[]',
+        'getFavProjects'
+      );
+      setFavoriteProjectsState(JSON.parse(favProjectsData));
 
+      const favBuildingsData = await safeStorageOperation(
+        () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_BUILDINGS),
+        '[]',
+        'getFavBuildings'
+      );
+      setFavoriteBuildingsState(JSON.parse(favBuildingsData));
+
+      const favZonesData = await safeStorageOperation(
+        () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_ZONES),
+        '[]',
+        'getFavZones'
+      );
+      setFavoriteZonesState(JSON.parse(favZonesData));
+
+      const favShuttersData = await safeStorageOperation(
+        () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_SHUTTERS),
+        '[]',
+        'getFavShutters'
+      );
+      setFavoriteShuttersState(JSON.parse(favShuttersData));
+
+      // Charger l'historique
+      const historyData = await safeStorageOperation(
+        () => AsyncStorage.getItem(STORAGE_KEYS.QUICK_CALC_HISTORY),
+        '[]',
+        'getHistory'
+      );
+      
       try {
-        setFavoriteProjectsState(favProjectsData ? JSON.parse(favProjectsData) : []);
+        const parsedHistory = JSON.parse(historyData);
+        const processedHistory = Array.isArray(parsedHistory) ? parsedHistory.map((item: any) => ({
+          ...item,
+          timestamp: new Date(item.timestamp || Date.now())
+        })) : [];
+        setQuickCalcHistoryState(processedHistory);
       } catch (error) {
-        setFavoriteProjectsState([]);
-      }
-
-      try {
-        setFavoriteBuildingsState(favBuildingsData ? JSON.parse(favBuildingsData) : []);
-      } catch (error) {
-        setFavoriteBuildingsState([]);
-      }
-
-      try {
-        setFavoriteZonesState(favZonesData ? JSON.parse(favZonesData) : []);
-      } catch (error) {
-        setFavoriteZonesState([]);
-      }
-
-      try {
-        setFavoriteShuttersState(favShuttersData ? JSON.parse(favShuttersData) : []);
-      } catch (error) {
-        setFavoriteShuttersState([]);
-      }
-
-      // Parser l'historique avec gestion d'erreur
-      if (historyData) {
-        try {
-          const parsedHistory = JSON.parse(historyData);
-          const processedHistory = Array.isArray(parsedHistory) ? parsedHistory.map((item: any) => ({
-            ...item,
-            timestamp: new Date(item.timestamp || Date.now())
-          })) : [];
-          setQuickCalcHistoryState(processedHistory);
-        } catch (error) {
-          if (__DEV__) {
-            console.warn('Erreur parsing historique:', error);
-          }
-          setQuickCalcHistoryState([]);
-        }
+        setQuickCalcHistoryState([]);
       }
 
       setIsInitialized(true);
     } catch (error) {
-      if (__DEV__) {
-        console.warn('Erreur initialisation storage:', error);
-      }
+      console.warn('Erreur initialisation storage:', error);
       setIsInitialized(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fonction utilitaire pour sauvegarder les projets avec retry automatique
-  const saveProjects = async (newProjects: Project[], retries = 5) => {
-    for (let i = 0; i < retries; i++) {
-      try {
-        await AsyncStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(newProjects));
-        setProjects(newProjects);
-        return;
-      } catch (error) {
-        if (__DEV__) {
-          console.warn(`Tentative ${i + 1} de sauvegarde échouée:`, error);
-        }
-        if (i === retries - 1) {
-          throw error;
-        }
-        // Attendre un peu avant de réessayer (backoff exponentiel)
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i + 1) * 100));
-      }
+  // Fonction utilitaire pour sauvegarder les projets
+  const saveProjects = async (newProjects: Project[]) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(newProjects));
+      setProjects(newProjects);
+    } catch (error) {
+      console.error('Erreur sauvegarde projets:', error);
+      throw error;
     }
   };
 
@@ -649,9 +614,9 @@ export function StorageProvider({ children }: StorageProviderProps) {
     return found;
   };
 
-  // Actions pour les favoris avec gestion d'erreur robuste
+  // Actions pour les favoris
   const setFavoriteProjects = async (favorites: string[]) => {
-    await safeAsyncStorageOperation(
+    await safeStorageOperation(
       () => AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_PROJECTS, JSON.stringify(favorites)),
       undefined,
       'setFavoriteProjects'
@@ -660,7 +625,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
   };
 
   const setFavoriteBuildings = async (favorites: string[]) => {
-    await safeAsyncStorageOperation(
+    await safeStorageOperation(
       () => AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_BUILDINGS, JSON.stringify(favorites)),
       undefined,
       'setFavoriteBuildings'
@@ -669,7 +634,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
   };
 
   const setFavoriteZones = async (favorites: string[]) => {
-    await safeAsyncStorageOperation(
+    await safeStorageOperation(
       () => AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_ZONES, JSON.stringify(favorites)),
       undefined,
       'setFavoriteZones'
@@ -678,7 +643,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
   };
 
   const setFavoriteShutters = async (favorites: string[]) => {
-    await safeAsyncStorageOperation(
+    await safeStorageOperation(
       () => AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_SHUTTERS, JSON.stringify(favorites)),
       undefined,
       'setFavoriteShutters'
@@ -686,7 +651,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     setFavoriteShuttersState(favorites);
   };
 
-  // Actions pour l'historique avec gestion d'erreur robuste
+  // Actions pour l'historique
   const addQuickCalcHistory = async (item: Omit<QuickCalcHistoryItem, 'id' | 'timestamp'>) => {
     const newItem: QuickCalcHistoryItem = {
       ...item,
@@ -696,7 +661,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     
     const newHistory = [newItem, ...quickCalcHistory].slice(0, 5);
     
-    await safeAsyncStorageOperation(
+    await safeStorageOperation(
       () => AsyncStorage.setItem(STORAGE_KEYS.QUICK_CALC_HISTORY, JSON.stringify(newHistory)),
       undefined,
       'addQuickCalcHistory'
@@ -705,7 +670,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
   };
 
   const clearQuickCalcHistory = async () => {
-    await safeAsyncStorageOperation(
+    await safeStorageOperation(
       () => AsyncStorage.setItem(STORAGE_KEYS.QUICK_CALC_HISTORY, JSON.stringify([])),
       undefined,
       'clearQuickCalcHistory'
@@ -717,7 +682,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     return quickCalcHistory;
   };
 
-  // Recherche optimisée
+  // Recherche
   const searchShutters = (query: string): SearchResult[] => {
     const results: SearchResult[] = [];
     const queryWords = query.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0);
@@ -760,9 +725,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       setFavoriteShuttersState([]);
       setQuickCalcHistoryState([]);
     } catch (error) {
-      if (__DEV__) {
-        console.warn('Erreur suppression données:', error);
-      }
+      console.warn('Erreur suppression données:', error);
       throw error;
     }
   };

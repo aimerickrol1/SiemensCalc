@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
@@ -7,20 +7,22 @@ import * as SplashScreen from 'expo-splash-screen';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { StorageProvider } from '@/contexts/StorageContext';
-import { Platform } from 'react-native';
+import { Platform, View, Text } from 'react-native';
 
-// Prévenir l'auto-hide du splash screen seulement si disponible et pas sur web
-if (Platform.OS !== 'web' && SplashScreen?.preventAutoHideAsync) {
+// Prévenir l'auto-hide du splash screen SEULEMENT sur mobile
+if (Platform.OS !== 'web') {
   try {
     SplashScreen.preventAutoHideAsync();
   } catch (error) {
-    // Ignorer l'erreur silencieusement pour éviter les crashes
-    console.warn('SplashScreen preventAutoHideAsync failed:', error);
+    // Ignorer silencieusement
   }
 }
 
 export default function RootLayout() {
   useFrameworkReady();
+  
+  const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,
@@ -30,22 +32,86 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      // Seulement cacher le splash screen si la fonction existe et pas sur web
-      if (Platform.OS !== 'web' && SplashScreen?.hideAsync) {
-        try {
-          SplashScreen.hideAsync();
-        } catch (error) {
-          // Ignorer l'erreur silencieusement
-          console.warn('SplashScreen hideAsync failed:', error);
+    const initializeApp = async () => {
+      try {
+        // Attendre que les polices soient chargées ou qu'il y ait une erreur
+        if (fontsLoaded || fontError) {
+          // Cacher le splash screen seulement sur mobile
+          if (Platform.OS !== 'web') {
+            try {
+              await SplashScreen.hideAsync();
+            } catch (error) {
+              // Ignorer l'erreur
+            }
+          }
+          
+          // Marquer l'app comme prête
+          setIsReady(true);
         }
+      } catch (error) {
+        console.error('Erreur initialisation app:', error);
+        setError('Erreur de démarrage');
+        setIsReady(true); // Continuer malgré l'erreur
       }
-    }
+    };
+
+    initializeApp();
   }, [fontsLoaded, fontError]);
 
-  // Attendre que les polices soient chargées seulement sur mobile
-  if (Platform.OS !== 'web' && !fontsLoaded && !fontError) {
-    return null;
+  // Écran de chargement simple
+  if (!isReady) {
+    return (
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        backgroundColor: '#009999' 
+      }}>
+        <Text style={{ 
+          color: 'white', 
+          fontSize: 18, 
+          fontWeight: 'bold' 
+        }}>
+          Siemens CalcConform
+        </Text>
+        <Text style={{ 
+          color: 'white', 
+          fontSize: 14, 
+          marginTop: 8 
+        }}>
+          Chargement...
+        </Text>
+      </View>
+    );
+  }
+
+  // Écran d'erreur simple
+  if (error) {
+    return (
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        backgroundColor: '#f8f9fa',
+        padding: 20 
+      }}>
+        <Text style={{ 
+          color: '#dc3545', 
+          fontSize: 18, 
+          fontWeight: 'bold',
+          marginBottom: 8 
+        }}>
+          Erreur de démarrage
+        </Text>
+        <Text style={{ 
+          color: '#6c757d', 
+          fontSize: 14,
+          textAlign: 'center' 
+        }}>
+          {error}
+        </Text>
+      </View>
+    );
   }
 
   return (
@@ -55,17 +121,11 @@ export default function RootLayout() {
           <Stack 
             screenOptions={{ 
               headerShown: false,
-              // Animation optimisée pour chaque plateforme
               animation: Platform.select({
                 web: 'none',
                 android: 'slide_from_right',
                 ios: 'default',
-                default: 'none'
-              }),
-              animationDuration: Platform.select({
-                android: 250,
-                ios: 300,
-                default: 0
+                default: 'slide_from_right'
               }),
             }}
           >

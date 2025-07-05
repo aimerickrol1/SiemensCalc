@@ -25,7 +25,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       setCurrentLanguage(lang);
       setStrings(getStrings());
     } catch (error) {
-      console.log('Erreur lors de l\'initialisation de la langue:', error);
+      console.warn('Erreur lors de l\'initialisation de la langue:', error);
     }
   }, []);
 
@@ -35,7 +35,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       setCurrentLanguage(lang);
       setStrings(getStrings());
     } catch (error) {
-      console.log('Erreur lors du changement de langue:', error);
+      console.warn('Erreur lors du changement de langue:', error);
     }
   };
 

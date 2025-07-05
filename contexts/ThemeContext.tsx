@@ -130,7 +130,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const theme = getCurrentTheme();
   const isDark = theme.mode === 'dark';
 
-  // Fonction simple pour changer le thème (sans AsyncStorage pour éviter les crashes)
+  // Fonction simple pour changer le thème
   const setThemeMode = (mode: ThemeMode) => {
     setThemeModeState(mode);
   };
