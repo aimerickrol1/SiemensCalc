@@ -8,6 +8,7 @@ import { useStorage } from '@/contexts/StorageContext';
 import { calculateCompliance } from '@/utils/compliance';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { triggerCreateProjectModal } from '@/utils/EventEmitter';
 import { useFocusEffect } from '@react-navigation/native';
 import { triggerCreateProjectModal } from '@/utils/EventEmitter';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -790,15 +791,11 @@ export default function ExportScreen() {
             'Le rapport a été généré avec succès.',
             [{ text: 'OK' }]
           );
-        }
-      } else {
-        // Fallback si les modules ne sont pas disponibles
-        Alert.alert(
-          'Export réussi',
-          'Le rapport a été généré avec succès.',
-          [{ text: 'OK' }]
-        );
-      }
+
+      // Utiliser notre fonction compatible avec toutes les plateformes
+      setTimeout(() => {
+        triggerCreateProjectModal();
+      }, 300);
     } catch (error) {
       console.error('Erreur lors de l\'export HTML:', error);
       Alert.alert(
