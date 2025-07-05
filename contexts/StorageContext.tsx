@@ -133,6 +133,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
 
   const initializeStorage = async () => {
     try {
+      console.log('📦 Initialisation du stockage...');
       setIsLoading(true);
       
       // Charger les projets
@@ -166,13 +167,17 @@ export function StorageProvider({ children }: StorageProviderProps) {
             }))
           })) : [];
           setProjects(processedProjects);
+          console.log(`✅ ${processedProjects.length} projets chargés`);
         } catch (error) {
           console.warn('Erreur parsing projets:', error);
           setProjects([]);
         }
+      } else {
+        console.log('📝 Aucun projet existant');
+        setProjects([]);
       }
 
-      // Charger les favoris
+      // Charger les favoris de manière séquentielle pour éviter les problèmes
       const favProjectsData = await safeStorageOperation(
         () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_PROJECTS),
         '[]',
@@ -219,9 +224,10 @@ export function StorageProvider({ children }: StorageProviderProps) {
         setQuickCalcHistoryState([]);
       }
 
+      console.log('✅ Stockage initialisé avec succès');
       setIsInitialized(true);
     } catch (error) {
-      console.warn('Erreur initialisation storage:', error);
+      console.error('❌ Erreur initialisation storage:', error);
       setIsInitialized(true);
     } finally {
       setIsLoading(false);
