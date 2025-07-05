@@ -229,7 +229,8 @@ export default function ProjectsScreen() {
   };
 
   const handleToggleFavorite = async (projectId: string) => {
-    const newFavorites = new Set(favoriteProjects);
+    // Protection contre null/undefined
+    const newFavorites = new Set(favoriteProjects || []);
     if (newFavorites.has(projectId)) {
       newFavorites.delete(projectId);
     } else {
@@ -262,8 +263,9 @@ export default function ProjectsScreen() {
 
   // Trier les projets : favoris en premier
   const sortedProjects = [...projects].sort((a, b) => {
-    const aIsFavorite = favoriteProjects.includes(a.id);
-    const bIsFavorite = favoriteProjects.includes(b.id);
+    // Protection contre null/undefined
+    const aIsFavorite = Array.isArray(favoriteProjects) && favoriteProjects.includes(a.id);
+    const bIsFavorite = Array.isArray(favoriteProjects) && favoriteProjects.includes(b.id);
     
     if (aIsFavorite && !bIsFavorite) return -1;
     if (!aIsFavorite && bIsFavorite) return 1;
@@ -273,7 +275,7 @@ export default function ProjectsScreen() {
   const renderProject = ({ item }: { item: Project }) => (
     <ProjectCard
       project={item}
-      isFavorite={favoriteProjects.includes(item.id)}
+      isFavorite={Array.isArray(favoriteProjects) && favoriteProjects.includes(item.id)}
       isSelected={selectedProjects.has(item.id)}
       selectionMode={selectionMode}
       onPress={() => handleProjectPress(item)}

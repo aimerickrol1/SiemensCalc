@@ -32,9 +32,11 @@ export function ProjectCard({
 
   const getProjectStats = () => {
     const buildingCount = project.buildings.length;
-    const zoneCount = project.buildings.reduce((total, building) => total + building.functionalZones.length, 0);
+    const zoneCount = project.buildings.reduce((total, building) => 
+      total + (building.functionalZones ? building.functionalZones.length : 0), 0);
     const shutterCount = project.buildings.reduce((total, building) => 
-      total + building.functionalZones.reduce((zoneTotal, zone) => zoneTotal + zone.shutters.length, 0), 0);
+      total + (building.functionalZones ? building.functionalZones.reduce((zoneTotal, zone) => 
+        zoneTotal + (zone.shutters ? zone.shutters.length : 0), 0) : 0), 0);
 
     let compliantCount = 0;
     let acceptableCount = 0;
@@ -42,25 +44,30 @@ export function ProjectCard({
     let totalMeasuredShutters = 0;
 
     project.buildings.forEach(building => {
-      building.functionalZones.forEach(zone => {
-        zone.shutters.forEach(shutter => {
-          if (shutter.referenceFlow > 0) {
-            totalMeasuredShutters++;
-            const compliance = calculateCompliance(shutter.referenceFlow, shutter.measuredFlow);
-            switch (compliance.status) {
-              case 'compliant':
-                compliantCount++;
-                break;
-              case 'acceptable':
-                acceptableCount++;
-                break;
-              case 'non-compliant':
-                nonCompliantCount++;
-                break;
+      if (building.functionalZones) {
+        building.functionalZones.forEach(zone => {
+          if (zone.shutters) {
+            zone.shutters.forEach(shutter => {
+              if (shutter.referenceFlow > 0) {
+                totalMeasuredShutters++;
+                const compliance = calculateCompliance(shutter.referenceFlow, shutter.measuredFlow);
+                switch (compliance.status) {
+                  case 'compliant':
+                    compliantCount++;
+                    break;
+                  case 'acceptable':
+                    acceptableCount++;
+                    break;
+                  case 'non-compliant':
+                    nonCompliantCount++;
+                    break;
+                }
+              }
+            });
             }
           }
         });
-      });
+      }
     });
 
     const complianceRate = totalMeasuredShutters > 0 ? 

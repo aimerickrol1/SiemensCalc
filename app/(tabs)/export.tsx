@@ -103,7 +103,8 @@ export default function ExportScreen() {
 
   const generateProjectReport = (project: Project) => {
     const totalShutters = project.buildings.reduce((total, building) => 
-      total + building.functionalZones.reduce((zoneTotal, zone) => zoneTotal + zone.shutters.length, 0), 0
+      total + (building.functionalZones ? building.functionalZones.reduce((zoneTotal, zone) => 
+        zoneTotal + (zone.shutters ? zone.shutters.length : 0), 0) : 0), 0
     );
     
     let compliantCount = 0;
@@ -112,25 +113,30 @@ export default function ExportScreen() {
     let totalMeasuredShutters = 0;
 
     project.buildings.forEach(building => {
-      building.functionalZones.forEach(zone => {
-        zone.shutters.forEach(shutter => {
-          if (shutter.referenceFlow > 0) {
-            totalMeasuredShutters++;
-            const compliance = calculateCompliance(shutter.referenceFlow, shutter.measuredFlow);
-            switch (compliance.status) {
-              case 'compliant':
-                compliantCount++;
-                break;
-              case 'acceptable':
-                acceptableCount++;
-                break;
-              case 'non-compliant':
-                nonCompliantCount++;
-                break;
+      if (building.functionalZones) {
+        building.functionalZones.forEach(zone => {
+          if (zone.shutters) {
+            zone.shutters.forEach(shutter => {
+              if (shutter.referenceFlow > 0) {
+                totalMeasuredShutters++;
+                const compliance = calculateCompliance(shutter.referenceFlow, shutter.measuredFlow);
+                switch (compliance.status) {
+                  case 'compliant':
+                    compliantCount++;
+                    break;
+                  case 'acceptable':
+                    acceptableCount++;
+                    break;
+                  case 'non-compliant':
+                    nonCompliantCount++;
+                    break;
+                }
+              }
+            });
             }
           }
         });
-      });
+      }
     });
 
     const complianceRate = totalMeasuredShutters > 0 ? 

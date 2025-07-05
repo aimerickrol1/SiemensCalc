@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform, View } from 'react-native';
+import { Platform } from 'react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -11,8 +11,11 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
+        // Configuration de base
         headerShown: false,
-        // Suppression des options d'animation problématiques
+        // Désactiver les animations pour éviter les erreurs
+        animationEnabled: false,
+        // Style de la barre d'onglets
         tabBarStyle: {
           backgroundColor: theme.colors.tabBarBackground,
           borderTopWidth: 0,
@@ -36,13 +39,10 @@ export default function TabLayout() {
         tabBarActiveTintColor: theme.colors.tabBarActive,
         tabBarInactiveTintColor: theme.colors.tabBarInactive,
         tabBarShowLabel: false,
-        // Utilisation de l'API stable pour les icônes
         tabBarIconStyle: {
           marginTop: -4,
           marginBottom: 0,
-        },
-        // Désactiver les transitions problématiques
-        animationEnabled: false
+        }
       }}>
       <Tabs.Screen
         name="index"
@@ -92,32 +92,32 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          href: null,
+          href: null
           title: 'Paramètres',
         }}
       />
       <Tabs.Screen
         name="project"
         options={{
-          href: null,
+          href: null
         }}
       />
       <Tabs.Screen
         name="building"
         options={{
-          href: null,
+          href: null
         }}
       />
       <Tabs.Screen
         name="zone"
         options={{
-          href: null,
+          href: null
         }}
       />
       <Tabs.Screen
         name="shutter"
         options={{
-          href: null,
+          href: null
         }}
       />
     </Tabs>
