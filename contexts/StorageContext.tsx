@@ -495,6 +495,8 @@ export function StorageProvider({ children }: StorageProviderProps) {
             updatedAt: new Date()
           };
           
+          console.log('💾 Création du volet:', newShutter.name, 'dans la zone:', zoneId);
+          
           newProjects[i] = {
             ...newProjects[i],
             buildings: [
@@ -516,11 +518,13 @@ export function StorageProvider({ children }: StorageProviderProps) {
           };
           
           await saveProjects(newProjects);
+          console.log('✅ Volet sauvegardé:', newShutter.name);
           return newShutter;
         }
       }
     }
     
+    console.error('❌ Zone non trouvée pour créer le volet:', zoneId);
     return null;
   };
 

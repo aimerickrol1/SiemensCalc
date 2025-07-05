@@ -105,19 +105,24 @@ export default function ProjectsScreen() {
         console.log('🏢 Création de la structure prédéfinie...');
         
         for (const buildingData of predefinedStructure.buildings) {
+          console.log('🏗️ Création du bâtiment:', buildingData.name);
           const building = await createBuilding(project.id, {
             name: buildingData.name,
           });
           
           if (building) {
+            console.log('✅ Bâtiment créé:', building.id);
             for (const zoneData of buildingData.zones) {
+              console.log('🏢 Création de la zone:', zoneData.name);
               const zone = await createFunctionalZone(building.id, {
                 name: zoneData.name,
               });
               
               if (zone) {
+                console.log('✅ Zone créée:', zone.id);
                 // Créer les volets hauts
                 for (let i = 1; i <= zoneData.highShutters; i++) {
+                  console.log(`🔲 Création volet haut VH${i.toString().padStart(2, '0')}`);
                   await createShutter(zone.id, {
                     name: `VH${i.toString().padStart(2, '0')}`,
                     type: 'high',
@@ -128,6 +133,7 @@ export default function ProjectsScreen() {
                 
                 // Créer les volets bas
                 for (let i = 1; i <= zoneData.lowShutters; i++) {
+                  console.log(`🔲 Création volet bas VB${i.toString().padStart(2, '0')}`);
                   await createShutter(zone.id, {
                     name: `VB${i.toString().padStart(2, '0')}`,
                     type: 'low',
@@ -135,10 +141,15 @@ export default function ProjectsScreen() {
                     measuredFlow: 0,
                   });
                 }
+              } else {
+                console.error('❌ Erreur: Zone non créée pour', zoneData.name);
               }
             }
+          } else {
+            console.error('❌ Erreur: Bâtiment non créé pour', buildingData.name);
           }
         }
+        console.log('✅ Structure prédéfinie créée avec succès');
       }
       
       setCreateModalVisible(false);
