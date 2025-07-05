@@ -13,7 +13,6 @@ import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useDoubleBackToExit } from '@/utils/BackHandler';
-import { addEventListener } from '@/utils/EventEmitter';
 
 export default function ProjectsScreen() {
   const { strings } = useLanguage();
