@@ -22,10 +22,8 @@ const loadNativeModules = async () => {
   }
   
   try {
-    const [fsModule, sharingModule] = await Promise.all([
-      import('expo-file-system').catch(() => null),
-      import('expo-sharing').catch(() => null)
-    ]);
+    const fsModule = await import('expo-file-system').catch(() => null);
+    const sharingModule = await import('expo-sharing').catch(() => null);
     
     FileSystem = fsModule?.default || fsModule;
     Sharing = sharingModule?.default || sharingModule;

@@ -9,13 +9,13 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { StorageProvider } from '@/contexts/StorageContext';
 import { Platform, View, Text, StyleSheet } from 'react-native';
 
-// Prévenir l'auto-hide du splash screen SEULEMENT sur mobile
-if (Platform.OS !== 'web') {
-  try {
+// Prévenir l'auto-hide du splash screen de manière sécurisée
+try {
+  if (Platform.OS !== 'web') {
     SplashScreen.preventAutoHideAsync();
-  } catch (error) {
-    // Ignorer silencieusement
   }
+} catch (error) {
+  console.warn('SplashScreen error:', error);
 }
 
 // Composant de chargement simple
