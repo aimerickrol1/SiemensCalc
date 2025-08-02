@@ -9,49 +9,6 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { StorageProvider } from '@/contexts/StorageContext';
 import { Platform, View, Text, StyleSheet } from 'react-native';
 
-// Configuration spécifique pour le web mobile
-if (Platform.OS === 'web') {
-  // Empêcher le zoom sur les inputs sur iOS Safari
-  const meta = document.createElement('meta');
-  meta.name = 'viewport';
-  meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
-  document.head.appendChild(meta);
-  
-  // Charger les styles CSS pour PWA
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = '/web-app-styles.css';
-  document.head.appendChild(link);
-  
-  // Ajouter le manifest pour PWA
-  const manifestLink = document.createElement('link');
-  manifestLink.rel = 'manifest';
-  manifestLink.href = '/manifest.json';
-  document.head.appendChild(manifestLink);
-  
-  // Ajouter les meta tags pour iOS
-  const appleMobileWebAppCapable = document.createElement('meta');
-  appleMobileWebAppCapable.name = 'apple-mobile-web-app-capable';
-  appleMobileWebAppCapable.content = 'yes';
-  document.head.appendChild(appleMobileWebAppCapable);
-  
-  const appleMobileWebAppStatusBarStyle = document.createElement('meta');
-  appleMobileWebAppStatusBarStyle.name = 'apple-mobile-web-app-status-bar-style';
-  appleMobileWebAppStatusBarStyle.content = 'default';
-  document.head.appendChild(appleMobileWebAppStatusBarStyle);
-  
-  const appleMobileWebAppTitle = document.createElement('meta');
-  appleMobileWebAppTitle.name = 'apple-mobile-web-app-title';
-  appleMobileWebAppTitle.content = 'Siemens CalcConform';
-  document.head.appendChild(appleMobileWebAppTitle);
-  
-  // Ajouter l'icône pour iOS
-  const appleIcon = document.createElement('link');
-  appleIcon.rel = 'apple-touch-icon';
-  appleIcon.href = '/assets/images/icon.png';
-  document.head.appendChild(appleIcon);
-}
-
 // Prévenir l'auto-hide du splash screen de manière sécurisée
 try {
   if (Platform.OS !== 'web') {
@@ -90,6 +47,51 @@ export default function RootLayout() {
   
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Configuration spécifique pour le web mobile
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      // Empêcher le zoom sur les inputs sur iOS Safari
+      const meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+      document.head.appendChild(meta);
+      
+      // Charger les styles CSS pour PWA
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/web-app-styles.css';
+      document.head.appendChild(link);
+      
+      // Ajouter le manifest pour PWA
+      const manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      manifestLink.href = '/manifest.json';
+      document.head.appendChild(manifestLink);
+      
+      // Ajouter les meta tags pour iOS
+      const appleMobileWebAppCapable = document.createElement('meta');
+      appleMobileWebAppCapable.name = 'apple-mobile-web-app-capable';
+      appleMobileWebAppCapable.content = 'yes';
+      document.head.appendChild(appleMobileWebAppCapable);
+      
+      const appleMobileWebAppStatusBarStyle = document.createElement('meta');
+      appleMobileWebAppStatusBarStyle.name = 'apple-mobile-web-app-status-bar-style';
+      appleMobileWebAppStatusBarStyle.content = 'default';
+      document.head.appendChild(appleMobileWebAppStatusBarStyle);
+      
+      const appleMobileWebAppTitle = document.createElement('meta');
+      appleMobileWebAppTitle.name = 'apple-mobile-web-app-title';
+      appleMobileWebAppTitle.content = 'Siemens CalcConform';
+      document.head.appendChild(appleMobileWebAppTitle);
+      
+      // Ajouter l'icône pour iOS
+      const appleIcon = document.createElement('link');
+      appleIcon.rel = 'apple-touch-icon';
+      appleIcon.href = '/assets/images/icon.png';
+      document.head.appendChild(appleIcon);
+    }
+  }, []);
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,
