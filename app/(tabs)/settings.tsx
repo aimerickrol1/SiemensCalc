@@ -464,31 +464,32 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: Platform.OS === 'web' ? 40 : 20,
+    paddingBottom: Platform.OS === 'web' ? 120 : 20, // Espace pour la tab bar fixe
   },
   modalContent: {
     backgroundColor: theme.colors.surface,
     borderRadius: 16,
-    padding: 24,
+    padding: Platform.OS === 'web' ? 20 : 24,
     width: '100%',
     maxWidth: 400,
-    maxHeight: '80%',
+    maxHeight: Platform.OS === 'web' ? '70%' : '80%', // Réduire la hauteur sur web
   },
   themeModalContent: {
     backgroundColor: theme.colors.surface,
     borderRadius: 16,
-    padding: 24,
+    padding: Platform.OS === 'web' ? 20 : 24,
     width: '100%',
     maxWidth: 450,
-    maxHeight: '70%',
+    maxHeight: Platform.OS === 'web' ? '60%' : '70%', // Réduire la hauteur sur web
   },
   languageModalContent: {
     backgroundColor: theme.colors.surface,
     borderRadius: 16,
-    padding: 24,
+    padding: Platform.OS === 'web' ? 20 : 24,
     width: '100%',
     maxWidth: 450,
-    maxHeight: '85%',
+    maxHeight: Platform.OS === 'web' ? '70%' : '85%', // Réduire la hauteur sur web
   },
   modalHeader: {
     flexDirection: 'row',

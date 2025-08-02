@@ -1432,7 +1432,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: Platform.OS === 'web' ? 40 : 20,
+    paddingBottom: Platform.OS === 'web' ? 120 : 20, // Espace pour la tab bar fixe
   },
   modalContent: {
     backgroundColor: theme.colors.surface,
