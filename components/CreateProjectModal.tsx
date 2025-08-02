@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
 import { X, Plus, Minus } from 'lucide-react-native';
 import { Input } from '@/components/Input';
 import { DateInput } from '@/components/DateInput';
