@@ -25,7 +25,10 @@ export default function TabLayout() {
             web: 16, // Padding augmenté pour web
             default: 8
           }),
-          paddingTop: 12,
+          paddingTop: Platform.select({
+            web: 8,
+            default: 12
+          }),
           height: Platform.select({
             android: 56,
             ios: 68,
@@ -41,6 +44,22 @@ export default function TabLayout() {
         tabBarActiveTintColor: theme.colors.tabBarActive,
         tabBarInactiveTintColor: theme.colors.tabBarInactive,
         tabBarShowLabel: true,
+        tabBarLabelStyle: {
+          fontSize: Platform.select({
+            web: 11,
+            default: 12
+          }),
+          marginTop: Platform.select({
+            web: 2,
+            default: 0
+          }),
+        },
+        tabBarIconStyle: {
+          marginTop: Platform.select({
+            web: 4,
+            default: 0
+          }),
+        },
       }}>
       <Tabs.Screen
         name="index"
