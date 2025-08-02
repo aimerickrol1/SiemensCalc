@@ -22,14 +22,14 @@ export default function TabLayout() {
           paddingBottom: Platform.select({
             android: 8,
             ios: 20,
-            web: 8, // Padding spécifique pour web
+            web: 16, // Padding augmenté pour web
             default: 8
           }),
           paddingTop: 12,
           height: Platform.select({
             android: 56,
             ios: 68,
-            web: 60, // Hauteur optimisée pour web mobile
+            web: 80, // Hauteur augmentée pour web mobile
             default: 56
           }),
           shadowColor: '#000',
@@ -37,30 +37,10 @@ export default function TabLayout() {
           shadowOpacity: 0.1,
           shadowRadius: 4,
           elevation: 8,
-          // Amélioration pour web mobile
-          ...(Platform.OS === 'web' && {
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            borderTopWidth: 1,
-            borderTopColor: theme.colors.border,
-          }),
         },
         tabBarActiveTintColor: theme.colors.tabBarActive,
         tabBarInactiveTintColor: theme.colors.tabBarInactive,
-        tabBarShowLabel: Platform.OS === 'web', // Afficher les labels sur web pour une meilleure UX
-        tabBarLabelStyle: Platform.OS === 'web' ? {
-          fontSize: 10,
-          fontFamily: 'Inter-Medium',
-          marginTop: -4,
-          marginBottom: 4,
-        } : undefined,
-        tabBarIconStyle: {
-          marginTop: Platform.OS === 'web' ? -2 : -4,
-          marginBottom: 0,
-        }
+        tabBarShowLabel: true,
       }}>
       <Tabs.Screen
         name="index"
