@@ -43,17 +43,7 @@ export default function TabLayout() {
         },
         tabBarActiveTintColor: theme.colors.tabBarActive,
         tabBarInactiveTintColor: theme.colors.tabBarInactive,
-        tabBarShowLabel: true,
-        tabBarLabelStyle: {
-          fontSize: Platform.select({
-            web: 11,
-            default: 12
-          }),
-          marginTop: Platform.select({
-            web: 2,
-            default: 0
-          }),
-        },
+        tabBarShowLabel: false,
         tabBarIconStyle: {
           marginTop: Platform.select({
             web: 4,
