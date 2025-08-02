@@ -35,7 +35,33 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/icon.png",
+      "name": "Siemens CalcConform",
+      "shortName": "CalcConform",
+      "lang": "fr",
+      "scope": "/",
+      "themeColor": "#009999",
+      "backgroundColor": "#ffffff",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "preferRelatedApplications": false,
+      "relatedApplications": [],
+      "shortcuts": [
+        {
+          "name": "Calcul rapide",
+          "short_name": "Calcul",
+          "description": "Accès rapide au calculateur de conformité",
+          "url": "/simple",
+          "icons": [
+            {
+              "src": "./assets/images/icon.png",
+              "sizes": "192x192",
+              "type": "image/png"
+            }
+          ]
+        }
+      ]
     },
     "plugins": [
       "expo-router",

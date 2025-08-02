@@ -130,8 +130,16 @@ export default function SimpleCalculatorScreen() {
   return (
     <KeyboardAvoidingView 
       style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      behavior={Platform.select({
+        ios: 'padding',
+        web: 'height',
+        default: 'height'
+      })}
+      keyboardVerticalOffset={Platform.select({
+        ios: 0,
+        web: 0,
+        default: 20
+      })}
     >
       <Header 
         title={strings.quickCalc} 
@@ -141,7 +149,10 @@ export default function SimpleCalculatorScreen() {
       <ScrollView 
         ref={scrollViewRef}
         style={styles.content} 
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.contentContainer,
+          Platform.OS === 'web' && styles.contentContainerWeb
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -326,6 +337,9 @@ const createStyles = (theme: any) => StyleSheet.create({
   contentContainer: {
     padding: 16,
     paddingBottom: 100,
+  },
+  contentContainerWeb: {
+    paddingBottom: Platform.OS === 'web' ? 120 : 100, // Padding supplémentaire sur web
   },
   calculatorHeader: {
     flexDirection: 'row',

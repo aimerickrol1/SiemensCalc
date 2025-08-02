@@ -912,7 +912,10 @@ export default function ExportScreen() {
       
       <ScrollView 
         style={styles.content} 
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.contentContainer,
+          Platform.OS === 'web' && styles.contentContainerWeb
+        ]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -979,6 +982,9 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
+  },
+  contentContainerWeb: {
+    paddingBottom: Platform.OS === 'web' ? 100 : 16,
   },
   loadingContainer: {
     flex: 1,

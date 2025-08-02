@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, Platform } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface ButtonProps {
@@ -26,6 +26,7 @@ export function Button({
     getVariantStyle(variant, theme),
     getSizeStyle(size),
     disabled && getDisabledStyle(theme),
+    Platform.OS === 'web' && styles.webOptimized,
     style
   ];
 
@@ -41,7 +42,7 @@ export function Button({
       style={buttonStyle}
       onPress={onPress}
       disabled={disabled}
-      activeOpacity={0.8}
+      activeOpacity={Platform.OS === 'web' ? 0.9 : 0.8}
     >
       <Text style={textStyle}>{title}</Text>
     </TouchableOpacity>
@@ -142,6 +143,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  webOptimized: {
+    // Optimisations pour web mobile
+    cursor: 'pointer',
+    userSelect: 'none',
+    WebkitTapHighlightColor: 'transparent',
+    WebkitUserSelect: 'none',
   },
   text: {
     fontFamily: 'Inter-Medium',

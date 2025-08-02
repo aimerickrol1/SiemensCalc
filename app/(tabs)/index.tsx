@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, ScrollView, TextInput, Platform } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Plus, Settings, Building, Star, Trash2, SquareCheck as CheckSquare, Square, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
@@ -378,7 +378,7 @@ export default function ProjectsScreen() {
         </View>
       )}
 
-      <View style={styles.content}>
+      <View style={[styles.content, Platform.OS === 'web' && styles.contentWeb]}>
         {projects.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Building size={64} color={theme.colors.textTertiary} />
@@ -397,7 +397,10 @@ export default function ProjectsScreen() {
             data={sortedProjects}
             renderItem={renderProject}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContainer}
+            contentContainerStyle={[
+              styles.listContainer,
+              Platform.OS === 'web' && styles.listContainerWeb
+            ]}
             showsVerticalScrollIndicator={false}
           />
         )}
@@ -420,6 +423,10 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  contentWeb: {
+    // Ajouter un padding bottom pour éviter que le contenu soit caché par la tab bar
+    paddingBottom: Platform.OS === 'web' ? 80 : 0,
   },
   headerActions: {
     flexDirection: 'row',
@@ -498,5 +505,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   listContainer: {
     padding: 16,
+  },
+  listContainerWeb: {
+    paddingBottom: Platform.OS === 'web' ? 100 : 16, // Padding supplémentaire sur web
   },
 });

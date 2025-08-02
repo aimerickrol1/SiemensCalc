@@ -730,6 +730,7 @@ export default function SearchScreen() {
       
       <ScrollView 
         style={styles.content}
+        contentContainerStyle={Platform.OS === 'web' ? styles.contentContainerWeb : undefined}
         showsVerticalScrollIndicator={false}
       >
         {renderModeSelector()}
@@ -822,6 +823,9 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  contentContainerWeb: {
+    paddingBottom: Platform.OS === 'web' ? 100 : 0,
   },
   modeSelectorContainer: {
     backgroundColor: theme.colors.surface,

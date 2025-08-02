@@ -30,11 +30,15 @@ export function Input({ label, error, containerStyle, style, clearZeroOnFocus = 
         style={[
           styles.input,
           error && styles.inputError,
+          Platform.OS === 'web' && styles.inputWeb,
           style
         ]}
         placeholderTextColor={theme.colors.textTertiary}
         returnKeyType="done"
         blurOnSubmit={true}
+        autoComplete="off"
+        autoCorrect={false}
+        spellCheck={false}
         {...props}
         onFocus={handleFocus}
       />
@@ -64,6 +68,13 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.inputBackground,
     color: theme.colors.text,
     minHeight: Platform.OS === 'ios' ? 48 : 44,
+  },
+  inputWeb: {
+    // Optimisations spécifiques pour web mobile
+    fontSize: 16, // Empêcher le zoom sur iOS Safari
+    outline: 'none',
+    WebkitAppearance: 'none',
+    WebkitTapHighlightColor: 'transparent',
   },
   inputError: {
     borderColor: theme.colors.error,

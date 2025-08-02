@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -28,15 +28,15 @@ export function Header({ title, subtitle, onBack, rightComponent, showSettings =
   const styles = createStyles(theme);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, Platform.OS === 'web' && styles.containerWeb]}>
       {/* Barre supérieure avec logo plus grand et bouton paramètres TOUJOURS visible */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, Platform.OS === 'web' && styles.topBarWeb]}>
         <View style={styles.topBarContent}>
           {/* Logo Siemens plus grand et centré */}
           <View style={styles.logoSection}>
             <Image 
               source={require('../assets/images/Siemens-Logo.png')}
-              style={styles.logo}
+              style={[styles.logo, Platform.OS === 'web' && styles.logoWeb]}
               resizeMode="contain"
             />
           </View>
@@ -54,7 +54,7 @@ export function Header({ title, subtitle, onBack, rightComponent, showSettings =
       </View>
       
       {/* Header principal avec navigation */}
-      <View style={styles.mainHeader}>
+      <View style={[styles.mainHeader, Platform.OS === 'web' && styles.mainHeaderWeb]}>
         <View style={styles.left}>
           {onBack && (
             <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -85,11 +85,20 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderBottomColor: theme.colors.border,
     paddingTop: 44,
   },
+  containerWeb: {
+    paddingTop: Platform.select({
+      web: 20, // Réduire le padding top sur web
+      default: 44
+    }),
+  },
   topBar: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.separator,
+  },
+  topBarWeb: {
+    paddingVertical: 4, // Réduire le padding vertical sur web
   },
   topBarContent: {
     flexDirection: 'row',
@@ -104,6 +113,10 @@ const createStyles = (theme: any) => StyleSheet.create({
   logo: {
     height: 36,
     width: 119,
+  },
+  logoWeb: {
+    height: 24, // Logo plus petit sur web
+    width: 79,
   },
   settingsButton: {
     position: 'absolute',
@@ -120,6 +133,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 14,
+  },
+  mainHeaderWeb: {
+    paddingVertical: 8, // Réduire le padding vertical sur web
   },
   left: {
     flexDirection: 'row',

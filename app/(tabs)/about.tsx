@@ -93,7 +93,10 @@ export default function AboutScreen() {
       
       <ScrollView 
         style={styles.content} 
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.contentContainer,
+          Platform.OS === 'web' && styles.contentContainerWeb
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* En-tête de l'application */}
@@ -562,6 +565,9 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
+  },
+  contentContainerWeb: {
+    paddingBottom: Platform.OS === 'web' ? 100 : 16,
   },
   appHeader: {
     alignItems: 'center',
