@@ -21,7 +21,8 @@ export default function ZoneDetailScreen() {
     favoriteShutters, 
     setFavoriteShutters, 
     deleteShutter, 
-    updateShutter 
+    updateShutter,
+    createShutter
   } = useStorage();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [zone, setZone] = useState<FunctionalZone | null>(null);
@@ -33,7 +34,7 @@ export default function ZoneDetailScreen() {
   // Convert favoriteShutters array to Set for .has() method
   const favoriteShuttersSet = new Set(favoriteShutters);
 
-  // CORRIGÉ : États pour l'édition directe des débits - AVEC MISE À JOUR INSTANTANÉE
+  // États pour l'édition directe des débits
   const [editingFlows, setEditingFlows] = useState<{[key: string]: {
     referenceFlow: string;
     measuredFlow: string;
@@ -54,7 +55,7 @@ export default function ZoneDetailScreen() {
     remarks: string;
   }>({ visible: false, shutter: null, remarks: '' });
 
-  // NOUVEAU : Références pour l'auto-focus des inputs
+  // Références pour l'auto-focus des inputs
   const nameInputRef = useRef<TextInput>(null);
   const remarksInputRef = useRef<TextInput>(null);
 
@@ -68,7 +69,7 @@ export default function ZoneDetailScreen() {
   const [filterVisible, setFilterVisible] = useState(false);
   const [filter, setFilter] = useState<'all' | 'high' | 'low'>('all');
   
-  // NOUVEAU : État pour le filtre de conformité
+  // État pour le filtre de conformité
   const [complianceFilter, setComplianceFilter] = useState<'all' | 'compliant' | 'acceptable' | 'non-compliant'>('all');
 
   // États pour le mode sélection
@@ -99,7 +100,7 @@ export default function ZoneDetailScreen() {
     }
   }, [id, projects]);
 
-  // NOUVEAU : Utiliser useFocusEffect pour recharger les données quand on revient sur la page
+  // Utiliser useFocusEffect pour recharger les données quand on revient sur la page
   useFocusEffect(
     useCallback(() => {
       console.log('Zone screen focused, reloading data...');
@@ -111,12 +112,11 @@ export default function ZoneDetailScreen() {
     loadZone();
   }, [loadZone]);
 
-  // CORRIGÉ : Initialiser l'édition pour tous les volets quand la zone change
+  // Initialiser l'édition pour tous les volets quand la zone change
   useEffect(() => {
     if (zone) {
       const newEditingFlows: typeof editingFlows = {};
       zone.shutters.forEach(shutter => {
-        // CORRIGÉ : Initialiser avec des valeurs vides si les débits sont à 0
         newEditingFlows[shutter.id] = {
           referenceFlow: shutter.referenceFlow > 0 ? shutter.referenceFlow.toString() : '',
           measuredFlow: shutter.measuredFlow > 0 ? shutter.measuredFlow.toString() : '',
@@ -126,12 +126,11 @@ export default function ZoneDetailScreen() {
       
       setEditingFlows(newEditingFlows);
     }
-  }, [zone]); // CORRIGÉ : Dépendance uniquement sur zone, pas sur editingFlows pour éviter les boucles
+  }, [zone]);
 
-  // NOUVEAU : Auto-focus sur l'input du nom quand le modal s'ouvre
+  // Auto-focus sur l'input du nom quand le modal s'ouvre
   useEffect(() => {
     if (nameEditModal.visible && nameInputRef.current) {
-      // Délai pour s'assurer que le modal est complètement ouvert
       const timer = setTimeout(() => {
         nameInputRef.current?.focus();
       }, 300);
@@ -143,7 +142,6 @@ export default function ZoneDetailScreen() {
   // Auto-focus sur l'input des remarques quand le modal s'ouvre
   useEffect(() => {
     if (remarksEditModal.visible && remarksInputRef.current) {
-      // Délai pour s'assurer que le modal est complètement ouvert
       const timer = setTimeout(() => {
         remarksInputRef.current?.focus();
       }, 300);
@@ -196,7 +194,7 @@ export default function ZoneDetailScreen() {
     }
   };
 
-  // NOUVEAU : Fonction pour éditer un volet
+  // Fonction pour éditer un volet
   const handleEditShutter = (shutter: Shutter) => {
     try {
       router.push(`/(tabs)/shutter/edit/${shutter.id}`);
@@ -335,7 +333,7 @@ export default function ZoneDetailScreen() {
     });
   };
 
-  // CORRIGÉ : Fonctions pour l'édition directe des débits avec mise à jour instantanée
+  // Fonctions pour l'édition directe des débits
   const handleFlowChange = useCallback((shutterId: string, field: 'referenceFlow' | 'measuredFlow', value: string) => {
     setEditingFlows(prev => ({
       ...prev,
@@ -346,13 +344,12 @@ export default function ZoneDetailScreen() {
     }));
   }, []);
 
-  // Fonction pour gérer le focus et l'effacement automatique du "0"
+  // Fonction pour gérer le focus
   const handleFlowFocus = useCallback((shutterId: string, field: 'referenceFlow' | 'measuredFlow') => {
     setEditingFlows(prev => {
       const currentEdit = prev[shutterId];
       if (!currentEdit) return prev;
 
-      // Marquer comme focalisé
       return {
         ...prev,
         [shutterId]: {
@@ -366,7 +363,7 @@ export default function ZoneDetailScreen() {
     });
   }, []);
 
-  // CORRIGÉ : Sauvegarde automatique avec mise à jour instantanée de l'état local
+  // Sauvegarde automatique
   const handleFlowBlur = useCallback(async (shutter: Shutter, field: 'referenceFlow' | 'measuredFlow') => {
     const editData = editingFlows[shutter.id];
     if (!editData) return;
@@ -376,7 +373,6 @@ export default function ZoneDetailScreen() {
 
     // Validation des valeurs
     if (isNaN(refFlow) || refFlow < 0) {
-      // Restaurer la valeur originale en cas d'erreur
       setEditingFlows(prev => ({
         ...prev,
         [shutter.id]: {
@@ -388,7 +384,6 @@ export default function ZoneDetailScreen() {
     }
 
     if (isNaN(measFlow) || measFlow < 0) {
-      // Restaurer la valeur originale en cas d'erreur
       setEditingFlows(prev => ({
         ...prev,
         [shutter.id]: {
@@ -404,13 +399,12 @@ export default function ZoneDetailScreen() {
     
     if (hasChanged) {
       try {
-        // CORRIGÉ : Sauvegarde automatique ET mise à jour instantanée de l'état local
         await updateShutter(shutter.id, {
           referenceFlow: refFlow,
           measuredFlow: measFlow,
         });
         
-        // CORRIGÉ : Mise à jour instantanée de l'état local du volet SANS recharger toute la zone
+        // Mise à jour instantanée de l'état local du volet
         setZone(prevZone => {
           if (!prevZone) return prevZone;
           
@@ -424,7 +418,7 @@ export default function ZoneDetailScreen() {
           };
         });
         
-        console.log(`✅ Volet ${shutter.name} mis à jour instantanément: ${refFlow}/${measFlow}`);
+        console.log(`✅ Volet ${shutter.name} mis à jour: ${refFlow}/${measFlow}`);
         
       } catch (error) {
         console.error('Erreur lors de la sauvegarde automatique:', error);
@@ -489,7 +483,7 @@ export default function ZoneDetailScreen() {
     }
   };
 
-  // CORRIGÉ : Fonction pour filtrer les volets avec filtre de conformité
+  // Fonction pour filtrer les volets
   const getFilteredShutters = () => {
     if (!zone) return [];
     
@@ -507,7 +501,7 @@ export default function ZoneDetailScreen() {
         filtered = zone.shutters;
     }
 
-    // NOUVEAU : Filtre par niveau de conformité
+    // Filtre par niveau de conformité
     if (complianceFilter !== 'all') {
       filtered = filtered.filter(shutter => {
         const compliance = calculateCompliance(shutter.referenceFlow, shutter.measuredFlow);
@@ -537,7 +531,7 @@ export default function ZoneDetailScreen() {
     return { high, low, total };
   };
 
-  // NOUVEAU : Fonction pour obtenir le nombre de volets par niveau de conformité
+  // Fonction pour obtenir le nombre de volets par niveau de conformité
   const getComplianceCounts = () => {
     if (!zone) return { compliant: 0, acceptable: 0, nonCompliant: 0, total: 0 };
     
@@ -568,7 +562,7 @@ export default function ZoneDetailScreen() {
     const isFavorite = favoriteShuttersSet.has(item.id);
     const editData = editingFlows[item.id];
     
-    // CORRIGÉ : Calculer la conformité avec les valeurs actuelles (éditées ou du volet mis à jour)
+    // Calculer la conformité avec les valeurs actuelles
     const currentRefFlow = editData ? parseFloat(editData.referenceFlow) || 0 : item.referenceFlow;
     const currentMeasFlow = editData ? parseFloat(editData.measuredFlow) || 0 : item.measuredFlow;
     const compliance = calculateCompliance(currentRefFlow, currentMeasFlow);
@@ -629,7 +623,6 @@ export default function ZoneDetailScreen() {
                     fill={isFavorite ? "#F59E0B" : "none"}
                   />
                 </TouchableOpacity>
-                {/* NOUVEAU : Bouton paramètres pour le volet */}
                 <TouchableOpacity
                   style={styles.settingsButton}
                   onPress={() => handleEditShutter(item)}
@@ -647,7 +640,7 @@ export default function ZoneDetailScreen() {
           </View>
         </View>
 
-        {/* CORRIGÉ : Interface d'édition directe avec placeholders d'exemples et meilleure visibilité */}
+        {/* Interface d'édition directe */}
         <View style={styles.flowEditingContainer}>
           <View style={styles.flowEditingRow}>
             <View style={styles.flowEditingField}>
@@ -706,7 +699,7 @@ export default function ZoneDetailScreen() {
           <ComplianceIndicator compliance={compliance} size="small" />
         </View>
 
-        {/* Bouton remarques fin sur toute la largeur */}
+        {/* Bouton remarques */}
         {!selectionMode && (
           <TouchableOpacity
             style={styles.remarksButton}
@@ -813,7 +806,7 @@ export default function ZoneDetailScreen() {
       )}
 
       <View style={styles.content}>
-        {/* Indicateur de volet copié - SIMPLIFIÉ */}
+        {/* Indicateur de volet copié */}
         {copiedShutter && (
           <View style={styles.copiedIndicator}>
             <View style={styles.copiedIndicatorContent}>
@@ -865,7 +858,7 @@ export default function ZoneDetailScreen() {
               </View>
             </View>
 
-            {/* MODIFIÉ : Filtre par niveau de conformité - HORIZONTAL avec points colorés uniquement */}
+            {/* Filtre par niveau de conformité */}
             <View style={styles.filterSection}>
               <Text style={styles.filterSectionTitle}>Niveau de conformité</Text>
               <View style={styles.filterButtons}>
@@ -878,7 +871,6 @@ export default function ZoneDetailScreen() {
                   </Text>
                 </TouchableOpacity>
                 
-                {/* Bouton Fonctionnel - point vert uniquement */}
                 <TouchableOpacity
                   style={[styles.filterButton, complianceFilter === 'compliant' && styles.filterButtonActive]}
                   onPress={() => setComplianceFilter('compliant')}
@@ -886,7 +878,6 @@ export default function ZoneDetailScreen() {
                   <View style={[styles.complianceDot, { backgroundColor: '#10B981' }]} />
                 </TouchableOpacity>
                 
-                {/* Bouton Acceptable - point orange uniquement */}
                 <TouchableOpacity
                   style={[styles.filterButton, complianceFilter === 'acceptable' && styles.filterButtonActive]}
                   onPress={() => setComplianceFilter('acceptable')}
@@ -894,7 +885,6 @@ export default function ZoneDetailScreen() {
                   <View style={[styles.complianceDot, { backgroundColor: '#F59E0B' }]} />
                 </TouchableOpacity>
                 
-                {/* Bouton Non conforme - point rouge uniquement */}
                 <TouchableOpacity
                   style={[styles.filterButton, complianceFilter === 'non-compliant' && styles.filterButtonActive]}
                   onPress={() => setComplianceFilter('non-compliant')}
@@ -937,7 +927,7 @@ export default function ZoneDetailScreen() {
         )}
       </View>
 
-      {/* Modal pour éditer le nom avec auto-focus */}
+      {/* Modal pour éditer le nom */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -987,7 +977,7 @@ export default function ZoneDetailScreen() {
         </View>
       </Modal>
 
-      {/* Modal pour éditer les remarques avec auto-focus */}
+      {/* Modal pour éditer les remarques */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -1150,7 +1140,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.success,
     flex: 1,
   },
-  // CORRIGÉ : Styles pour la barre de filtre avec sections horizontales
+  // Styles pour la barre de filtre
   filterBar: {
     backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
@@ -1319,7 +1309,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 6,
     backgroundColor: theme.colors.warning + '20',
   },
-  // NOUVEAU : Bouton paramètres pour le volet
+  // Bouton paramètres pour le volet
   settingsButton: {
     padding: 4,
     borderRadius: 6,
@@ -1331,7 +1321,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.primary + '20',
   },
   
-  // STYLES pour l'édition directe avec sauvegarde automatique - AMÉLIORÉ POUR DARK MODE
+  // Styles pour l'édition directe
   flowEditingContainer: {
     backgroundColor: theme.colors.surfaceSecondary,
     borderRadius: 8,
@@ -1345,9 +1335,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   flowEditingField: {
     flex: 1,
   },
-  // Conteneur pour les labels avec hauteur fixe
   flowLabelContainer: {
-    height: 44, // Hauteur fixe pour aligner tous les champs
+    height: 44,
     justifyContent: 'flex-start',
     marginBottom: 4,
   },
@@ -1365,36 +1354,27 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   flowEditingInput: {
     borderWidth: 1,
-    // Amélioration pour le mode sombre: bordure plus visible avec une teinte de la couleur primaire
-    borderColor: theme.mode === 'dark' 
-      ? theme.colors.primary + '80'  // Bordure plus visible en mode sombre
-      : theme.colors.border,
+    borderColor: theme.colors.border,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 8,
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    // Amélioration pour le mode sombre: arrière-plan légèrement teinté pour plus de contraste
-    backgroundColor: theme.mode === 'dark' 
-      ? theme.colors.primary + '15'  // Arrière-plan légèrement teinté en mode sombre
-      : theme.colors.inputBackground,
+    backgroundColor: theme.colors.inputBackground,
     color: theme.colors.text,
     textAlign: 'center',
-    height: 40, // Hauteur fixe pour tous les champs
+    height: 40,
   },
   deviationDisplay: {
     borderWidth: 1,
-    // Amélioration pour le mode sombre: bordure plus visible
-    borderColor: theme.mode === 'dark' 
-      ? theme.colors.border + '80'  // Bordure plus visible en mode sombre
-      : theme.colors.border,
+    borderColor: theme.colors.border,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 8,
     backgroundColor: theme.colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 40, // Même hauteur que les inputs
+    height: 40,
   },
   deviationValue: {
     fontSize: 14,
@@ -1406,7 +1386,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginBottom: 8,
   },
   
-  // Bouton remarques fin sur toute la largeur
+  // Bouton remarques
   remarksButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1432,8 +1412,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Platform.OS === 'web' ? 40 : 20,
-    paddingBottom: Platform.OS === 'web' ? 120 : 20, // Espace pour la tab bar fixe
+    padding: 20,
   },
   modalContent: {
     backgroundColor: theme.colors.surface,
@@ -1471,7 +1450,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
   },
   
-  // Styles pour les inputs avec auto-focus
+  // Styles pour les inputs
   inputLabel: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
