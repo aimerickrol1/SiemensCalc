@@ -210,13 +210,13 @@ export default function AboutScreen() {
             <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
               <Text style={styles.modalText}>
                 <Text style={styles.modalBold}>{strings.unofficialApp}{'\n'}</Text>
-                {strings.unofficialAppDesc}
-                {'\n\n'}
+                <Text>{strings.unofficialAppDesc}</Text>
+                <Text>{'\n\n'}</Text>
                 <Text style={styles.modalBold}>{strings.dataProtectionTitle}{'\n'}</Text>
-                {strings.dataProtectionDesc}
-                {'\n\n'}
+                <Text>{strings.dataProtectionDesc}</Text>
+                <Text>{'\n\n'}</Text>
                 <Text style={styles.modalBold}>{strings.localStorageTitle}{'\n'}</Text>
-                {strings.localStorageDesc}
+                <Text>{strings.localStorageDesc}</Text>
               </Text>
             </ScrollView>
             <Button
