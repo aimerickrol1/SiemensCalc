@@ -88,18 +88,11 @@ export default function ProjectDetailScreen() {
   };
 
   const handleCreateBuilding = () => {
-    resetForm();
-    showModal(<CreateBuildingModal 
-      onSubmit={handleSubmitBuilding}
-      onCancel={() => hideModal()}
-      buildingName={buildingName}
-      setBuildingName={setBuildingName}
-      buildingDescription={buildingDescription}
-      setBuildingDescription={setBuildingDescription}
-      errors={errors}
-      loading={formLoading}
-      strings={strings}
-    />);
+    try {
+      router.push(`/(tabs)/building/create?projectId=${id}`);
+    } catch (error) {
+      console.error('Erreur de navigation vers création bâtiment:', error);
+    }
   };
 
   const handleSelectionMode = () => {
@@ -183,38 +176,6 @@ export default function ProjectDetailScreen() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmitBuilding = async () => {
-    if (!validateForm() || !project) return;
-
-    setFormLoading(true);
-    try {
-      console.log('🏗️ Création du bâtiment:', buildingName.trim(), 'dans le projet:', project.id);
-      
-      const building = await createBuilding(project.id, {
-        name: buildingName.trim(),
-        description: buildingDescription.trim() || undefined,
-      });
-
-      if (building) {
-        console.log('✅ Bâtiment créé avec succès:', building.id);
-        hideModal();
-        resetForm();
-        loadProject();
-        
-        // Navigation directe vers le bâtiment créé
-        router.push(`/(tabs)/building/${building.id}`);
-      } else {
-        console.error('❌ Erreur: Bâtiment non créé');
-        Alert.alert(strings.error, 'Impossible de créer le bâtiment.');
-      }
-    } catch (error) {
-      console.error('❌ Erreur lors de la création du bâtiment:', error);
-      Alert.alert(strings.error, 'Impossible de créer le bâtiment. Veuillez réessayer.');
-    } finally {
-      setFormLoading(false);
-    }
   };
 
   const handleBuildingPress = (building: BuildingType) => {

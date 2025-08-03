@@ -4,7 +4,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { Plus, Settings, Building, Star, Trash2, SquareCheck as CheckSquare, Square, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
-import { CreateProjectModal } from '@/components/CreateProjectModal';
 import { ProjectCard } from '@/components/ProjectCard';
 import { Project } from '@/types';
 import { useStorage } from '@/contexts/StorageContext';
@@ -56,18 +55,11 @@ export default function ProjectsScreen() {
   // Fonction locale pour gérer l'ouverture du modal
   const handleCreateModal = useCallback(() => {
     console.log('📱 Ouverture du modal de création de projet');
-    showModal(
-      <CreateProjectModal 
-        onSubmit={handleCreateProject}
-        loading={createLoading}
-      />,
-      {
-        animationType: 'slide',
-        onRequestClose: () => {
-          // Le modal se fermera automatiquement
-        }
-      }
-    );
+    try {
+      router.push('/(tabs)/project/create');
+    } catch (error) {
+      console.error('Erreur de navigation vers création projet:', error);
+    }
   }, []);
 
   // Effet pour écouter les événements d'ouverture du modal
@@ -107,102 +99,6 @@ export default function ProjectsScreen() {
 
   const generateUniqueId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-  const handleCreateProject = async (projectData: any, predefinedStructure: PredefinedStructure) => {
-    setCreateLoading(true);
-    try {
-      console.log('🏗️ Création du projet:', projectData.name, 'avec structure prédéfinie:', predefinedStructure.enabled);
-      
-      const project = await createProject(projectData);
-      
-      if (predefinedStructure.enabled && predefinedStructure.buildings.length > 0) {
-        console.log('🏢 Création de la structure prédéfinie avec', predefinedStructure.buildings.length, 'bâtiments');
-        
-        for (const buildingData of predefinedStructure.buildings) {
-          console.log('🏗️ Création du bâtiment:', buildingData.name);
-          const building = await createBuilding(project.id, {
-            name: buildingData.name,
-          });
-          
-          if (building) {
-            console.log('✅ Bâtiment créé:', building.id);
-            for (const zoneData of buildingData.zones) {
-              console.log('🏢 Création de la zone:', zoneData.name, 'avec', zoneData.highShutters, 'VH et', zoneData.lowShutters, 'VB');
-              const zone = await createFunctionalZone(building.id, {
-                name: zoneData.name,
-              });
-              
-              if (zone) {
-                console.log('✅ Zone créée:', zone.id);
-                // Créer les volets hauts
-                if (zoneData.highShutters > 0) {
-                  console.log(`🔲 Création de ${zoneData.highShutters} volets hauts`);
-                  for (let i = 1; i <= zoneData.highShutters; i++) {
-                    const shutterName = `VH${i.toString().padStart(2, '0')}`;
-                    console.log(`  - Création volet ${shutterName}`);
-                    try {
-                      const shutter = await createShutter(zone.id, {
-                        name: shutterName,
-                        type: 'high',
-                        referenceFlow: predefinedStructure.defaultReferenceFlow || 0,
-                        measuredFlow: 0,
-                      });
-                      console.log(`  ✅ Volet ${shutterName} créé:`, shutter?.id);
-                    } catch (error) {
-                      console.error(`  ❌ Erreur création volet ${shutterName}:`, error);
-                    }
-                  }
-                }
-                
-                // Créer les volets bas
-                if (zoneData.lowShutters > 0) {
-                  console.log(`🔲 Création de ${zoneData.lowShutters} volets bas`);
-                  for (let i = 1; i <= zoneData.lowShutters; i++) {
-                    const shutterName = `VB${i.toString().padStart(2, '0')}`;
-                    console.log(`  - Création volet ${shutterName}`);
-                    try {
-                      const shutter = await createShutter(zone.id, {
-                        name: shutterName,
-                        type: 'low',
-                        referenceFlow: predefinedStructure.defaultReferenceFlow || 0,
-                        measuredFlow: 0,
-                      });
-                      console.log(`  ✅ Volet ${shutterName} créé:`, shutter?.id);
-                    } catch (error) {
-                      console.error(`  ❌ Erreur création volet ${shutterName}:`, error);
-                    }
-                  }
-                }
-              } else {
-                console.error('❌ Erreur: Zone non créée pour', zoneData.name);
-              }
-            }
-          } else {
-            console.error('❌ Erreur: Bâtiment non créé pour', buildingData.name);
-          }
-        }
-        console.log('✅ Structure prédéfinie créée avec succès');
-      }
-      
-      // Navigation vers le projet créé avec délai pour s'assurer que tout est bien créé
-      console.log('⏱️ Attente avant navigation vers le projet...');
-      setTimeout(async () => {
-        try {
-          console.log('🧭 Navigation vers le projet:', project.id);
-          await router.push(`/(tabs)/project/${project.id}`);
-        } catch (navError) {
-          console.error('❌ Erreur de navigation:', navError);
-          // Fallback en cas d'erreur
-          router.push('/(tabs)/');
-        }
-      }, 500);
-      
-    } catch (error) {
-      console.error('❌ Erreur lors de la création du projet:', error);
-      Alert.alert(strings.error, 'Impossible de créer le projet. Veuillez réessayer.');
-    } finally {
-      setCreateLoading(false);
-    }
-  };
 
   const handleProjectPress = (project: Project) => {
     if (selectionMode) {
