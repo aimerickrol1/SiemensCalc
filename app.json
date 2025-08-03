@@ -35,6 +35,13 @@
     "web": {
       "bundler": "metro",
       "output": "static",
+      "build": {
+        "babel": {
+          "include": [
+            "node_modules/react-native-vector-icons"
+          ]
+        }
+      },
       "favicon": "./assets/images/icon.png",
       "name": "Siemens CalcConform",
       "shortName": "CalcConform",
