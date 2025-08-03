@@ -114,32 +114,32 @@ export default function ShutterDetailScreen() {
   const handleDelete = async () => {
     if (!shutter) return;
 
-    Alert.alert(
-      strings.deleteShutter,
-      `${strings.deleteShutterConfirm} "${shutter.name}" ?`,
-      [
-        { text: strings.cancel, style: 'cancel' },
-        {
-          text: strings.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const success = await deleteShutter(shutter.id);
-              if (success) {
-                console.log('✅ Volet supprimé avec succès');
-                handleBack();
-              } else {
-                console.error('❌ Erreur lors de la suppression du volet');
-                Alert.alert(strings.error, 'Impossible de supprimer le volet');
-              }
-            } catch (error) {
-              console.error('Erreur lors de la suppression:', error);
-              Alert.alert(strings.error, 'Impossible de supprimer le volet');
-            }
-          }
-        }
-      ]
-    );
+    showModal(<DeleteShutterDetailModal 
+      shutter={shutter}
+      onConfirm={() => confirmDeleteShutter()}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const confirmDeleteShutter = async () => {
+    if (!shutter) return;
+
+    try {
+      console.log('🗑️ Suppression du volet:', shutter.id);
+      const success = await deleteShutter(shutter.id);
+      if (success) {
+        console.log('✅ Volet supprimé avec succès');
+        hideModal();
+        handleBack();
+      } else {
+        console.error('❌ Erreur lors de la suppression du volet');
+        hideModal();
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      hideModal();
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -631,3 +631,48 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
   },
 });
+
+// Composant modal pour la suppression d'un volet (page détail)
+function DeleteShutterDetailModal({ shutter, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Supprimer le volet</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer le volet </Text>
+          <Text style={styles.modalBold}>"{shutter.name}"</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Toutes les données de mesure seront définitivement perdues.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title="Supprimer"
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}

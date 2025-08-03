@@ -210,32 +210,30 @@ export default function ZoneDetailScreen() {
   };
 
   const handleDeleteShutter = async (shutter: Shutter) => {
-    Alert.alert(
-      strings.deleteShutter,
-      `${strings.deleteShutterConfirm} "${shutter.name}" ?`,
-      [
-        { text: strings.cancel, style: 'cancel' },
-        {
-          text: strings.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const success = await deleteShutter(shutter.id);
-              if (success) {
-                console.log('✅ Volet supprimé avec succès');
-                await loadZone();
-              } else {
-                console.error('❌ Erreur lors de la suppression du volet');
-                Alert.alert(strings.error, 'Impossible de supprimer le volet');
-              }
-            } catch (error) {
-              console.error('Erreur lors de la suppression:', error);
-              Alert.alert(strings.error, 'Impossible de supprimer le volet');
-            }
-          }
-        }
-      ]
-    );
+    showModal(<DeleteShutterModal 
+      shutter={shutter}
+      onConfirm={() => confirmDeleteShutter(shutter)}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const confirmDeleteShutter = async (shutter: Shutter) => {
+    try {
+      console.log('🗑️ Suppression du volet:', shutter.id);
+      const success = await deleteShutter(shutter.id);
+      if (success) {
+        console.log('✅ Volet supprimé avec succès');
+        await loadZone();
+        hideModal();
+      } else {
+        console.error('❌ Erreur lors de la suppression du volet');
+        hideModal();
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      hideModal();
+    }
   };
 
   // Fonctions pour le mode sélection
@@ -259,33 +257,30 @@ export default function ZoneDetailScreen() {
   const handleBulkDelete = () => {
     if (selectedShutters.size === 0) return;
 
-    Alert.alert(
-      strings.delete + ' ' + strings.shutters.toLowerCase(),
-      `Êtes-vous sûr de vouloir supprimer ${selectedShutters.size} volet${selectedShutters.size > 1 ? 's' : ''} ?`,
-      [
-        { text: strings.cancel, style: 'cancel' },
-        {
-          text: strings.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              for (const shutterId of selectedShutters) {
-                const success = await deleteShutter(shutterId);
-                if (!success) {
-                  console.error('Erreur lors de la suppression du volet:', shutterId);
-                }
-              }
-              setSelectedShutters(new Set());
-              setSelectionMode(false);
-              await loadZone();
-            } catch (error) {
-              console.error('Erreur lors de la suppression en lot:', error);
-              Alert.alert(strings.error, 'Impossible de supprimer certains volets');
-            }
-          }
+    showModal(<BulkDeleteShuttersModal 
+      count={selectedShutters.size}
+      onConfirm={() => confirmBulkDeleteShutters()}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const confirmBulkDeleteShutters = async () => {
+    try {
+      for (const shutterId of selectedShutters) {
+        const success = await deleteShutter(shutterId);
+        if (!success) {
+          console.error('Erreur lors de la suppression du volet:', shutterId);
         }
-      ]
-    );
+      }
+      setSelectedShutters(new Set());
+      setSelectionMode(false);
+      await loadZone();
+      hideModal();
+    } catch (error) {
+      console.error('Erreur lors de la suppression en lot:', error);
+      hideModal();
+    }
   };
 
   const handleBulkFavorite = async () => {
@@ -1422,6 +1417,96 @@ const createStyles = (theme: any) => StyleSheet.create({
     maxHeight: 150,
   },
 });
+
+// Composant modal pour la suppression d'un volet
+function DeleteShutterModal({ shutter, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Supprimer le volet</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer le volet </Text>
+          <Text style={styles.modalBold}>"{shutter.name}"</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Toutes les données de mesure seront définitivement perdues.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title="Supprimer"
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
+
+// Composant modal pour la suppression en lot de volets
+function BulkDeleteShuttersModal({ count, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Supprimer {count} volet{count > 1 ? 's' : ''}</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer </Text>
+          <Text style={styles.modalBold}>{count} volet{count > 1 ? 's' : ''}</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Toutes les données de mesure seront définitivement perdues.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={`Supprimer ${count > 1 ? 'tout' : 'le volet'}`}
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
 
 // Composants modaux séparés pour utiliser le portail global
 function EditShutterNameModal({ shutter, onSave, onCancel, strings }: any) {

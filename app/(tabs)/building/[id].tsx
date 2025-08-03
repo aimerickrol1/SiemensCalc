@@ -183,33 +183,30 @@ export default function BuildingDetailScreen() {
   const handleBulkDelete = () => {
     if (selectedZones.size === 0) return;
 
-    Alert.alert(
-      strings.delete + ' ' + strings.zones.toLowerCase(),
-      `Êtes-vous sûr de vouloir supprimer ${selectedZones.size} zone${selectedZones.size > 1 ? 's' : ''} ?`,
-      [
-        { text: strings.cancel, style: 'cancel' },
-        {
-          text: strings.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              for (const zoneId of selectedZones) {
-                const success = await deleteFunctionalZone(zoneId);
-                if (!success) {
-                  console.error('Erreur lors de la suppression de la zone:', zoneId);
-                }
-              }
-              setSelectedZones(new Set());
-              setSelectionMode(false);
-              await loadBuilding();
-            } catch (error) {
-              console.error('Erreur lors de la suppression en lot:', error);
-              Alert.alert(strings.error, 'Impossible de supprimer certaines zones');
-            }
-          }
+    showModal(<BulkDeleteZonesModal 
+      count={selectedZones.size}
+      onConfirm={() => confirmBulkDeleteZones()}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const confirmBulkDeleteZones = async () => {
+    try {
+      for (const zoneId of selectedZones) {
+        const success = await deleteFunctionalZone(zoneId);
+        if (!success) {
+          console.error('Erreur lors de la suppression de la zone:', zoneId);
         }
-      ]
-    );
+      }
+      setSelectedZones(new Set());
+      setSelectionMode(false);
+      await loadBuilding();
+      hideModal();
+    } catch (error) {
+      console.error('Erreur lors de la suppression en lot:', error);
+      hideModal();
+    }
   };
 
   const handleBulkFavorite = async () => {
@@ -241,32 +238,30 @@ export default function BuildingDetailScreen() {
   };
 
   const handleDeleteZone = async (zone: FunctionalZone) => {
-    Alert.alert(
-      strings.deleteZone,
-      `Êtes-vous sûr de vouloir supprimer la zone "${zone.name}" ?`,
-      [
-        { text: strings.cancel, style: 'cancel' },
-        {
-          text: strings.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const success = await deleteFunctionalZone(zone.id);
-              if (success) {
-                console.log('✅ Zone supprimée avec succès');
-                await loadBuilding();
-              } else {
-                console.error('❌ Erreur lors de la suppression de la zone');
-                Alert.alert(strings.error, 'Impossible de supprimer la zone');
-              }
-            } catch (error) {
-              console.error('Erreur lors de la suppression:', error);
-              Alert.alert(strings.error, 'Impossible de supprimer la zone');
-            }
-          }
-        }
-      ]
-    );
+    showModal(<DeleteZoneModal 
+      zone={zone}
+      onConfirm={() => confirmDeleteZone(zone)}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const confirmDeleteZone = async (zone: FunctionalZone) => {
+    try {
+      console.log('🗑️ Suppression de la zone:', zone.id);
+      const success = await deleteFunctionalZone(zone.id);
+      if (success) {
+        console.log('✅ Zone supprimée avec succès');
+        await loadBuilding();
+        hideModal();
+      } else {
+        console.error('❌ Erreur lors de la suppression de la zone');
+        hideModal();
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      hideModal();
+    }
   };
 
   // Fonction pour obtenir le détail des volets par type
@@ -871,6 +866,96 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
   },
 });
+
+// Composant modal pour la suppression d'une zone
+function DeleteZoneModal({ zone, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Supprimer la zone</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer la zone </Text>
+          <Text style={styles.modalBold}>"{zone.name}"</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Tous les volets associés seront également supprimés.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title="Supprimer"
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
+
+// Composant modal pour la suppression en lot de zones
+function BulkDeleteZonesModal({ count, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Supprimer {count} zone{count > 1 ? 's' : ''}</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer </Text>
+          <Text style={styles.modalBold}>{count} zone{count > 1 ? 's' : ''}</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Tous les volets associés seront également supprimés.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={`Supprimer ${count > 1 ? 'tout' : 'la zone'}`}
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
 
 // Composant modal séparé pour utiliser le portail global
 function EditZoneNameModal({ zone, onSave, onCancel, strings }: any) {
