@@ -1,36 +1,34 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Alert, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, Platform } from 'react-native';
 import { Info, ChevronRight, Shield, Smartphone, CircleCheck as CheckCircle, FileText, Calculator, Sparkles, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
 import * as WebBrowser from 'expo-web-browser';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useModal } from '@/contexts/ModalContext';
 
 export default function AboutScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
-  const [versionModalVisible, setVersionModalVisible] = useState(false);
-  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
-  const [calculationsModalVisible, setCalculationsModalVisible] = useState(false);
-  const [upcomingFeaturesModalVisible, setUpcomingFeaturesModalVisible] = useState(false);
+  const { showModal } = useModal();
 
   const appVersion = "1.1.0";
 
   const handleVersionPress = () => {
-    setVersionModalVisible(true);
+    showModal(<VersionModal appVersion={appVersion} />);
   };
 
   const handlePrivacyPress = () => {
-    setPrivacyModalVisible(true);
+    showModal(<PrivacyModal />);
   };
 
   const handleCalculationsPress = () => {
-    setCalculationsModalVisible(true);
+    showModal(<CalculationsModal />);
   };
 
   const handleUpcomingFeaturesPress = () => {
-    setUpcomingFeaturesModalVisible(true);
+    showModal(<UpcomingFeaturesModal />);
   };
 
   const handleContactPress = () => {
@@ -171,386 +169,383 @@ export default function AboutScreen() {
         </View>
       </ScrollView>
 
-      {/* Modal Version */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={versionModalVisible}
-        onRequestClose={() => setVersionModalVisible(false)}
+    </View>
+  );
+}
+
+// Composants modaux séparés
+function VersionModal({ appVersion }: { appVersion: string }) {
+  const { strings } = useLanguage();
+  const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <CheckCircle size={32} color={theme.colors.success} />
+        <Text style={styles.modalTitle}>{strings.appUpToDate}</Text>
+      </View>
+      <Text style={styles.modalText}>
+        {strings.appUpToDate}.{'\n'}
+        {strings.currentVersion} : {appVersion}
+      </Text>
+      <Button
+        title={strings.ok}
+        onPress={hideModal}
+        style={styles.modalButton}
+      />
+    </View>
+  );
+}
+
+function PrivacyModal() {
+  const { strings } = useLanguage();
+  const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Shield size={32} color={theme.colors.primary} />
+        <Text style={styles.modalTitle}>{strings.privacyTitle}</Text>
+      </View>
+      <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+        <Text style={styles.modalText}>
+          <Text style={styles.modalBold}>{strings.unofficialApp}{'\n'}</Text>
+          <Text>{strings.unofficialAppDesc}</Text>
+          <Text>{'\n\n'}</Text>
+          <Text style={styles.modalBold}>{strings.dataProtectionTitle}{'\n'}</Text>
+          <Text>{strings.dataProtectionDesc}</Text>
+          <Text>{'\n\n'}</Text>
+          <Text style={styles.modalBold}>{strings.localStorageTitle}{'\n'}</Text>
+          <Text>{strings.localStorageDesc}</Text>
+        </Text>
+      </ScrollView>
+      <Button
+        title={strings.understood}
+        onPress={hideModal}
+        style={styles.modalButton}
+      />
+    </View>
+  );
+}
+
+function CalculationsModal() {
+  const { strings } = useLanguage();
+  const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.calculationsModalContent}>
+      <View style={styles.modalHeader}>
+        <Calculator size={32} color={theme.colors.success} />
+        <Text style={styles.modalTitle}>Calculs de conformité</Text>
+        <TouchableOpacity 
+          onPress={hideModal}
+          style={styles.closeButton}
+        >
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <ScrollView 
+        style={styles.calculationsScrollView} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.calculationsScrollContent}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <CheckCircle size={32} color={theme.colors.success} />
-              <Text style={styles.modalTitle}>{strings.appUpToDate}</Text>
-            </View>
-            <Text style={styles.modalText}>
-              {strings.appUpToDate}.{'\n'}
-              {strings.currentVersion} : {appVersion}
+        {/* Formule principale */}
+        <View style={styles.calculationSection}>
+          <Text style={styles.calculationTitle}>📐 Formule de calcul de l'écart</Text>
+          <View style={styles.formulaContainer}>
+            <Text style={styles.formulaText}>
+              Écart (%) = ((Débit mesuré - Débit de référence) / Débit de référence) × 100
             </Text>
-            <Button
-              title={strings.ok}
-              onPress={() => setVersionModalVisible(false)}
-              style={styles.modalButton}
-            />
+          </View>
+          <Text style={styles.calculationDescription}>
+            Cette formule calcule l'écart relatif entre la valeur mesurée et la valeur de référence, exprimé en pourcentage.
+          </Text>
+        </View>
+
+        {/* Critères de conformité */}
+        <View style={styles.calculationSection}>
+          <Text style={styles.calculationTitle}>⚖️ Critères de conformité NF S61-933 Annexe H</Text>
+          
+          <View style={styles.criteriaContainer}>
+            <View style={styles.criteriaItem}>
+              <View style={[styles.criteriaIndicator, { backgroundColor: '#10B981' }]} />
+              <View style={styles.criteriaContent}>
+                <Text style={styles.criteriaLabel}>Fonctionnel (|Écart| ≤ 10%)</Text>
+                <Text style={styles.criteriaDescription}>
+                  Un écart inférieur à ±10% entre les valeurs retenues lors de l'essai fonctionnel et les valeurs de référence conduit au constat du fonctionnement attendu du système de désenfumage mécanique.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.criteriaItem}>
+              <View style={[styles.criteriaIndicator, { backgroundColor: '#F59E0B' }]} />
+              <View style={styles.criteriaContent}>
+                <Text style={styles.criteriaLabel}>Acceptable (10% {'<'} |Écart| ≤ 20%)</Text>
+                <Text style={styles.criteriaDescription}>
+                  Un écart compris entre ±10% et ±20% conduit à signaler cette dérive, par une proposition d'action corrective à l'exploitant ou au chef d'établissement.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.criteriaItem}>
+              <View style={[styles.criteriaIndicator, { backgroundColor: '#EF4444' }]} />
+              <View style={styles.criteriaContent}>
+                <Text style={styles.criteriaLabel}>Non conforme (|Écart| {'>'} 20%)</Text>
+                <Text style={styles.criteriaDescription}>
+                  Un écart supérieur à ±20% doit conduire à une action corrective obligatoire, la valeur étant jugée non conforme à la mise en service.
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
-      </Modal>
 
-      {/* Modal Confidentialité */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={privacyModalVisible}
-        onRequestClose={() => setPrivacyModalVisible(false)}
+        {/* Exemples de calcul */}
+        <View style={styles.calculationSection}>
+          <Text style={styles.calculationTitle}>🧮 Exemples de calcul</Text>
+          
+          <View style={styles.exampleContainer}>
+            <Text style={styles.exampleTitle}>Exemple 1 : Volet fonctionnel</Text>
+            <Text style={styles.exampleData}>
+              • Débit de référence : 5000 m³/h{'\n'}
+              • Débit mesuré : 4900 m³/h
+            </Text>
+            <Text style={styles.exampleCalculation}>
+              Écart = ((4900 - 5000) / 5000) × 100 = -2%
+            </Text>
+            <Text style={styles.exampleResult}>
+              ✅ Résultat : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>Fonctionnel</Text> (|2%| ≤ 10%)
+            </Text>
+          </View>
+
+          <View style={styles.exampleContainer}>
+            <Text style={styles.exampleTitle}>Exemple 2 : Volet acceptable</Text>
+            <Text style={styles.exampleData}>
+              • Débit de référence : 3000 m³/h{'\n'}
+              • Débit mesuré : 3450 m³/h
+            </Text>
+            <Text style={styles.exampleCalculation}>
+              Écart = ((3450 - 3000) / 3000) × 100 = +15%
+            </Text>
+            <Text style={styles.exampleResult}>
+              ⚠️ Résultat : <Text style={{ color: '#F59E0B', fontWeight: 'bold' }}>Acceptable</Text> (10% {'<'} |15%| ≤ 20%)
+            </Text>
+          </View>
+
+          <View style={styles.exampleContainer}>
+            <Text style={styles.exampleTitle}>Exemple 3 : Volet non conforme</Text>
+            <Text style={styles.exampleData}>
+              • Débit de référence : 4000 m³/h{'\n'}
+              • Débit mesuré : 3000 m³/h
+            </Text>
+            <Text style={styles.exampleCalculation}>
+              Écart = ((3000 - 4000) / 4000) × 100 = -25%
+            </Text>
+            <Text style={styles.exampleResult}>
+              ❌ Résultat : <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>Non conforme</Text> (|25%| {'>'} 20%)
+            </Text>
+          </View>
+        </View>
+
+        {/* Algorithme de validation */}
+        <View style={styles.calculationSection}>
+          <Text style={styles.calculationTitle}>🔧 Algorithme de validation</Text>
+          <View style={styles.algorithmContainer}>
+            <Text style={styles.algorithmStep}>1. Vérification des données d'entrée</Text>
+            <Text style={styles.algorithmDetail}>   • Débit de référence > 0</Text>
+            <Text style={styles.algorithmDetail}>   • Débit mesuré ≥ 0</Text>
+            
+            <Text style={styles.algorithmStep}>2. Calcul de l'écart relatif</Text>
+            <Text style={styles.algorithmDetail}>   • Écart = ((Mesuré - Référence) / Référence) × 100</Text>
+            
+            <Text style={styles.algorithmStep}>3. Détermination du statut</Text>
+            <Text style={styles.algorithmDetail}>   • Si |Écart| ≤ 10% → Fonctionnel</Text>
+            <Text style={styles.algorithmDetail}>   • Si 10% {'<'} |Écart| ≤ 20% → Acceptable</Text>
+            <Text style={styles.algorithmDetail}>   • Si |Écart| {'>'} 20% → Non conforme</Text>
+          </View>
+        </View>
+
+        {/* Note technique */}
+        <View style={styles.technicalNote}>
+          <Text style={styles.technicalNoteTitle}>📋 Note technique</Text>
+          <Text style={styles.technicalNoteText}>
+            Les calculs sont effectués en temps réel lors de la saisie des données. L'application utilise la précision JavaScript standard (IEEE 754) et arrondit les résultats à une décimale pour l'affichage.
+            {'\n\n'}
+            La conformité est évaluée selon les critères officiels de la norme française NF S61-933 Annexe H, version en vigueur.
+          </Text>
+        </View>
+      </ScrollView>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.understood}
+          onPress={hideModal}
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
+
+function UpcomingFeaturesModal() {
+  const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.upcomingFeaturesModalContent}>
+      <View style={styles.modalHeader}>
+        <Sparkles size={32} color="#F59E0B" />
+        <Text style={styles.modalTitle}>Prochaines nouveautés</Text>
+        <TouchableOpacity 
+          onPress={hideModal}
+          style={styles.closeButton}
+        >
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <ScrollView 
+        style={styles.upcomingScrollView} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.upcomingScrollContent}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Shield size={32} color={theme.colors.primary} />
-              <Text style={styles.modalTitle}>{strings.privacyTitle}</Text>
-            </View>
-            <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
-              <Text style={styles.modalText}>
-                <Text style={styles.modalBold}>{strings.unofficialApp}{'\n'}</Text>
-                <Text>{strings.unofficialAppDesc}</Text>
-                <Text>{'\n\n'}</Text>
-                <Text style={styles.modalBold}>{strings.dataProtectionTitle}{'\n'}</Text>
-                <Text>{strings.dataProtectionDesc}</Text>
-                <Text>{'\n\n'}</Text>
-                <Text style={styles.modalBold}>{strings.localStorageTitle}{'\n'}</Text>
-                <Text>{strings.localStorageDesc}</Text>
+        {/* Introduction */}
+        <View style={styles.upcomingIntro}>
+          <Text style={styles.upcomingIntroText}>
+            Découvrez les futures fonctionnalités qui arriveront dans l'application Siemens CalcConform.
+          </Text>
+        </View>
+
+        {/* Fonctionnalités principales */}
+        <View style={styles.featureSection}>
+          <Text style={styles.featureSectionTitle}>🎯 Fonctionnalités principales</Text>
+          
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>📊</Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Tableaux de bord avancés</Text>
+              <Text style={styles.featureDescription}>
+                Visualisations graphiques interactives avec statistiques en temps réel, graphiques de tendances et indicateurs de performance.
               </Text>
-            </ScrollView>
-            <Button
-              title={strings.understood}
-              onPress={() => setPrivacyModalVisible(false)}
-              style={styles.modalButton}
-            />
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal Calculs de conformité - SANS BARRE DE SCROLL */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={calculationsModalVisible}
-        onRequestClose={() => setCalculationsModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.calculationsModalContent}>
-            <View style={styles.modalHeader}>
-              <Calculator size={32} color={theme.colors.success} />
-              <Text style={styles.modalTitle}>Calculs de conformité</Text>
-              <TouchableOpacity 
-                onPress={() => setCalculationsModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <X size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
             </View>
-            
-            <ScrollView 
-              style={styles.calculationsScrollView} 
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.calculationsScrollContent}
-            >
-              {/* Formule principale */}
-              <View style={styles.calculationSection}>
-                <Text style={styles.calculationTitle}>📐 Formule de calcul de l'écart</Text>
-                <View style={styles.formulaContainer}>
-                  <Text style={styles.formulaText}>
-                    Écart (%) = ((Débit mesuré - Débit de référence) / Débit de référence) × 100
-                  </Text>
-                </View>
-                <Text style={styles.calculationDescription}>
-                  Cette formule calcule l'écart relatif entre la valeur mesurée et la valeur de référence, exprimé en pourcentage.
-                </Text>
-              </View>
+          </View>
 
-              {/* Critères de conformité */}
-              <View style={styles.calculationSection}>
-                <Text style={styles.calculationTitle}>⚖️ Critères de conformité NF S61-933 Annexe H</Text>
-                
-                <View style={styles.criteriaContainer}>
-                  <View style={styles.criteriaItem}>
-                    <View style={[styles.criteriaIndicator, { backgroundColor: '#10B981' }]} />
-                    <View style={styles.criteriaContent}>
-                      <Text style={styles.criteriaLabel}>Fonctionnel (|Écart| ≤ 10%)</Text>
-                      <Text style={styles.criteriaDescription}>
-                        Un écart inférieur à ±10% entre les valeurs retenues lors de l'essai fonctionnel et les valeurs de référence conduit au constat du fonctionnement attendu du système de désenfumage mécanique.
-                      </Text>
-                    </View>
-                  </View>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>📱</Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Interface optimisée</Text>
+              <Text style={styles.featureDescription}>
+                Amélioration de l'ergonomie avec navigation simplifiée, raccourcis clavier et gestes tactiles avancés.
+              </Text>
+            </View>
+          </View>
 
-                  <View style={styles.criteriaItem}>
-                    <View style={[styles.criteriaIndicator, { backgroundColor: '#F59E0B' }]} />
-                    <View style={styles.criteriaContent}>
-                      <Text style={styles.criteriaLabel}>Acceptable (10% {'<'} |Écart| ≤ 20%)</Text>
-                      <Text style={styles.criteriaDescription}>
-                        Un écart compris entre ±10% et ±20% conduit à signaler cette dérive, par une proposition d'action corrective à l'exploitant ou au chef d'établissement.
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.criteriaItem}>
-                    <View style={[styles.criteriaIndicator, { backgroundColor: '#EF4444' }]} />
-                    <View style={styles.criteriaContent}>
-                      <Text style={styles.criteriaLabel}>Non conforme (|Écart| {'>'} 20%)</Text>
-                      <Text style={styles.criteriaDescription}>
-                        Un écart supérieur à ±20% doit conduire à une action corrective obligatoire, la valeur étant jugée non conforme à la mise en service.
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-
-              {/* Exemples de calcul */}
-              <View style={styles.calculationSection}>
-                <Text style={styles.calculationTitle}>🧮 Exemples de calcul</Text>
-                
-                <View style={styles.exampleContainer}>
-                  <Text style={styles.exampleTitle}>Exemple 1 : Volet fonctionnel</Text>
-                  <Text style={styles.exampleData}>
-                    • Débit de référence : 5000 m³/h{'\n'}
-                    • Débit mesuré : 4900 m³/h
-                  </Text>
-                  <Text style={styles.exampleCalculation}>
-                    Écart = ((4900 - 5000) / 5000) × 100 = -2%
-                  </Text>
-                  <Text style={styles.exampleResult}>
-                    ✅ Résultat : <Text style={{ color: '#10B981', fontWeight: 'bold' }}>Fonctionnel</Text> (|2%| ≤ 10%)
-                  </Text>
-                </View>
-
-                <View style={styles.exampleContainer}>
-                  <Text style={styles.exampleTitle}>Exemple 2 : Volet acceptable</Text>
-                  <Text style={styles.exampleData}>
-                    • Débit de référence : 3000 m³/h{'\n'}
-                    • Débit mesuré : 3450 m³/h
-                  </Text>
-                  <Text style={styles.exampleCalculation}>
-                    Écart = ((3450 - 3000) / 3000) × 100 = +15%
-                  </Text>
-                  <Text style={styles.exampleResult}>
-                    ⚠️ Résultat : <Text style={{ color: '#F59E0B', fontWeight: 'bold' }}>Acceptable</Text> (10% {'<'} |15%| ≤ 20%)
-                  </Text>
-                </View>
-
-                <View style={styles.exampleContainer}>
-                  <Text style={styles.exampleTitle}>Exemple 3 : Volet non conforme</Text>
-                  <Text style={styles.exampleData}>
-                    • Débit de référence : 4000 m³/h{'\n'}
-                    • Débit mesuré : 3000 m³/h
-                  </Text>
-                  <Text style={styles.exampleCalculation}>
-                    Écart = ((3000 - 4000) / 4000) × 100 = -25%
-                  </Text>
-                  <Text style={styles.exampleResult}>
-                    ❌ Résultat : <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>Non conforme</Text> (|25%| {'>'} 20%)
-                  </Text>
-                </View>
-              </View>
-
-              {/* Algorithme de validation */}
-              <View style={styles.calculationSection}>
-                <Text style={styles.calculationTitle}>🔧 Algorithme de validation</Text>
-                <View style={styles.algorithmContainer}>
-                  <Text style={styles.algorithmStep}>1. Vérification des données d'entrée</Text>
-                  <Text style={styles.algorithmDetail}>   • Débit de référence > 0</Text>
-                  <Text style={styles.algorithmDetail}>   • Débit mesuré ≥ 0</Text>
-                  
-                  <Text style={styles.algorithmStep}>2. Calcul de l'écart relatif</Text>
-                  <Text style={styles.algorithmDetail}>   • Écart = ((Mesuré - Référence) / Référence) × 100</Text>
-                  
-                  <Text style={styles.algorithmStep}>3. Détermination du statut</Text>
-                  <Text style={styles.algorithmDetail}>   • Si |Écart| ≤ 10% → Fonctionnel</Text>
-                  <Text style={styles.algorithmDetail}>   • Si 10% {'<'} |Écart| ≤ 20% → Acceptable</Text>
-                  <Text style={styles.algorithmDetail}>   • Si |Écart| {'>'} 20% → Non conforme</Text>
-                </View>
-              </View>
-
-              {/* Note technique */}
-              <View style={styles.technicalNote}>
-                <Text style={styles.technicalNoteTitle}>📋 Note technique</Text>
-                <Text style={styles.technicalNoteText}>
-                  Les calculs sont effectués en temps réel lors de la saisie des données. L'application utilise la précision JavaScript standard (IEEE 754) et arrondit les résultats à une décimale pour l'affichage.
-                  {'\n\n'}
-                  La conformité est évaluée selon les critères officiels de la norme française NF S61-933 Annexe H, version en vigueur.
-                </Text>
-              </View>
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
-              <Button
-                title={strings.understood}
-                onPress={() => setCalculationsModalVisible(false)}
-                style={styles.modalButton}
-              />
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>🔄</Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Sauvegarde automatique</Text>
+              <Text style={styles.featureDescription}>
+                Protection renforcée de vos données avec sauvegarde automatique locale et récupération en cas de fermeture inattendue.
+              </Text>
             </View>
           </View>
         </View>
-      </Modal>
 
-      {/* Modal Prochaines nouveautés - SANS BARRE DE SCROLL */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={upcomingFeaturesModalVisible}
-        onRequestClose={() => setUpcomingFeaturesModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.upcomingFeaturesModalContent}>
-            <View style={styles.modalHeader}>
-              <Sparkles size={32} color="#F59E0B" />
-              <Text style={styles.modalTitle}>Prochaines nouveautés</Text>
-              <TouchableOpacity 
-                onPress={() => setUpcomingFeaturesModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <X size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
+        {/* Outils et fonctionnalités */}
+        <View style={styles.featureSection}>
+          <Text style={styles.featureSectionTitle}>🔧 Outils et fonctionnalités</Text>
+          
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>📷</Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Capture photo intégrée</Text>
+              <Text style={styles.featureDescription}>
+                Ajout de photos directement aux volets avec annotations pour une documentation complète sur le terrain.
+              </Text>
             </View>
-            
-            <ScrollView 
-              style={styles.upcomingScrollView} 
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.upcomingScrollContent}
-            >
-              {/* Introduction */}
-              <View style={styles.upcomingIntro}>
-                <Text style={styles.upcomingIntroText}>
-                  Découvrez les futures fonctionnalités qui arriveront dans l'application Siemens CalcConform.
-                </Text>
-              </View>
+          </View>
 
-              {/* Fonctionnalités principales */}
-              <View style={styles.featureSection}>
-                <Text style={styles.featureSectionTitle}>🎯 Fonctionnalités principales</Text>
-                
-                <View style={styles.featureItem}>
-                  <Text style={styles.featureIcon}>📊</Text>
-                  <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>Tableaux de bord avancés</Text>
-                    <Text style={styles.featureDescription}>
-                      Visualisations graphiques interactives avec statistiques en temps réel, graphiques de tendances et indicateurs de performance.
-                    </Text>
-                  </View>
-                </View>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>🎙️</Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Notes vocales</Text>
+              <Text style={styles.featureDescription}>
+                Enregistrement de remarques audio pour une saisie rapide sur le terrain, avec lecture directe dans l'application.
+              </Text>
+            </View>
+          </View>
 
-                <View style={styles.featureItem}>
-                  <Text style={styles.featureIcon}>📱</Text>
-                  <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>Interface optimisée</Text>
-                    <Text style={styles.featureDescription}>
-                      Amélioration de l'ergonomie avec navigation simplifiée, raccourcis clavier et gestes tactiles avancés.
-                    </Text>
-                  </View>
-                </View>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>📋</Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Modèles de rapports</Text>
+              <Text style={styles.featureDescription}>
+                Bibliothèque de modèles personnalisables pour générer des rapports professionnels adaptés à vos besoins.
+              </Text>
+            </View>
+          </View>
 
-                <View style={styles.featureItem}>
-                  <Text style={styles.featureIcon}>🔄</Text>
-                  <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>Sauvegarde automatique</Text>
-                    <Text style={styles.featureDescription}>
-                      Protection renforcée de vos données avec sauvegarde automatique locale et récupération en cas de fermeture inattendue.
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Outils et fonctionnalités */}
-              <View style={styles.featureSection}>
-                <Text style={styles.featureSectionTitle}>🔧 Outils et fonctionnalités</Text>
-                
-                <View style={styles.featureItem}>
-                  <Text style={styles.featureIcon}>📷</Text>
-                  <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>Capture photo intégrée</Text>
-                    <Text style={styles.featureDescription}>
-                      Ajout de photos directement aux volets avec annotations pour une documentation complète sur le terrain.
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.featureItem}>
-                  <Text style={styles.featureIcon}>🎙️</Text>
-                  <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>Notes vocales</Text>
-                    <Text style={styles.featureDescription}>
-                      Enregistrement de remarques audio pour une saisie rapide sur le terrain, avec lecture directe dans l'application.
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.featureItem}>
-                  <Text style={styles.featureIcon}>📋</Text>
-                  <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>Modèles de rapports</Text>
-                    <Text style={styles.featureDescription}>
-                      Bibliothèque de modèles personnalisables pour générer des rapports professionnels adaptés à vos besoins.
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.featureItem}>
-                  <Text style={styles.featureIcon}>📊</Text>
-                  <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>Analyse statistique</Text>
-                    <Text style={styles.featureDescription}>
-                      Outils d'analyse avancés avec calculs de moyennes, écarts-types et tendances pour optimiser vos mesures.
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Améliorations UX */}
-              <View style={styles.featureSection}>
-                <Text style={styles.featureSectionTitle}>✨ Expérience utilisateur</Text>
-                
-                <View style={styles.featureItem}>
-                  <Text style={styles.featureIcon}>♿</Text>
-                  <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>Accessibilité renforcée</Text>
-                    <Text style={styles.featureDescription}>
-                      Support complet des technologies d'assistance avec navigation vocale et adaptation pour tous les utilisateurs.
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.featureItem}>
-                  <Text style={styles.featureIcon}>⚡</Text>
-                  <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>Performance optimisée</Text>
-                    <Text style={styles.featureDescription}>
-                      Temps de chargement réduits, animations fluides et gestion optimisée de la mémoire pour une expérience ultra-rapide.
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.featureItem}>
-                  <Text style={styles.featureIcon}>🔍</Text>
-                  <View style={styles.featureContent}>
-                    <Text style={styles.featureTitle}>Recherche avancée</Text>
-                    <Text style={styles.featureDescription}>
-                      Moteur de recherche amélioré avec filtres multiples, recherche par plage de valeurs et suggestions intelligentes.
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
-              <Button
-                title="OK"
-                onPress={() => setUpcomingFeaturesModalVisible(false)}
-                style={styles.modalButton}
-              />
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>📊</Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Analyse statistique</Text>
+              <Text style={styles.featureDescription}>
+                Outils d'analyse avancés avec calculs de moyennes, écarts-types et tendances pour optimiser vos mesures.
+              </Text>
             </View>
           </View>
         </View>
-      </Modal>
+
+        {/* Améliorations UX */}
+        <View style={styles.featureSection}>
+          <Text style={styles.featureSectionTitle}>✨ Expérience utilisateur</Text>
+          
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>♿</Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Accessibilité renforcée</Text>
+              <Text style={styles.featureDescription}>
+                Support complet des technologies d'assistance avec navigation vocale et adaptation pour tous les utilisateurs.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>⚡</Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Performance optimisée</Text>
+              <Text style={styles.featureDescription}>
+                Temps de chargement réduits, animations fluides et gestion optimisée de la mémoire pour une expérience ultra-rapide.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>🔍</Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Recherche avancée</Text>
+              <Text style={styles.featureDescription}>
+                Moteur de recherche amélioré avec filtres multiples, recherche par plage de valeurs et suggestions intelligentes.
+              </Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title="OK"
+          onPress={hideModal}
+          style={styles.modalButton}
+        />
+      </View>
     </View>
   );
 }
@@ -654,22 +649,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginTop: 2,
   },
   modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Platform.OS === 'web' ? 0 : 20,
-    ...(Platform.OS === 'web' && {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 9999,
-      paddingTop: 40,
-      paddingBottom: 100,
-      paddingHorizontal: 20,
-    }),
+    // Supprimé car maintenant géré par le ModalProvider
   },
   modalContent: {
     backgroundColor: theme.colors.surface,
@@ -677,7 +657,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     width: '100%',
     maxWidth: 400,
-    maxHeight: Platform.OS === 'web' ? '60%' : '80%', // Hauteur réduite sur web
+    maxHeight: '80%',
   },
   // Modal des calculs de conformité optimisé pour mobile SANS BARRE DE SCROLL
   calculationsModalContent: {
