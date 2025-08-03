@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, Platform, Clipboard } from 'react-native';
 import { Info, ChevronRight, Shield, Smartphone, CircleCheck as CheckCircle, FileText, Calculator, Sparkles, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
@@ -546,6 +546,95 @@ function UpcomingFeaturesModal() {
   );
 }
 
+function ContactDeveloperModal() {
+  const { strings } = useLanguage();
+  const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const styles = createStyles(theme);
+
+  const developerEmail = 'developer@siemens-calcconform.com';
+  const emailSubject = 'Contact depuis CalcConform';
+  const emailBody = 'Bonjour,\n\nJe vous contacte concernant l\'application CalcConform.\n\n';
+
+  const handleSendEmail = async () => {
+    try {
+      const mailtoUrl = `mailto:${developerEmail}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+      
+      if (Platform.OS === 'web') {
+        window.open(mailtoUrl, '_blank');
+      } else {
+        const canOpen = await Linking.canOpenURL(mailtoUrl);
+        if (canOpen) {
+          await Linking.openURL(mailtoUrl);
+        } else {
+          Alert.alert('Erreur', 'Impossible d\'ouvrir l\'application email');
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'ouverture de l\'email:', error);
+      Alert.alert('Erreur', 'Impossible d\'ouvrir l\'application email');
+    }
+  };
+
+  const handleCopyEmail = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        await navigator.clipboard.writeText(developerEmail);
+      } else {
+        Clipboard.setString(developerEmail);
+      }
+      Alert.alert('Succès', 'Adresse email copiée dans le presse-papiers');
+    } catch (error) {
+      console.error('Erreur lors de la copie:', error);
+      Alert.alert('Erreur', 'Impossible de copier l\'adresse email');
+    }
+  };
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Info size={32} color={theme.colors.primary} />
+        <Text style={styles.modalTitle}>Contacter le développeur</Text>
+        <TouchableOpacity 
+          onPress={hideModal}
+          style={styles.closeButton}
+        >
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.contactContent}>
+        <Text style={styles.contactIntro}>
+          Vous avez des questions, suggestions ou rencontrez un problème ? N'hésitez pas à me contacter !
+        </Text>
+        
+        <View style={styles.contactInfo}>
+          <Text style={styles.contactLabel}>Email :</Text>
+          <Text style={styles.contactEmail}>{developerEmail}</Text>
+        </View>
+        
+        <Text style={styles.contactEncouragement}>
+          Vos retours sont précieux pour améliorer l'application et ajouter de nouvelles fonctionnalités utiles.
+        </Text>
+      </View>
+
+      <View style={styles.contactButtons}>
+        <Button
+          title="Envoyer un email"
+          onPress={handleSendEmail}
+          style={[styles.contactButton, { marginBottom: 8 }]}
+        />
+        <Button
+          title="Copier l'email"
+          onPress={handleCopyEmail}
+          variant="secondary"
+          style={styles.contactButton}
+        />
+      </View>
+    </View>
+  );
+}
+
 const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
@@ -859,6 +948,50 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: theme.colors.warning,
     lineHeight: 15,
+  },
+
+  // Styles pour le modal de contact
+  contactContent: {
+    marginBottom: 20,
+  },
+  contactIntro: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  contactInfo: {
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  contactLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.textSecondary,
+    marginBottom: 4,
+  },
+  contactEmail: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.primary,
+  },
+  contactEncouragement: {
+    fontSize: 13,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+    lineHeight: 18,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  contactButtons: {
+    gap: 8,
+  },
+  contactButton: {
+    width: '100%',
   },
 
   // Styles pour les prochaines nouveautés - VERSION CORRIGÉE
