@@ -202,11 +202,12 @@ export default function BuildingDetailScreen() {
       }
       setSelectedZones(new Set());
       setSelectionMode(false);
+      await loadBuilding();
       hideModal();
     } catch (error) {
       console.error('Erreur lors de la suppression en lot:', error);
+      hideModal();
     }
-    hideModal();
   };
 
   const handleBulkFavorite = async () => {
@@ -832,35 +833,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 16,
     width: '100%',
     maxWidth: 400,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.separator,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.colors.text,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  modalBody: {
-    padding: 20,
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.separator,
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
   },
 });
 
