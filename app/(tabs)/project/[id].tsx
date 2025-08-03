@@ -948,7 +948,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
 });
 
-// Composants modaux séparés pour utiliser le portail global
+// Composants modaux définis au niveau du fichier
 function CreateBuildingModal({ 
   onSubmit, 
   onCancel, 
@@ -1002,6 +1002,94 @@ function CreateBuildingModal({
           title={loading ? "Création..." : strings.create}
           onPress={onSubmit}
           disabled={loading}
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
+
+function DeleteBuildingModal({ building, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Supprimer le bâtiment</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer le bâtiment </Text>
+          <Text style={styles.modalBold}>"{building.name}"</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Toutes les zones et volets associés seront également supprimés.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title="Supprimer"
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
+
+function BulkDeleteBuildingsModal({ count, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Supprimer {count} bâtiment{count > 1 ? 's' : ''}</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer </Text>
+          <Text style={styles.modalBold}>{count} bâtiment{count > 1 ? 's' : ''}</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Toutes les zones et volets associés seront également supprimés.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={`Supprimer ${count > 1 ? 'tout' : 'les bâtiments'}`}
+          onPress={onConfirm}
+          variant="danger"
           style={styles.modalButton}
         />
       </View>

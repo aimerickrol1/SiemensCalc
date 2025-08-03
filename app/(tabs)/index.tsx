@@ -246,96 +246,6 @@ export default function ProjectsScreen() {
     />);
   };
 
-// Composant modal pour la suppression d'un projet
-function DeleteProjectModal({ project, onConfirm, onCancel, strings }: any) {
-  const { theme } = useTheme();
-  const styles = createStyles(theme);
-
-  return (
-    <View style={styles.modalContent}>
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>{strings.deleteProject}</Text>
-        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
-          <X size={20} color={theme.colors.textSecondary} />
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.modalBody}>
-        <Text style={styles.modalText}>
-          <Text>⚠️ </Text>
-          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
-          <Text>{'\n\n'}</Text>
-          <Text>Êtes-vous sûr de vouloir supprimer le projet </Text>
-          <Text style={styles.modalBold}>"{project.name}"</Text>
-          <Text> ?</Text>
-          <Text>{'\n\n'}</Text>
-          <Text>Tous les bâtiments, zones et volets associés seront également supprimés.</Text>
-        </Text>
-      </View>
-
-      <View style={styles.modalFooter}>
-        <Button
-          title={strings.cancel}
-          onPress={onCancel}
-          variant="secondary"
-          style={styles.modalButton}
-        />
-        <Button
-          title={strings.delete}
-          onPress={onConfirm}
-          variant="danger"
-          style={styles.modalButton}
-        />
-      </View>
-    </View>
-  );
-}
-
-// Composant modal pour la suppression en lot de projets
-function BulkDeleteProjectsModal({ count, onConfirm, onCancel, strings }: any) {
-  const { theme } = useTheme();
-  const styles = createStyles(theme);
-
-  return (
-    <View style={styles.modalContent}>
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>Supprimer {count} projet{count > 1 ? 's' : ''}</Text>
-        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
-          <X size={20} color={theme.colors.textSecondary} />
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.modalBody}>
-        <Text style={styles.modalText}>
-          <Text>⚠️ </Text>
-          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
-          <Text>{'\n\n'}</Text>
-          <Text>Êtes-vous sûr de vouloir supprimer </Text>
-          <Text style={styles.modalBold}>{count} projet{count > 1 ? 's' : ''}</Text>
-          <Text> ?</Text>
-          <Text>{'\n\n'}</Text>
-          <Text>Tous les bâtiments, zones et volets associés seront également supprimés.</Text>
-        </Text>
-      </View>
-
-      <View style={styles.modalFooter}>
-        <Button
-          title={strings.cancel}
-          onPress={onCancel}
-          variant="secondary"
-          style={styles.modalButton}
-        />
-        <Button
-          title={`Supprimer ${count > 1 ? 'tout' : 'le projet'}`}
-          onPress={onConfirm}
-          variant="danger"
-          style={styles.modalButton}
-        />
-      </View>
-    </View>
-  );
-}
-
   const handleBulkFavorite = async () => {
     if (selectedProjects.size === 0) return;
 
@@ -659,3 +569,92 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
   },
 });
+// Composant modal pour la suppression d'un projet
+function DeleteProjectModal({ project, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>{strings.deleteProject}</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer le projet </Text>
+          <Text style={styles.modalBold}>"{project.name}"</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Tous les bâtiments, zones et volets associés seront également supprimés.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={strings.delete}
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
+
+// Composant modal pour la suppression en lot de projets
+function BulkDeleteProjectsModal({ count, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Supprimer {count} projet{count > 1 ? 's' : ''}</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer </Text>
+          <Text style={styles.modalBold}>{count} projet{count > 1 ? 's' : ''}</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Tous les bâtiments, zones et volets associés seront également supprimés.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={`Supprimer ${count > 1 ? 'tout' : 'le projet'}`}
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
