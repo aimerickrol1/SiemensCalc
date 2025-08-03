@@ -123,8 +123,19 @@ export default function ShutterDetailScreen() {
           text: strings.delete,
           style: 'destructive',
           onPress: async () => {
-            await deleteShutter(shutter.id);
-            handleBack();
+            try {
+              const success = await deleteShutter(shutter.id);
+              if (success) {
+                console.log('✅ Volet supprimé avec succès');
+                handleBack();
+              } else {
+                console.error('❌ Erreur lors de la suppression du volet');
+                Alert.alert(strings.error, 'Impossible de supprimer le volet');
+              }
+            } catch (error) {
+              console.error('Erreur lors de la suppression:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer le volet');
+            }
           }
         }
       ]

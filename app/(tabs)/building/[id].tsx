@@ -192,12 +192,20 @@ export default function BuildingDetailScreen() {
           text: strings.delete,
           style: 'destructive',
           onPress: async () => {
-            for (const zoneId of selectedZones) {
-              await deleteFunctionalZone(zoneId);
+            try {
+              for (const zoneId of selectedZones) {
+                const success = await deleteFunctionalZone(zoneId);
+                if (!success) {
+                  console.error('Erreur lors de la suppression de la zone:', zoneId);
+                }
+              }
+              setSelectedZones(new Set());
+              setSelectionMode(false);
+              await loadBuilding();
+            } catch (error) {
+              console.error('Erreur lors de la suppression en lot:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer certaines zones');
             }
-            setSelectedZones(new Set());
-            setSelectionMode(false);
-            loadBuilding();
           }
         }
       ]
@@ -242,8 +250,19 @@ export default function BuildingDetailScreen() {
           text: strings.delete,
           style: 'destructive',
           onPress: async () => {
-            await deleteFunctionalZone(zone.id);
-            loadBuilding();
+            try {
+              const success = await deleteFunctionalZone(zone.id);
+              if (success) {
+                console.log('✅ Zone supprimée avec succès');
+                await loadBuilding();
+              } else {
+                console.error('❌ Erreur lors de la suppression de la zone');
+                Alert.alert(strings.error, 'Impossible de supprimer la zone');
+              }
+            } catch (error) {
+              console.error('Erreur lors de la suppression:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer la zone');
+            }
           }
         }
       ]

@@ -128,12 +128,20 @@ export default function ProjectDetailScreen() {
           text: strings.delete,
           style: 'destructive',
           onPress: async () => {
-            for (const buildingId of selectedBuildings) {
-              await deleteBuilding(buildingId);
+            try {
+              for (const buildingId of selectedBuildings) {
+                const success = await deleteBuilding(buildingId);
+                if (!success) {
+                  console.error('Erreur lors de la suppression du bâtiment:', buildingId);
+                }
+              }
+              setSelectedBuildings(new Set());
+              setSelectionMode(false);
+              await loadProject();
+            } catch (error) {
+              console.error('Erreur lors de la suppression en lot:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer certains bâtiments');
             }
-            setSelectedBuildings(new Set());
-            setSelectionMode(false);
-            loadProject();
           }
         }
       ]
@@ -286,13 +294,19 @@ export default function ProjectDetailScreen() {
           text: strings.delete,
           style: 'destructive',
           onPress: async () => {
-            console.log('🗑️ Suppression du bâtiment:', building.id);
-            const success = await deleteBuilding(building.id);
-            if (success) {
-              console.log('✅ Bâtiment supprimé avec succès');
-              loadProject();
-            } else {
-              console.error('❌ Erreur lors de la suppression du bâtiment');
+            try {
+              console.log('🗑️ Suppression du bâtiment:', building.id);
+              const success = await deleteBuilding(building.id);
+              if (success) {
+                console.log('✅ Bâtiment supprimé avec succès');
+                await loadProject();
+              } else {
+                console.error('❌ Erreur lors de la suppression du bâtiment');
+                Alert.alert(strings.error, 'Impossible de supprimer le bâtiment');
+              }
+            } catch (error) {
+              console.error('Erreur lors de la suppression:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer le bâtiment');
             }
           }
         }

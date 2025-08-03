@@ -219,8 +219,19 @@ export default function ZoneDetailScreen() {
           text: strings.delete,
           style: 'destructive',
           onPress: async () => {
-            await deleteShutter(shutter.id);
-            loadZone();
+            try {
+              const success = await deleteShutter(shutter.id);
+              if (success) {
+                console.log('✅ Volet supprimé avec succès');
+                await loadZone();
+              } else {
+                console.error('❌ Erreur lors de la suppression du volet');
+                Alert.alert(strings.error, 'Impossible de supprimer le volet');
+              }
+            } catch (error) {
+              console.error('Erreur lors de la suppression:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer le volet');
+            }
           }
         }
       ]
@@ -257,12 +268,20 @@ export default function ZoneDetailScreen() {
           text: strings.delete,
           style: 'destructive',
           onPress: async () => {
-            for (const shutterId of selectedShutters) {
-              await deleteShutter(shutterId);
+            try {
+              for (const shutterId of selectedShutters) {
+                const success = await deleteShutter(shutterId);
+                if (!success) {
+                  console.error('Erreur lors de la suppression du volet:', shutterId);
+                }
+              }
+              setSelectedShutters(new Set());
+              setSelectionMode(false);
+              await loadZone();
+            } catch (error) {
+              console.error('Erreur lors de la suppression en lot:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer certains volets');
             }
-            setSelectedShutters(new Set());
-            setSelectionMode(false);
-            loadZone();
           }
         }
       ]

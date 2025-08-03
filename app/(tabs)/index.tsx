@@ -247,11 +247,19 @@ export default function ProjectsScreen() {
           text: strings.delete,
           style: 'destructive',
           onPress: async () => {
-            for (const projectId of selectedProjects) {
-              await deleteProject(projectId);
+            try {
+              for (const projectId of selectedProjects) {
+                const success = await deleteProject(projectId);
+                if (!success) {
+                  console.error('Erreur lors de la suppression du projet:', projectId);
+                }
+              }
+              setSelectedProjects(new Set());
+              setSelectionMode(false);
+            } catch (error) {
+              console.error('Erreur lors de la suppression en lot:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer certains projets');
             }
-            setSelectedProjects(new Set());
-            setSelectionMode(false);
           }
         }
       ]
@@ -301,7 +309,17 @@ export default function ProjectsScreen() {
           text: strings.delete,
           style: 'destructive',
           onPress: async () => {
-            await deleteProject(project.id);
+            try {
+              const success = await deleteProject(project.id);
+              if (success) {
+                console.log('✅ Projet supprimé avec succès');
+              } else {
+                Alert.alert(strings.error, 'Impossible de supprimer le projet');
+              }
+            } catch (error) {
+              console.error('Erreur lors de la suppression:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer le projet');
+            }
           }
         }
       ]
