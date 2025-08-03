@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, ScrollView, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInput, Platform } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Plus, Settings, Building, Star, Trash2, SquareCheck as CheckSquare, Square, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
@@ -266,6 +266,96 @@ export default function ProjectsScreen() {
     );
   };
 
+// Composant modal pour la suppression d'un projet
+function DeleteProjectModal({ project, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>{strings.deleteProject}</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer le projet </Text>
+          <Text style={styles.modalBold}>"{project.name}"</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Tous les bâtiments, zones et volets associés seront également supprimés.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={strings.delete}
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
+
+// Composant modal pour la suppression en lot de projets
+function BulkDeleteProjectsModal({ count, onConfirm, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Supprimer {count} projet{count > 1 ? 's' : ''}</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.modalBody}>
+        <Text style={styles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={styles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer </Text>
+          <Text style={styles.modalBold}>{count} projet{count > 1 ? 's' : ''}</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Tous les bâtiments, zones et volets associés seront également supprimés.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={`Supprimer ${count > 1 ? 'tout' : 'le projet'}`}
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
+
   const handleBulkFavorite = async () => {
     if (selectedProjects.size === 0) return;
 
@@ -300,61 +390,53 @@ export default function ProjectsScreen() {
   };
 
   const handleDeleteProject = async (project: Project) => {
-    Alert.alert(
-      strings.deleteProject,
-      `Êtes-vous sûr de vouloir supprimer le projet "${project.name}" ?`,
-      [
-        { text: strings.cancel, style: 'cancel' },
-        {
-          text: strings.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const success = await deleteProject(project.id);
-              if (success) {
-                console.log('✅ Projet supprimé avec succès');
-              } else {
-                Alert.alert(strings.error, 'Impossible de supprimer le projet');
-              }
-            } catch (error) {
-              console.error('Erreur lors de la suppression:', error);
-              Alert.alert(strings.error, 'Impossible de supprimer le projet');
-            }
-          }
-        }
-      ]
-    );
+    showModal(<DeleteProjectModal 
+      project={project}
+      onConfirm={() => confirmDeleteProject(project)}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const confirmDeleteProject = async (project: Project) => {
+    try {
+      const success = await deleteProject(project.id);
+      if (success) {
+        console.log('✅ Projet supprimé avec succès');
+        hideModal();
+      } else {
+        console.error('❌ Erreur: Projet non trouvé pour la suppression');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+    }
   };
 
   // Trier les projets : favoris en premier
   const sortedProjects = [...projects].sort((a, b) => {
     // Protection contre null/undefined
-    const aIsFavorite = Array.isArray(favoriteProjects) && favoriteProjects.includes(a.id);
-    const bIsFavorite = Array.isArray(favoriteProjects) && favoriteProjects.includes(b.id);
-    
-    if (aIsFavorite && !bIsFavorite) return -1;
-    if (!aIsFavorite && bIsFavorite) return 1;
-    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-  });
+    showModal(<BulkDeleteProjectsModal 
+      count={selectedProjects.size}
+      onConfirm={() => confirmBulkDeleteProjects()}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
 
-  const renderProject = ({ item }: { item: Project }) => (
-    <ProjectCard
-      project={item}
-      isFavorite={Array.isArray(favoriteProjects) && favoriteProjects.includes(item.id)}
-      isSelected={selectedProjects.has(item.id)}
-      selectionMode={selectionMode}
-      onPress={() => handleProjectPress(item)}
-      onLongPress={() => handleProjectLongPress(item)}
-      onToggleFavorite={() => handleToggleFavorite(item.id)}
-      onEdit={() => handleEditProject(item)}
-      onDelete={() => handleDeleteProject(item)}
-    />
-  );
-
-  const styles = createStyles(theme);
-
-  if (loading) {
-    return <LoadingScreen title={strings.projectsTitle} message={strings.loadingData} />;
+  const confirmBulkDeleteProjects = async () => {
+    try {
+      for (const projectId of selectedProjects) {
+        const success = await deleteProject(projectId);
+        if (!success) {
+          console.error('Erreur lors de la suppression du projet:', projectId);
+        }
+      }
+      setSelectedProjects(new Set());
+      setSelectionMode(false);
+      hideModal();
+    } catch (error) {
+      console.error('Erreur lors de la suppression en lot:', error);
+    }
   }
 
   return (
@@ -530,5 +612,48 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   listContainerWeb: {
     paddingBottom: Platform.OS === 'web' ? 100 : 16, // Padding supplémentaire sur web
+  },
+  modalContent: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+    flex: 1,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    marginBottom: 20,
+  },
+  modalText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+    lineHeight: 20,
+  },
+  modalBold: {
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
   },
 });

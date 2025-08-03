@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ScrollView, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInput, Platform } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { Plus, Settings, Building, Wind, Star, Trash2, SquareCheck as CheckSquare, Square, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
@@ -119,33 +119,29 @@ export default function ProjectDetailScreen() {
   const handleBulkDelete = () => {
     if (selectedBuildings.size === 0) return;
 
-    Alert.alert(
-      strings.delete + ' ' + strings.buildings.toLowerCase(),
-      `Êtes-vous sûr de vouloir supprimer ${selectedBuildings.size} bâtiment${selectedBuildings.size > 1 ? 's' : ''} ?`,
-      [
-        { text: strings.cancel, style: 'cancel' },
-        {
-          text: strings.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              for (const buildingId of selectedBuildings) {
-                const success = await deleteBuilding(buildingId);
-                if (!success) {
-                  console.error('Erreur lors de la suppression du bâtiment:', buildingId);
-                }
-              }
-              setSelectedBuildings(new Set());
-              setSelectionMode(false);
-              await loadProject();
-            } catch (error) {
-              console.error('Erreur lors de la suppression en lot:', error);
-              Alert.alert(strings.error, 'Impossible de supprimer certains bâtiments');
-            }
-          }
+    showModal(<BulkDeleteBuildingsModal 
+      count={selectedBuildings.size}
+      onConfirm={() => confirmBulkDeleteBuildings()}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const confirmBulkDeleteBuildings = async () => {
+    try {
+      for (const buildingId of selectedBuildings) {
+        const success = await deleteBuilding(buildingId);
+        if (!success) {
+          console.error('Erreur lors de la suppression du bâtiment:', buildingId);
         }
-      ]
-    );
+      }
+      setSelectedBuildings(new Set());
+      setSelectionMode(false);
+      await loadProject();
+      hideModal();
+    } catch (error) {
+      console.error('Erreur lors de la suppression en lot:', error);
+    }
   };
 
   const handleBulkFavorite = async () => {
@@ -285,33 +281,28 @@ export default function ProjectDetailScreen() {
   };
 
   const handleDeleteBuilding = async (building: BuildingType) => {
-    Alert.alert(
-      strings.deleteBuilding,
-      `Êtes-vous sûr de vouloir supprimer le bâtiment "${building.name}" ?`,
-      [
-        { text: strings.cancel, style: 'cancel' },
-        {
-          text: strings.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              console.log('🗑️ Suppression du bâtiment:', building.id);
-              const success = await deleteBuilding(building.id);
-              if (success) {
-                console.log('✅ Bâtiment supprimé avec succès');
-                await loadProject();
-              } else {
-                console.error('❌ Erreur lors de la suppression du bâtiment');
-                Alert.alert(strings.error, 'Impossible de supprimer le bâtiment');
-              }
-            } catch (error) {
-              console.error('Erreur lors de la suppression:', error);
-              Alert.alert(strings.error, 'Impossible de supprimer le bâtiment');
-            }
-          }
-        }
-      ]
-    );
+    showModal(<DeleteBuildingModal 
+      building={building}
+      onConfirm={() => confirmDeleteBuilding(building)}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const confirmDeleteBuilding = async (building: BuildingType) => {
+    try {
+      console.log('🗑️ Suppression du bâtiment:', building.id);
+      const success = await deleteBuilding(building.id);
+      if (success) {
+        console.log('✅ Bâtiment supprimé avec succès');
+        await loadProject();
+        hideModal();
+      } else {
+        console.error('❌ Erreur lors de la suppression du bâtiment');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+    }
   };
 
   const handleEditProject = () => {
