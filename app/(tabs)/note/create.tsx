@@ -148,7 +148,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 120, // Espace pour le bouton fixe
+    paddingBottom: 140, // Espace augmenté pour le bouton fixe
   },
   contentInputContainer: {
     flex: 1,

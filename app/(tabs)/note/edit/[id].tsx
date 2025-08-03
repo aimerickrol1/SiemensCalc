@@ -207,7 +207,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 120, // Espace pour le bouton fixe
+    paddingBottom: 140, // Espace augmenté pour le bouton fixe
   },
   loadingContainer: {
     flex: 1,
