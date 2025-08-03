@@ -196,7 +196,27 @@ export default function NotesScreen() {
   };
 
   const handleEditNote = (note: Note) => {
-    safeNavigate(`/(tabs)/note/edit/${note.id}`);
+    showModal(<EditNoteTitleModal 
+      note={note}
+      onSave={saveNoteTitleChange}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const saveNoteTitleChange = async (note: Note, newTitle: string) => {
+    if (!note) return;
+
+    try {
+      const { updateNote } = useStorage();
+      await updateNote(note.id, {
+        title: newTitle.trim() || strings.untitledNote,
+      });
+      
+      hideModal();
+    } catch (error) {
+      console.error('Erreur lors de la modification du titre:', error);
+    }
   };
 
   const handleDeleteNote = (note: Note) => {
@@ -646,6 +666,62 @@ const BulkDeleteNotesModal = ({ count, onConfirm, onCancel, strings }: {
   );
 };
 
+// Modal d'édition du titre de note
+const EditNoteTitleModal = ({ note, onSave, onCancel, strings }: {
+  note: Note;
+  onSave: (note: Note, newTitle: string) => void;
+  onCancel: () => void;
+  strings: any;
+}) => {
+  const { theme } = useTheme();
+  const [title, setTitle] = useState(note.title || '');
+  const modalStyles = createStyles(theme);
+
+  const handleSave = () => {
+    onSave(note, title);
+  };
+
+  return (
+    <View style={modalStyles.modalContent}>
+      <View style={modalStyles.modalHeader}>
+        <Text style={modalStyles.modalTitle}>Modifier le titre de la note</Text>
+        <TouchableOpacity onPress={onCancel} style={modalStyles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={modalStyles.modalBody}>
+        <Text style={modalStyles.inputLabel}>Titre de la note *</Text>
+        <TextInput
+          style={modalStyles.titleTextInput}
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Ex: Observations chantier, Mesures particulières..."
+          placeholderTextColor={theme.colors.textTertiary}
+          autoFocus={true}
+          selectTextOnFocus={true}
+          returnKeyType="done"
+          blurOnSubmit={true}
+        />
+      </View>
+
+      <View style={modalStyles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={modalStyles.modalButton}
+        />
+        <Button
+          title={strings.save}
+          onPress={handleSave}
+          style={modalStyles.modalButton}
+        />
+      </View>
+    </View>
+  );
+};
+
 const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
@@ -938,5 +1014,23 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   modalButton: {
     flex: 1,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.textSecondary,
+    marginBottom: 6,
+  },
+  titleTextInput: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    backgroundColor: theme.colors.inputBackground,
+    color: theme.colors.text,
+    minHeight: 48,
   },
 });
