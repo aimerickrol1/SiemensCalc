@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Info } from 'lucide-react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { router } from 'expo-router';
@@ -25,6 +26,14 @@ export function Header({ title, subtitle, onBack, rightComponent, showSettings =
     }
   };
 
+  const handleAboutPress = () => {
+    try {
+      router.push('/(tabs)/about');
+    } catch (error) {
+      console.error('Erreur de navigation vers à propos:', error);
+    }
+  };
+
   const styles = createStyles(theme);
 
   return (
@@ -43,12 +52,20 @@ export function Header({ title, subtitle, onBack, rightComponent, showSettings =
           
           {/* Icône paramètres TOUJOURS affichée (sauf si explicitement désactivée) */}
           {showSettings && (
-            <TouchableOpacity 
-              style={styles.settingsButton}
-              onPress={handleSettingsPress}
-            >
-              <Ionicons name="settings-outline" size={22} color={theme.colors.primary} />
-            </TouchableOpacity>
+            <View style={styles.topBarActions}>
+              <TouchableOpacity 
+                style={styles.topBarButton}
+                onPress={handleAboutPress}
+              >
+                <Info size={20} color={theme.colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.topBarButton}
+                onPress={handleSettingsPress}
+              >
+                <Ionicons name="settings-outline" size={20} color={theme.colors.primary} />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
@@ -123,6 +140,19 @@ const createStyles = (theme: any) => StyleSheet.create({
     right: 0,
     top: '50%',
     transform: [{ translateY: -11 }],
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: theme.colors.surfaceSecondary,
+  },
+  topBarActions: {
+    position: 'absolute',
+    right: 0,
+    top: '50%',
+    transform: [{ translateY: -11 }],
+    flexDirection: 'row',
+    gap: 8,
+  },
+  topBarButton: {
     padding: 6,
     borderRadius: 6,
     backgroundColor: theme.colors.surfaceSecondary,
