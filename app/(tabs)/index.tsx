@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInp
 import { router, useFocusEffect } from 'expo-router';
 import { Plus, Settings, Building, Star, Trash2, SquareCheck as CheckSquare, Square, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
+import { Button } from '@/components/Button';
 import { ProjectCard } from '@/components/ProjectCard';
 import { Project } from '@/types';
 import { useStorage } from '@/contexts/StorageContext';
