@@ -9,16 +9,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function CreateBuildingScreen() {
   const { strings } = useLanguage();
-  const { storage } = useStorage();
+  const { createBuilding } = useStorage();
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ name?: string }>({});
 
-  // NOUVEAU : Détecter le thème système
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { theme } = useTheme();
 
   const handleBack = () => {
     if (projectId) {
@@ -45,7 +43,7 @@ export default function CreateBuildingScreen() {
 
     setLoading(true);
     try {
-      const building = await storage.createBuilding(projectId, {
+      const building = await createBuilding(projectId, {
         name: name.trim(),
         description: description.trim() || undefined,
       });
@@ -108,10 +106,10 @@ export default function CreateBuildingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.colors.background,
   },
   content: {
     flex: 1,
