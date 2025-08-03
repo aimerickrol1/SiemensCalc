@@ -446,3 +446,52 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.text,
   },
 });
+// Modal de confirmation pour la suppression en lot
+const BulkDeleteProjectsModal = ({ count, onConfirm, onCancel, strings }: {
+  count: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+  strings: any;
+}) => {
+  const { theme } = useTheme();
+  const modalStyles = createStyles(theme);
+
+  return (
+    <View style={modalStyles.modalContent}>
+      <View style={modalStyles.modalHeader}>
+        <Text style={modalStyles.modalTitle}>
+          {strings.confirmDelete || 'Confirmer la suppression'}
+        </Text>
+        <TouchableOpacity onPress={onCancel} style={modalStyles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      <View style={modalStyles.modalBody}>
+        <Text style={modalStyles.modalText}>
+          {strings.confirmBulkDeleteMessage || `Êtes-vous sûr de vouloir supprimer ${count} projet${count > 1 ? 's' : ''} ?`}
+        </Text>
+        <Text style={[modalStyles.modalText, modalStyles.modalBold]}>
+          {strings.actionIrreversible || 'Cette action est irréversible.'}
+        </Text>
+      </View>
+      <View style={{ flexDirection: 'row', gap: 12 }}>
+        <TouchableOpacity
+          style={[modalStyles.toolbarButton, { flex: 1, backgroundColor: theme.colors.surfaceSecondary }]}
+          onPress={onCancel}
+        >
+          <Text style={[modalStyles.toolbarButtonText, { color: theme.colors.textSecondary }]}>
+            {strings.cancel || 'Annuler'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[modalStyles.toolbarButton, { flex: 1, backgroundColor: theme.colors.error }]}
+          onPress={onConfirm}
+        >
+          <Text style={[modalStyles.toolbarButtonText, { color: 'white' }]}>
+            {strings.delete || 'Supprimer'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
