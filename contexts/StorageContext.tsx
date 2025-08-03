@@ -351,7 +351,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       if (buildingIndex !== -1) {
         newProjects[i] = {
           ...newProjects[i],
-          buildings: newProjects[i].buildings.filter(b => b.id !== buildingId),
+          buildings: (newProjects[i].buildings || []).filter(b => b.id !== buildingId),
           updatedAt: new Date()
         };
         found = true;
