@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import { Project, Building, FunctionalZone, Shutter, SearchResult } from '@/types';
+import { Project, Building, FunctionalZone, Shutter, SearchResult, Note } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
@@ -26,6 +26,7 @@ interface StorageContextType {
   favoriteZones: string[];
   favoriteShutters: string[];
   quickCalcHistory: QuickCalcHistoryItem[];
+  notes: Note[];
   
   // Actions pour les projets
   createProject: (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'buildings'>) => Promise<Project>;
@@ -58,6 +59,11 @@ interface StorageContextType {
   clearQuickCalcHistory: () => Promise<void>;
   getQuickCalcHistory: () => Promise<QuickCalcHistoryItem[]>;
   
+  // Actions pour les notes
+  createNote: (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Note>;
+  updateNote: (id: string, updates: Partial<Note>) => Promise<Note | null>;
+  deleteNote: (id: string) => Promise<boolean>;
+  
   // Recherche
   searchShutters: (query: string) => SearchResult[];
   
@@ -80,6 +86,7 @@ const STORAGE_KEYS = {
   FAVORITE_ZONES: 'SIEMENS_FAV_ZONES',
   FAVORITE_SHUTTERS: 'SIEMENS_FAV_SHUTTERS',
   QUICK_CALC_HISTORY: 'SIEMENS_CALC_HISTORY',
+  NOTES: 'SIEMENS_NOTES',
 };
 
 // Fonction utilitaire pour générer un ID unique
@@ -117,6 +124,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
   const [favoriteZones, setFavoriteZonesState] = useState<string[]>([]);
   const [favoriteShutters, setFavoriteShuttersState] = useState<string[]>([]);
   const [quickCalcHistory, setQuickCalcHistoryState] = useState<QuickCalcHistoryItem[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
 
   // Ref pour maintenir la version la plus récente des projets
   const projectsRef = useRef<Project[]>([]);
@@ -247,6 +255,30 @@ export function StorageProvider({ children }: StorageProviderProps) {
       } catch (error) {
         console.warn('Erreur parsing historique:', error);
         setQuickCalcHistoryState([]);
+      }
+
+      // Charger les notes
+      const notesData = await safeStorageOperation(
+        () => AsyncStorage.getItem(STORAGE_KEYS.NOTES),
+        null,
+        'getNotes'
+      );
+      
+      try {
+        if (notesData && notesData !== 'undefined' && notesData !== 'null') {
+          const parsedNotes = JSON.parse(notesData);
+          const processedNotes = Array.isArray(parsedNotes) ? parsedNotes.map((note: any) => ({
+            ...note,
+            createdAt: new Date(note.createdAt || Date.now()),
+            updatedAt: new Date(note.updatedAt || Date.now())
+          })) : [];
+          setNotes(processedNotes);
+        } else {
+          setNotes([]);
+        }
+      } catch (error) {
+        console.warn('Erreur parsing notes:', error);
+        setNotes([]);
       }
 
       console.log('✅ Stockage initialisé avec succès');
@@ -778,6 +810,56 @@ export function StorageProvider({ children }: StorageProviderProps) {
     return quickCalcHistory;
   };
 
+  // Actions pour les notes
+  const createNote = async (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>): Promise<Note> => {
+    const newNote: Note = {
+      ...noteData,
+      id: generateUniqueId(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const newNotes = [newNote, ...notes];
+    await saveNotes(newNotes);
+    return newNote;
+  };
+
+  const updateNote = async (id: string, updates: Partial<Note>): Promise<Note | null> => {
+    const noteIndex = notes.findIndex(n => n.id === id);
+    if (noteIndex === -1) {
+      return null;
+    }
+    
+    const updatedNote = { ...notes[noteIndex], ...updates, updatedAt: new Date() };
+    const newNotes = [...notes];
+    newNotes[noteIndex] = updatedNote;
+    
+    await saveNotes(newNotes);
+    return updatedNote;
+  };
+
+  const deleteNote = async (id: string): Promise<boolean> => {
+    const noteIndex = notes.findIndex(n => n.id === id);
+    if (noteIndex === -1) {
+      return false;
+    }
+    
+    const newNotes = notes.filter(n => n.id !== id);
+    await saveNotes(newNotes);
+    return true;
+  };
+
+  // Fonction utilitaire pour sauvegarder les notes
+  const saveNotes = async (newNotes: Note[]) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(newNotes));
+      setNotes(newNotes);
+    } catch (error) {
+      console.error('Erreur sauvegarde notes:', error);
+      throw error;
+    }
+  };
+
   // Recherche
   const searchShutters = (query: string): SearchResult[] => {
     const results: SearchResult[] = [];
@@ -820,6 +902,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       setFavoriteZonesState([]);
       setFavoriteShuttersState([]);
       setQuickCalcHistoryState([]);
+      setNotes([]);
     } catch (error) {
       console.warn('Erreur suppression données:', error);
       throw error;
@@ -868,6 +951,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     favoriteZones,
     favoriteShutters,
     quickCalcHistory,
+    notes,
     createProject,
     updateProject,
     deleteProject,
@@ -887,6 +971,9 @@ export function StorageProvider({ children }: StorageProviderProps) {
     addQuickCalcHistory,
     clearQuickCalcHistory,
     getQuickCalcHistory,
+    createNote,
+    updateNote,
+    deleteNote,
     searchShutters,
     clearAllData,
     getStorageInfo,

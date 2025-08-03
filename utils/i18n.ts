@@ -10,6 +10,7 @@ export interface LanguageStrings {
   export: string;
   about: string;
   settings: string;
+  notes: string;
 
   // Titres et sous-titres
   projectsTitle: string;
@@ -22,6 +23,8 @@ export interface LanguageStrings {
   exportSubtitle: string;
   aboutTitle: string;
   aboutSubtitle: string;
+  notesTitle: string;
+  notesSubtitle: string;
   settingsTitle: string;
   settingsSubtitle: string;
 
@@ -218,6 +221,24 @@ export interface LanguageStrings {
   selectLanguage: string;
   approximateTranslations: string;
   translationNote: string;
+
+  // Notes
+  note: string;
+  newNote: string;
+  editNote: string;
+  deleteNote: string;
+  createNote: string;
+  noteTitle: string;
+  noteContent: string;
+  noNotes: string;
+  noNotesDesc: string;
+  createFirstNote: string;
+  writeYourNote: string;
+  noteCreated: string;
+  noteUpdated: string;
+  noteDeleted: string;
+  deleteNoteConfirm: string;
+  untitledNote: string;
 }
 
 const strings: Record<SupportedLanguage, LanguageStrings> = {
@@ -229,6 +250,7 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     export: 'Export',
     about: 'À propos',
     settings: 'Paramètres',
+    notes: 'Notes',
 
     // Titres et sous-titres
     projectsTitle: 'Projets',
@@ -241,6 +263,8 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     exportSubtitle: 'Exporter vos données',
     aboutTitle: 'À propos',
     aboutSubtitle: 'Informations sur l\'application',
+    notesTitle: 'Bloc-notes',
+    notesSubtitle: 'Vos notes et observations',
     settingsTitle: 'Paramètres',
     settingsSubtitle: 'Configuration de l\'application',
 
@@ -437,6 +461,24 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     selectLanguage: 'Sélectionner la langue',
     approximateTranslations: 'Traductions approximatives',
     translationNote: 'Les traductions dans d\'autres langues sont approximatives et peuvent contenir des erreurs.',
+
+    // Notes
+    note: 'Note',
+    newNote: 'Nouvelle note',
+    editNote: 'Modifier la note',
+    deleteNote: 'Supprimer la note',
+    createNote: 'Créer la note',
+    noteTitle: 'Titre de la note',
+    noteContent: 'Contenu de la note',
+    noNotes: 'Aucune note',
+    noNotesDesc: 'Créez votre première note pour commencer',
+    createFirstNote: 'Créer votre première note',
+    writeYourNote: 'Écrivez votre note ici...',
+    noteCreated: 'Note créée',
+    noteUpdated: 'Note mise à jour',
+    noteDeleted: 'Note supprimée',
+    deleteNoteConfirm: 'Êtes-vous sûr de vouloir supprimer cette note',
+    untitledNote: 'Note sans titre',
   },
 
   en: {
@@ -447,6 +489,7 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     export: 'Export',
     about: 'About',
     settings: 'Settings',
+    notes: 'Notes',
 
     // Titres et sous-titres
     projectsTitle: 'Projects',
@@ -459,6 +502,8 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     exportSubtitle: 'Export your data',
     aboutTitle: 'About',
     aboutSubtitle: 'Application information',
+    notesTitle: 'Notepad',
+    notesSubtitle: 'Your notes and observations',
     settingsTitle: 'Settings',
     settingsSubtitle: 'Application configuration',
 
@@ -655,6 +700,24 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     selectLanguage: 'Select language',
     approximateTranslations: 'Approximate translations',
     translationNote: 'Translations in other languages are approximate and may contain errors.',
+
+    // Notes
+    note: 'Note',
+    newNote: 'New note',
+    editNote: 'Edit note',
+    deleteNote: 'Delete note',
+    createNote: 'Create note',
+    noteTitle: 'Note title',
+    noteContent: 'Note content',
+    noNotes: 'No notes',
+    noNotesDesc: 'Create your first note to get started',
+    createFirstNote: 'Create your first note',
+    writeYourNote: 'Write your note here...',
+    noteCreated: 'Note created',
+    noteUpdated: 'Note updated',
+    noteDeleted: 'Note deleted',
+    deleteNoteConfirm: 'Are you sure you want to delete this note',
+    untitledNote: 'Untitled note',
   },
 
   es: {
@@ -665,6 +728,7 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     export: 'Exportar',
     about: 'Acerca de',
     settings: 'Configuración',
+    notes: 'Notas',
 
     // Titres et sous-titres
     projectsTitle: 'Proyectos',
@@ -677,6 +741,8 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     exportSubtitle: 'Exportar sus datos',
     aboutTitle: 'Acerca de',
     aboutSubtitle: 'Información de la aplicación',
+    notesTitle: 'Bloc de notas',
+    notesSubtitle: 'Sus notas y observaciones',
     settingsTitle: 'Configuración',
     settingsSubtitle: 'Configuración de la aplicación',
 
@@ -873,6 +939,24 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     selectLanguage: 'Seleccionar idioma',
     approximateTranslations: 'Traducciones aproximadas',
     translationNote: 'Las traducciones en otros idiomas son aproximadas y pueden contener errores.',
+
+    // Notes
+    note: 'Nota',
+    newNote: 'Nueva nota',
+    editNote: 'Editar nota',
+    deleteNote: 'Eliminar nota',
+    createNote: 'Crear nota',
+    noteTitle: 'Título de la nota',
+    noteContent: 'Contenido de la nota',
+    noNotes: 'Sin notas',
+    noNotesDesc: 'Cree su primera nota para comenzar',
+    createFirstNote: 'Crear su primera nota',
+    writeYourNote: 'Escriba su nota aquí...',
+    noteCreated: 'Nota creada',
+    noteUpdated: 'Nota actualizada',
+    noteDeleted: 'Nota eliminada',
+    deleteNoteConfirm: '¿Está seguro de que desea eliminar esta nota',
+    untitledNote: 'Nota sin título',
   },
 
   it: {
@@ -883,6 +967,7 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     export: 'Esporta',
     about: 'Informazioni',
     settings: 'Impostazioni',
+    notes: 'Note',
 
     // Titres et sous-titres
     projectsTitle: 'Progetti',
@@ -895,6 +980,8 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     exportSubtitle: 'Esporta i tuoi dati',
     aboutTitle: 'Informazioni',
     aboutSubtitle: 'Informazioni sull\'applicazione',
+    notesTitle: 'Blocco note',
+    notesSubtitle: 'Le tue note e osservazioni',
     settingsTitle: 'Impostazioni',
     settingsSubtitle: 'Configurazione dell\'applicazione',
 
@@ -1091,6 +1178,24 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     selectLanguage: 'Seleziona lingua',
     approximateTranslations: 'Traduzioni approssimative',
     translationNote: 'Le traduzioni in altre lingue sono approssimative e possono contenere errori.',
+
+    // Notes
+    note: 'Nota',
+    newNote: 'Nuova nota',
+    editNote: 'Modifica nota',
+    deleteNote: 'Elimina nota',
+    createNote: 'Crea nota',
+    noteTitle: 'Titolo della nota',
+    noteContent: 'Contenuto della nota',
+    noNotes: 'Nessuna nota',
+    noNotesDesc: 'Crea la tua prima nota per iniziare',
+    createFirstNote: 'Crea la tua prima nota',
+    writeYourNote: 'Scrivi la tua nota qui...',
+    noteCreated: 'Nota creata',
+    noteUpdated: 'Nota aggiornata',
+    noteDeleted: 'Nota eliminata',
+    deleteNoteConfirm: 'Sei sicuro di voler eliminare questa nota',
+    untitledNote: 'Nota senza titolo',
   }
 };
 

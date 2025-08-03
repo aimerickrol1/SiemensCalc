@@ -81,11 +81,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="notes"
+        options={{
+          title: strings.notes,
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="document-text-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="export"
         options={{
           title: strings.export,
           tabBarIcon: ({ size, color }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
+            <Ionicons name="download-outline" size={size} color={color} />
           ),
         }}
       />
@@ -96,6 +105,12 @@ export default function TabLayout() {
           tabBarIcon: ({ size, color }) => (
             <Ionicons name="information-circle-outline" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="note"
+        options={{
+          href: null
         }}
       />
       <Tabs.Screen

@@ -49,6 +49,16 @@ export interface ComplianceResult {
 export type ShutterType = 'high' | 'low';
 export type ComplianceStatus = 'compliant' | 'acceptable' | 'non-compliant';
 
+// Note interface
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  // Future: images?: string[];
+}
+
 // Search result interface
 export interface SearchResult {
   shutter: Shutter;
