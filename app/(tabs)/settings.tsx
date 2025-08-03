@@ -57,7 +57,9 @@ export default function SettingsScreen() {
   };
 
   const handleThemeSelect = (mode: ThemeMode) => {
-    setThemeMode(mode);
+    setThemeMode(mode).catch(error => {
+      console.error('Erreur lors du changement de thème:', error);
+    });
   };
 
   const handleClearAllData = () => {

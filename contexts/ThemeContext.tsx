@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
 
@@ -105,7 +106,7 @@ const darkTheme: Theme = {
 interface ThemeContextType {
   theme: Theme;
   themeMode: ThemeMode;
-  setThemeMode: (mode: ThemeMode) => void;
+  setThemeMode: (mode: ThemeMode) => Promise<void>;
   isDark: boolean;
 }
 
@@ -115,9 +116,68 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
+// Clé pour le stockage du thème
+const THEME_STORAGE_KEY = 'themePreference';
+
+// Fonction utilitaire pour sauvegarder le thème
+const saveThemeToStorage = async (mode: ThemeMode) => {
+  try {
+    if (Platform.OS === 'web') {
+      localStorage.setItem(THEME_STORAGE_KEY, mode);
+    } else {
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
+    }
+  } catch (error) {
+    console.warn('Erreur lors de la sauvegarde du thème:', error);
+  }
+};
+
+// Fonction utilitaire pour charger le thème
+const loadThemeFromStorage = async (): Promise<ThemeMode> => {
+  try {
+    let savedTheme: string | null = null;
+    
+    if (Platform.OS === 'web') {
+      savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    } else {
+      savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+    }
+    
+    if (savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)) {
+      console.log('✅ Thème chargé depuis le stockage:', savedTheme);
+      return savedTheme as ThemeMode;
+    }
+  } catch (error) {
+    console.warn('Erreur lors du chargement du thème:', error);
+  }
+  
+  // Valeur par défaut si aucun thème sauvegardé
+  console.log('📱 Aucun thème sauvegardé, utilisation du mode automatique');
+  return 'auto';
+};
+
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const systemColorScheme = useColorScheme();
   const [themeMode, setThemeModeState] = useState<ThemeMode>('auto');
+  const [isThemeLoaded, setIsThemeLoaded] = useState(false);
+
+  // Charger le thème au démarrage
+  React.useEffect(() => {
+    const initializeTheme = async () => {
+      try {
+        const savedTheme = await loadThemeFromStorage();
+        setThemeModeState(savedTheme);
+        console.log('🎨 Thème initialisé:', savedTheme);
+      } catch (error) {
+        console.warn('Erreur lors de l\'initialisation du thème:', error);
+        setThemeModeState('auto');
+      } finally {
+        setIsThemeLoaded(true);
+      }
+    };
+
+    initializeTheme();
+  }, []);
 
   // Déterminer le thème actuel basé sur le mode sélectionné
   const getCurrentTheme = (): Theme => {
@@ -130,13 +190,20 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const theme = getCurrentTheme();
   const isDark = theme.mode === 'dark';
 
-  // Fonction simple pour changer le thème
-  const setThemeMode = (mode: ThemeMode) => {
+  // Fonction pour changer le thème avec sauvegarde
+  const setThemeMode = async (mode: ThemeMode) => {
+    console.log('🎨 Changement de thème vers:', mode);
     setThemeModeState(mode);
+    await saveThemeToStorage(mode);
   };
 
+  // Ne pas rendre les enfants tant que le thème n'est pas chargé
+  if (!isThemeLoaded) {
+    return null;
+  }
+
   return (
-    <ThemeContext.Provider value={{ theme, themeMode, setThemeMode, isDark }}>
+    <ThemeContext.Provider value={{ theme, themeMode, setThemeMode: setThemeMode, isDark }}>
       {children}
     </ThemeContext.Provider>
   );
