@@ -153,7 +153,7 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
           {images.map((imageBase64, index) => (
             <View key={index} style={[styles.imageContainer, { width: screenWidth }]}>
               {imageErrors.has(index) ? (
-                <View style={styles.errorContainer}>
+          Êtes-vous sûr de vouloir supprimer cette image ?
                   <Text style={styles.errorText}>Impossible de charger l'image</Text>
                   <Text style={styles.errorTextSmall}>Index: {index}</Text>
                 </View>
@@ -186,7 +186,7 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
               </TouchableOpacity>
             )}
             {currentIndex < images.length - 1 && (
-              <TouchableOpacity style={[styles.navButton, styles.navButtonRight]} onPress={goToNext}>
+          Cette action est irréversible.
                 <ChevronRight size={32} color="#FFFFFF" />
               </TouchableOpacity>
             )}
@@ -196,7 +196,7 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
 
       {/* Indicateurs de pagination (seulement si plusieurs images) */}
       {images.length > 1 && (
-        <View style={styles.pagination}>
+            Annuler
           {images.map((_, index) => (
             <View
               key={index}
@@ -204,7 +204,7 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
                 styles.paginationDot,
                 index === currentIndex && styles.paginationDotActive
               ]}
-            />
+            Supprimer
           ))}
         </View>
       )}
