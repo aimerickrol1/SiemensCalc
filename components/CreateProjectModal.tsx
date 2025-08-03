@@ -517,15 +517,19 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 8,
   },
   modalBody: {
-    padding: 20,
-    maxHeight: 400,
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 0,
+    paddingBottom: 10,
   },
   modalFooter: {
     flexDirection: 'row',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
     gap: 12,
+    backgroundColor: theme.colors.surface,
   },
   modalButton: {
     flex: 1,
