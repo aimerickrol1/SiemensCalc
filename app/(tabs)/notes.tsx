@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform, Animated } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Plus, FileText, Trash2, Edit3, Calendar } from 'lucide-react-native';
+import { Plus, FileText, Trash2, CreditCard as Edit3, Calendar } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
 import { Note } from '@/types';
