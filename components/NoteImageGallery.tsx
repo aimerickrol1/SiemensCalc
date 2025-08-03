@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Platform, Dimensions } from 'react-native';
 import { Trash2, X } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useModal } from '@/contexts/ModalContext';
+import { ImageViewerModal } from '@/components/ImageViewerModal';
 
 interface NoteImageGalleryProps {
   images: string[];
@@ -13,6 +14,7 @@ interface NoteImageGalleryProps {
 export function NoteImageGallery({ images, onRemoveImage, editable = false }: NoteImageGalleryProps) {
   const { theme } = useTheme();
   const { showModal, hideModal } = useModal();
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const handleRemoveImage = (index: number) => {
     if (!editable) return;
@@ -28,22 +30,43 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
     );
   };
 
+  const handleImagePress = (index: number) => {
+    setSelectedImageIndex(index);
+    showModal(
+      <ImageViewerModal
+        images={images}
+        initialIndex={index}
+        onClose={() => {
+          setSelectedImageIndex(null);
+          hideModal();
+        }}
+      />
+    );
+  };
+
   const styles = createStyles(theme);
 
   if (!images || images.length === 0) {
     return null;
   }
 
+  // Calculer le nombre de colonnes selon la largeur d'écran
+  const screenWidth = Dimensions.get('window').width;
+  const numColumns = screenWidth > 600 ? 3 : 2;
+  const imageWidth = (screenWidth - 32 - (numColumns - 1) * 8) / numColumns; // 32 = padding, 8 = gap
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Images ({images.length})</Text>
-      <View style={styles.imageGrid}>
+      <View style={[styles.imageGrid, { gap: 8 }]}>
         {images.map((imageBase64, index) => (
           <ImageItem
             key={index}
             imageBase64={imageBase64}
             index={index}
+            imageWidth={imageWidth}
             editable={editable}
+            onPress={() => handleImagePress(index)}
             onRemove={() => handleRemoveImage(index)}
             theme={theme}
           />
@@ -54,15 +77,18 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
 }
 
 // Composant séparé pour chaque image avec ses propres hooks
-function ImageItem({ imageBase64, index, editable, onRemove, theme }: {
+function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRemove, theme }: {
   imageBase64: string;
   index: number;
+  imageWidth: number;
   editable: boolean;
+  onPress: () => void;
   onRemove: () => void;
   theme: any;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
 
   React.useEffect(() => {
@@ -77,13 +103,24 @@ function ImageItem({ imageBase64, index, editable, onRemove, theme }: {
         Animated.spring(scaleAnim, {
           toValue: 1,
           tension: 100,
+    if (imageLoaded) {
+      Animated.parallel([
+        Animated.timing(itemFadeAnim, {
+          toValue: 1,
+          duration: 300,
+          delay: index * 100,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 100,
           friction: 8,
           delay: index * 100,
           useNativeDriver: true,
         })
       ]).start();
     }
-  }, [imageLoaded, fadeAnim, scaleAnim, index]);
+  }, [imageLoaded, itemFadeAnim, scaleAnim, index]);
 
   const styles = createStyles(theme);
 
@@ -91,21 +128,37 @@ function ImageItem({ imageBase64, index, editable, onRemove, theme }: {
     <Animated.View 
       style={[
         styles.imageContainer,
+    <Animated.View 
+      style={[
+        styles.imageContainer,
         {
-          opacity: fadeAnim,
+          width: imageWidth,
+          opacity: itemFadeAnim,
           transform: [{ scale: scaleAnim }]
         }
       ]}
     >
+          opacity: fadeAnim,
+        style={styles.imageButton}
+        onPress={onPress}
+        activeOpacity={0.8}
+      ]}
+    >
       <Image
-        source={{ uri: imageBase64 }}
+          style={[styles.image, { width: imageWidth, height: imageWidth * 0.75 }]}
         style={styles.image}
         onLoad={() => setImageLoaded(true)}
         resizeMode="cover"
-      />
+      )}
       {editable && (
-        <TouchableOpacity style={styles.removeButton} onPress={onRemove}>
-          <Trash2 size={16} color="#FFFFFF" />
+        <TouchableOpacity 
+          style={styles.removeButton} 
+          onPress={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+        >
+          <Trash2 size={14} color="#FFFFFF" />
         </TouchableOpacity>
       )}
     </Animated.View>
@@ -171,30 +224,34 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginBottom: 12,
   },
   imageGrid: {
-    gap: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
   },
   imageContainer: {
+    marginBottom: 8,
     position: 'relative',
+  },
+  imageButton: {
     borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
     elevation: 3,
   },
   image: {
-    width: '100%',
-    height: 200,
     backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 12,
   },
   removeButton: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    top: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: 'rgba(239, 68, 68, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
