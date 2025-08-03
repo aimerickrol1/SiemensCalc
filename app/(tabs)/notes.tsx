@@ -842,11 +842,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     gap: 8,
     flexShrink: 0,
   },
-  noteActions actionButton: {
-    padding: 8,
-    borderRadius: 6,
-    backgroundColor: theme.colors.surfaceSecondary,
-  },
   notePreview: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
