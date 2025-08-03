@@ -495,3 +495,55 @@ const BulkDeleteProjectsModal = ({ count, onConfirm, onCancel, strings }: {
     </View>
   );
 };
+
+// Modal de confirmation pour la suppression d'un projet
+const DeleteProjectModal = ({ project, onConfirm, onCancel, strings }: {
+  project: Project;
+  onConfirm: () => void;
+  onCancel: () => void;
+  strings: any;
+}) => {
+  const { theme } = useTheme();
+  const modalStyles = createStyles(theme);
+
+  return (
+    <View style={modalStyles.modalContent}>
+      <View style={modalStyles.modalHeader}>
+        <Text style={modalStyles.modalTitle}>Supprimer le projet</Text>
+        <TouchableOpacity onPress={onCancel} style={modalStyles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      <View style={modalStyles.modalBody}>
+        <Text style={modalStyles.modalText}>
+          <Text>⚠️ </Text>
+          <Text style={modalStyles.modalBold}>Cette action est irréversible !</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Êtes-vous sûr de vouloir supprimer le projet </Text>
+          <Text style={modalStyles.modalBold}>"{project.name}"</Text>
+          <Text> ?</Text>
+          <Text>{'\n\n'}</Text>
+          <Text>Tous les bâtiments, zones et volets associés seront également supprimés.</Text>
+        </Text>
+      </View>
+      <View style={{ flexDirection: 'row', gap: 12 }}>
+        <TouchableOpacity
+          style={[modalStyles.toolbarButton, { flex: 1, backgroundColor: theme.colors.surfaceSecondary }]}
+          onPress={onCancel}
+        >
+          <Text style={[modalStyles.toolbarButtonText, { color: theme.colors.textSecondary }]}>
+            {strings.cancel || 'Annuler'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[modalStyles.toolbarButton, { flex: 1, backgroundColor: theme.colors.error }]}
+          onPress={onConfirm}
+        >
+          <Text style={[modalStyles.toolbarButtonText, { color: 'white' }]}>
+            Supprimer
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
