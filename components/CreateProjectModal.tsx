@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
 import { X, Plus, Minus } from 'lucide-react-native';
 import { Input } from '@/components/Input';
 import { DateInput } from '@/components/DateInput';
 import { Button } from '@/components/Button';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useModal } from '@/contexts/ModalContext';
 
 interface PredefinedZone {
   id: string;
@@ -26,15 +27,14 @@ interface PredefinedStructure {
 }
 
 interface CreateProjectModalProps {
-  visible: boolean;
-  onClose: () => void;
   onSubmit: (data: any, structure: PredefinedStructure) => void;
   loading: boolean;
 }
 
-export function CreateProjectModal({ visible, onClose, onSubmit, loading }: CreateProjectModalProps) {
+export function CreateProjectModal({ onSubmit, loading }: CreateProjectModalProps) {
   const { strings } = useLanguage();
   const { theme } = useTheme();
+  const { hideModal } = useModal();
   const modalScrollViewRef = useRef<ScrollView>(null);
 
   const [name, setName] = useState('');
@@ -62,11 +62,10 @@ export function CreateProjectModal({ visible, onClose, onSubmit, loading }: Crea
     });
   };
 
+  // Réinitialiser le formulaire au montage
   useEffect(() => {
-    if (visible) {
-      resetForm();
-    }
-  }, [visible]);
+    resetForm();
+  }, []);
 
   const validateForm = () => {
     const newErrors: { name?: string; startDate?: string; endDate?: string } = {};
@@ -145,6 +144,12 @@ export function CreateProjectModal({ visible, onClose, onSubmit, loading }: Crea
     }
 
     onSubmit(projectData, predefinedStructure);
+    hideModal();
+  };
+
+  const handleClose = () => {
+    resetForm();
+    hideModal();
   };
 
   const togglePredefinedStructure = () => {
@@ -281,29 +286,22 @@ export function CreateProjectModal({ visible, onClose, onSubmit, loading }: Crea
   const styles = createStyles(theme);
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Nouveau projet</Text>
-            <TouchableOpacity 
-              onPress={onClose}
-              style={styles.closeButton}
-            >
-              <X size={20} color={theme.colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Nouveau projet</Text>
+        <TouchableOpacity 
+          onPress={handleClose}
+          style={styles.closeButton}
+        >
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
 
-          <ScrollView 
-            ref={modalScrollViewRef}
-            style={styles.modalBody} 
-            showsVerticalScrollIndicator={false}
-          >
+      <ScrollView 
+        ref={modalScrollViewRef}
+        style={styles.modalBody} 
+        showsVerticalScrollIndicator={false}
+      >
             <Input
               label="Nom du projet *"
               value={name}
@@ -451,53 +449,33 @@ export function CreateProjectModal({ visible, onClose, onSubmit, loading }: Crea
                 </ScrollView>
               </View>
             )}
-          </ScrollView>
+      </ScrollView>
 
-          <View style={styles.modalFooter}>
-            <Button
-              title="Annuler"
-              onPress={onClose}
-              variant="secondary"
-              style={styles.modalButton}
-            />
-            <Button
-              title="Créer le projet"
-              onPress={handleSubmit}
-              disabled={loading}
-              style={styles.modalButton}
-            />
-          </View>
-        </View>
+      <View style={styles.modalFooter}>
+        <Button
+          title="Annuler"
+          onPress={handleClose}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title="Créer le projet"
+          onPress={handleSubmit}
+          disabled={loading}
+          style={styles.modalButton}
+        />
       </View>
-    </Modal>
+    </View>
   );
 }
 
 const createStyles = (theme: any) => StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Platform.OS === 'web' ? 0 : 20,
-    ...(Platform.OS === 'web' && {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 9999,
-      paddingTop: 40,
-      paddingBottom: 100,
-      paddingHorizontal: 20,
-    }),
-  },
   modalContent: {
     backgroundColor: theme.colors.surface,
     borderRadius: 20,
     width: '100%',
     maxWidth: 500,
-    maxHeight: Platform.OS === 'web' ? '60%' : '90%', // Hauteur encore plus réduite sur web
+    maxHeight: Platform.OS === 'web' ? '70%' : '90%',
   },
   modalHeader: {
     flexDirection: 'row',

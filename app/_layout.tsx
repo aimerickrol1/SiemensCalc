@@ -7,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { StorageProvider } from '@/contexts/StorageContext';
+import { ModalProvider } from '@/contexts/ModalContext';
 import { Platform, View, Text, StyleSheet } from 'react-native';
 
 // Prévenir l'auto-hide du splash screen de manière sécurisée
@@ -150,8 +151,10 @@ export default function RootLayout() {
     <ThemeProvider>
       <LanguageProvider>
         <StorageProvider>
-          <Slot />
-          <StatusBar style="auto" />
+          <ModalProvider>
+            <Slot />
+            <StatusBar style="auto" />
+          </ModalProvider>
         </StorageProvider>
       </LanguageProvider>
     </ThemeProvider>

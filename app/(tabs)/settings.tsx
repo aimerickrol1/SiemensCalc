@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Settings as SettingsIcon, Globe, Trash2, Download, Info, Database, ChevronRight, CircleCheck as CheckCircle, X, Moon, Sun, Smartphone } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme, ThemeMode } from '@/contexts/ThemeContext';
+import { useModal } from '@/contexts/ModalContext';
 import { getLanguageOptions, SupportedLanguage } from '@/utils/i18n';
 import { router } from 'expo-router';
 
 export default function SettingsScreen() {
   const { strings, currentLanguage, changeLanguage } = useLanguage();
   const { theme, themeMode, setThemeMode } = useTheme();
+  const { showModal } = useModal();
   const { clearAllData, getStorageInfo } = useStorage();
-  const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [themeModalVisible, setThemeModalVisible] = useState(false);
-  const [clearDataModalVisible, setClearDataModalVisible] = useState(false);
   const [storageInfo, setStorageInfo] = useState<{
     projectsCount: number;
     totalShutters: number;
@@ -55,22 +54,22 @@ export default function SettingsScreen() {
 
   const handleLanguageSelect = (languageCode: SupportedLanguage) => {
     changeLanguage(languageCode);
-    setLanguageModalVisible(false);
   };
 
   const handleThemeSelect = (mode: ThemeMode) => {
     setThemeMode(mode);
-    setThemeModalVisible(false);
   };
 
   const handleClearAllData = () => {
-    setClearDataModalVisible(true);
+    showModal(
+      <ClearDataModal onConfirm={confirmClearData} />,
+      { animationType: 'fade' }
+    );
   };
 
   const confirmClearData = async () => {
     try {
       await clearAllData();
-      setClearDataModalVisible(false);
       Alert.alert(
         strings.dataCleared,
         strings.dataClearedDesc,
@@ -105,6 +104,26 @@ export default function SettingsScreen() {
 
   const handleAbout = () => {
     router.push('/(tabs)/about');
+  };
+
+  const showLanguageModal = () => {
+    showModal(
+      <LanguageModal 
+        currentLanguage={currentLanguage}
+        onLanguageSelect={handleLanguageSelect}
+      />,
+      { animationType: 'fade' }
+    );
+  };
+
+  const showThemeModal = () => {
+    showModal(
+      <ThemeModal 
+        currentTheme={themeMode}
+        onThemeSelect={handleThemeSelect}
+      />,
+      { animationType: 'fade' }
+    );
   };
 
   const renderSettingItem = (
@@ -181,7 +200,7 @@ export default function SettingsScreen() {
             getThemeIcon(themeMode),
             'Thème de l\'interface',
             getThemeName(themeMode),
-            () => setThemeModalVisible(true)
+            showThemeModal
           )}
         </View>
 
@@ -193,7 +212,7 @@ export default function SettingsScreen() {
             <Globe size={20} color={theme.colors.primary} />,
             strings.interfaceLanguage,
             `${currentLangOption?.flag} ${currentLangOption?.name}`,
-            () => setLanguageModalVisible(true)
+            showLanguageModal
           )}
         </View>
 
@@ -237,157 +256,188 @@ export default function SettingsScreen() {
         </View>
       </ScrollView>
 
-      {/* Modal Thème */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={themeModalVisible}
-        onRequestClose={() => setThemeModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.themeModalContent}>
-            <View style={styles.modalHeader}>
-              <Moon size={32} color={theme.colors.primary} />
-              <Text style={styles.modalTitle}>Choisir le thème</Text>
-              <TouchableOpacity 
-                onPress={() => setThemeModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <X size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.themeList}>
-              {(['light', 'dark', 'auto'] as ThemeMode[]).map((mode) => (
-                <TouchableOpacity
-                  key={mode}
-                  style={[
-                    styles.themeOption,
-                    themeMode === mode && styles.themeOptionSelected
-                  ]}
-                  onPress={() => handleThemeSelect(mode)}
-                >
-                  {getThemeIcon(mode)}
-                  <View style={styles.themeOptionContent}>
-                    <Text style={[
-                      styles.themeOptionTitle,
-                      themeMode === mode && styles.themeOptionTitleSelected
-                    ]}>
-                      {getThemeName(mode)}
-                    </Text>
-                    <Text style={styles.themeOptionDescription}>
-                      {mode === 'light' && 'Interface claire et lumineuse'}
-                      {mode === 'dark' && 'Interface sombre et moderne'}
-                      {mode === 'auto' && 'S\'adapte au mode système'}
-                    </Text>
-                  </View>
-                  {themeMode === mode && (
-                    <CheckCircle size={20} color={theme.colors.primary} />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal Langue */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={languageModalVisible}
-        onRequestClose={() => setLanguageModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.languageModalContent}>
-            <View style={styles.modalHeader}>
-              <Globe size={32} color={theme.colors.primary} />
-              <Text style={styles.modalTitle}>{strings.selectLanguage}</Text>
-              <TouchableOpacity 
-                onPress={() => setLanguageModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <X size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.translationNote}>
-              <Text style={styles.translationNoteTitle}>{strings.approximateTranslations}</Text>
-              <Text style={styles.translationNoteText}>
-                {strings.translationNote}
-              </Text>
-            </View>
-            
-            <View style={styles.languageList}>
-              {getLanguageOptions().map((option) => (
-                <TouchableOpacity
-                  key={option.code}
-                  style={[
-                    styles.languageOption,
-                    currentLanguage === option.code && styles.languageOptionSelected
-                  ]}
-                  onPress={() => handleLanguageSelect(option.code)}
-                >
-                  <Text style={styles.languageFlag}>{option.flag}</Text>
-                  <Text style={[
-                    styles.languageName,
-                    currentLanguage === option.code && styles.languageNameSelected
-                  ]}>
-                    {option.name}
-                  </Text>
-                  {currentLanguage === option.code && (
-                    <CheckCircle size={20} color={theme.colors.primary} />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal Confirmation suppression */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={clearDataModalVisible}
-        onRequestClose={() => setClearDataModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{strings.clearAllDataConfirm}</Text>
-            </View>
-            
-            <Text style={styles.modalText}>
-              <Text>⚠️ </Text>
-              <Text style={styles.modalBold}>{strings.clearAllDataWarning}</Text>
-              <Text>{'\n\n'}</Text>
-              <Text>Tous vos projets, bâtiments, zones et volets seront définitivement supprimés.</Text>
-              <Text>{'\n\n'}</Text>
-              <Text>Assurez-vous d'avoir exporté vos données importantes avant de continuer.</Text>
-            </Text>
-
-            <View style={styles.modalFooter}>
-              <Button
-                title={strings.cancel}
-                onPress={() => setClearDataModalVisible(false)}
-                variant="secondary"
-                style={styles.modalButton}
-              />
-              <Button
-                title="Supprimer tout"
-                onPress={confirmClearData}
-                variant="danger"
-                style={styles.modalButton}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
 
+// Composant modal pour le thème
+function ThemeModal({ currentTheme, onThemeSelect }: { currentTheme: ThemeMode; onThemeSelect: (mode: ThemeMode) => void }) {
+  const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const styles = createStyles(theme);
+
+  const getThemeIcon = (mode: ThemeMode) => {
+    switch (mode) {
+      case 'light':
+        return <Sun size={16} color={theme.colors.primary} />;
+      case 'dark':
+        return <Moon size={16} color={theme.colors.primary} />;
+      case 'auto':
+        return <Smartphone size={16} color={theme.colors.primary} />;
+    }
+  };
+
+  const getThemeName = (mode: ThemeMode) => {
+    switch (mode) {
+      case 'light':
+        return 'Mode clair';
+      case 'dark':
+        return 'Mode sombre';
+      case 'auto':
+        return 'Mode automatique';
+    }
+  };
+
+  const handleSelect = (mode: ThemeMode) => {
+    onThemeSelect(mode);
+    hideModal();
+  };
+
+  return (
+    <View style={styles.themeModalContent}>
+      <View style={styles.modalHeader}>
+        <Moon size={32} color={theme.colors.primary} />
+        <Text style={styles.modalTitle}>Choisir le thème</Text>
+        <TouchableOpacity 
+          onPress={hideModal}
+          style={styles.closeButton}
+        >
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.themeList}>
+        {(['light', 'dark', 'auto'] as ThemeMode[]).map((mode) => (
+          <TouchableOpacity
+            key={mode}
+            style={[
+              styles.themeOption,
+              currentTheme === mode && styles.themeOptionSelected
+            ]}
+            onPress={() => handleSelect(mode)}
+          >
+            {getThemeIcon(mode)}
+            <View style={styles.themeOptionContent}>
+              <Text style={[
+                styles.themeOptionTitle,
+                currentTheme === mode && styles.themeOptionTitleSelected
+              ]}>
+                {getThemeName(mode)}
+              </Text>
+              <Text style={styles.themeOptionDescription}>
+                {mode === 'light' && <Text>Interface claire et lumineuse</Text>}
+                {mode === 'dark' && <Text>Interface sombre et moderne</Text>}
+                {mode === 'auto' && <Text>S'adapte au mode système</Text>}
+              </Text>
+            </View>
+            {currentTheme === mode && (
+              <CheckCircle size={20} color={theme.colors.primary} />
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// Composant modal pour la langue
+function LanguageModal({ currentLanguage, onLanguageSelect }: { currentLanguage: SupportedLanguage; onLanguageSelect: (lang: SupportedLanguage) => void }) {
+  const { strings } = useLanguage();
+  const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const styles = createStyles(theme);
+
+  const handleSelect = (languageCode: SupportedLanguage) => {
+    onLanguageSelect(languageCode);
+    hideModal();
+  };
+
+  return (
+    <View style={styles.languageModalContent}>
+      <View style={styles.modalHeader}>
+        <Globe size={32} color={theme.colors.primary} />
+        <Text style={styles.modalTitle}>{strings.selectLanguage}</Text>
+        <TouchableOpacity 
+          onPress={hideModal}
+          style={styles.closeButton}
+        >
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.translationNote}>
+        <Text style={styles.translationNoteTitle}>{strings.approximateTranslations}</Text>
+        <Text style={styles.translationNoteText}>
+          {strings.translationNote}
+        </Text>
+      </View>
+      
+      <View style={styles.languageList}>
+        {getLanguageOptions().map((option) => (
+          <TouchableOpacity
+            key={option.code}
+            style={[
+              styles.languageOption,
+              currentLanguage === option.code && styles.languageOptionSelected
+            ]}
+            onPress={() => handleSelect(option.code)}
+          >
+            <Text style={styles.languageFlag}>{option.flag}</Text>
+            <Text style={[
+              styles.languageName,
+              currentLanguage === option.code && styles.languageNameSelected
+            ]}>
+              {option.name}
+            </Text>
+            {currentLanguage === option.code && (
+              <CheckCircle size={20} color={theme.colors.primary} />
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// Composant modal pour la confirmation de suppression
+function ClearDataModal({ onConfirm }: { onConfirm: () => void }) {
+  const { strings } = useLanguage();
+  const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>{strings.clearAllDataConfirm}</Text>
+      </View>
+      
+      <Text style={styles.modalText}>
+        <Text>⚠️ </Text>
+        <Text style={styles.modalBold}>{strings.clearAllDataWarning}</Text>
+        <Text>{'\n\n'}</Text>
+        <Text>Tous vos projets, bâtiments, zones et volets seront définitivement supprimés.</Text>
+        <Text>{'\n\n'}</Text>
+        <Text>Assurez-vous d'avoir exporté vos données importantes avant de continuer.</Text>
+      </Text>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={hideModal}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={<Text>Supprimer tout</Text>}
+          onPress={onConfirm}
+          variant="danger"
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
 const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
@@ -461,22 +511,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     marginTop: 2,
   },
   modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Platform.OS === 'web' ? 0 : 20,
-    ...(Platform.OS === 'web' && {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 9999,
-      paddingTop: 40,
-      paddingBottom: 100,
-      paddingHorizontal: 20,
-    }),
+    // Supprimé car maintenant géré par le ModalProvider
   },
   modalContent: {
     backgroundColor: theme.colors.surface,
@@ -484,7 +519,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     width: '100%',
     maxWidth: 400,
-    maxHeight: Platform.OS === 'web' ? '60%' : '80%', // Hauteur réduite sur web pour éviter le débordement
+    maxHeight: '80%',
   },
   themeModalContent: {
     backgroundColor: theme.colors.surface,
@@ -492,7 +527,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     width: '100%',
     maxWidth: 450,
-    maxHeight: Platform.OS === 'web' ? '50%' : '70%', // Hauteur encore plus réduite pour le modal thème
+    maxHeight: '70%',
   },
   languageModalContent: {
     backgroundColor: theme.colors.surface,
@@ -500,7 +535,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     width: '100%',
     maxWidth: 450,
-    maxHeight: Platform.OS === 'web' ? '55%' : '85%', // Hauteur réduite pour le modal langue
+    maxHeight: '85%',
   },
   modalHeader: {
     flexDirection: 'row',

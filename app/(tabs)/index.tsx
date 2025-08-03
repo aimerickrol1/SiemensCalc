@@ -10,6 +10,7 @@ import { Project } from '@/types';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useModal } from '@/contexts/ModalContext';
 import { addEventListener } from '@/utils/EventEmitter';
 import { LoadingScreen } from '@/components/LoadingScreen';
 
@@ -34,6 +35,7 @@ interface PredefinedStructure {
 export default function ProjectsScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
+  const { showModal } = useModal();
   const { 
     projects, 
     favoriteProjects, 
@@ -46,7 +48,6 @@ export default function ProjectsScreen() {
   } = useStorage();
   
   const [loading, setLoading] = useState(true);
-  const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
@@ -54,7 +55,18 @@ export default function ProjectsScreen() {
   // Fonction locale pour gérer l'ouverture du modal
   const handleCreateModal = useCallback(() => {
     console.log('📱 Ouverture du modal de création de projet');
-    setCreateModalVisible(true);
+    showModal(
+      <CreateProjectModal 
+        onSubmit={handleCreateProject}
+        loading={createLoading}
+      />,
+      {
+        animationType: 'slide',
+        onRequestClose: () => {
+          // Le modal se fermera automatiquement
+        }
+      }
+    );
   }, []);
 
   // Effet pour écouter les événements d'ouverture du modal
@@ -169,8 +181,6 @@ export default function ProjectsScreen() {
         }
         console.log('✅ Structure prédéfinie créée avec succès');
       }
-      
-      setCreateModalVisible(false);
       
       // Navigation vers le projet créé avec délai pour s'assurer que tout est bien créé
       console.log('⏱️ Attente avant navigation vers le projet...');
@@ -406,12 +416,6 @@ export default function ProjectsScreen() {
         )}
       </View>
 
-      <CreateProjectModal
-        visible={createModalVisible}
-        onClose={() => setCreateModalVisible(false)}
-        onSubmit={handleCreateProject}
-        loading={createLoading}
-      />
     </View>
   );
 }
