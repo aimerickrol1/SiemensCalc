@@ -224,12 +224,7 @@ export default function SimpleCalculatorScreen() {
             </View>
           </View>
         ) : (
-          <View style={styles.placeholderContainer}>
-            <Ionicons name="calculator-outline" size={48} color={theme.colors.textSecondary} />
-            <Text style={styles.placeholderText}>
-              {strings.simplifiedModeDesc}
-            </Text>
-          </View>
+          null
         )}
 
         <View style={styles.historyCard}>
@@ -441,17 +436,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: theme.colors.textSecondary,
-  },
-  placeholderContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  placeholderText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 16,
   },
   historyCard: {
     backgroundColor: theme.colors.surface,
