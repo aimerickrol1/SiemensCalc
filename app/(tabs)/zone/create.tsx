@@ -93,7 +93,7 @@ export default function CreateZoneScreen() {
         />
 
         <Input
-          label={strings.description + " (" + strings.optional + ")"}
+          label={`Description (${strings.optional})`}
           value={description}
           onChangeText={setDescription}
           placeholder="Ex: Hall d'entrée principal"

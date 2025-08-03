@@ -137,6 +137,9 @@ export interface LanguageStrings {
   // Remarques
   remarks: string;
 
+  // Description
+  description: string;
+
   // Recherche
   simpleSearch: string;
   hierarchicalSearch: string;
@@ -353,6 +356,9 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     // Remarques
     remarks: 'Remarques',
 
+    // Description
+    description: 'Description',
+
     // Recherche
     simpleSearch: 'Recherche simple',
     hierarchicalSearch: 'Recherche hiérarchique',
@@ -567,6 +573,9 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
 
     // Remarques
     remarks: 'Remarks',
+
+    // Description
+    description: 'Description',
 
     // Recherche
     simpleSearch: 'Simple search',
@@ -783,6 +792,9 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
     // Remarques
     remarks: 'Observaciones',
 
+    // Description
+    description: 'Descripción',
+
     // Recherche
     simpleSearch: 'Búsqueda simple',
     hierarchicalSearch: 'Búsqueda jerárquica',
@@ -997,6 +1009,9 @@ const strings: Record<SupportedLanguage, LanguageStrings> = {
 
     // Remarques
     remarks: 'Osservazioni',
+
+    // Description
+    description: 'Descrizione',
 
     // Recherche
     simpleSearch: 'Ricerca semplice',

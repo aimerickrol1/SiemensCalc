@@ -160,7 +160,7 @@ export default function EditBuildingScreen() {
         />
 
         <Input
-          label={`${strings.description} (${strings.optional})`}
+          label={`Description (${strings.optional})`}
           value={description}
           onChangeText={setDescription}
           placeholder="Ex: Bâtiment principal, 5 étages"
