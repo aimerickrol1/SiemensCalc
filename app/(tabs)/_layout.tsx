@@ -19,8 +19,8 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.tabBarBackground,
           borderTopWidth: 0,
-          // Z-index pour s'assurer que la barre reste sous les modales
-          zIndex: Platform.OS === 'web' ? 1000 : undefined,
+          // Z-index réduit pour que les modales passent au-dessus
+          zIndex: Platform.OS === 'web' ? 100 : undefined,
           paddingBottom: Platform.select({
             android: 8,
             ios: 20,
