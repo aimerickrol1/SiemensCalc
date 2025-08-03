@@ -141,51 +141,56 @@ export default function EditNoteScreen() {
   }
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-    >
+    <View style={styles.container}>
       <Header
         title={strings.editNote}
         subtitle={note.title || strings.untitledNote}
         onBack={handleBack}
       />
       
-      <ScrollView 
-        style={styles.content} 
-        contentContainerStyle={styles.contentContainer}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView 
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <Input
-          label={strings.noteTitle}
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Ex: Observations chantier, Mesures particulières..."
-          error={errors.title}
-        />
-
-        <View style={styles.contentInputContainer}>
+        <ScrollView 
+          style={styles.content} 
+          contentContainerStyle={styles.contentContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <Input
-            label={strings.noteContent}
-            value={content}
-            onChangeText={setContent}
-            placeholder={strings.writeYourNote}
-            multiline
-            numberOfLines={15}
-            style={styles.contentInput}
+            label={strings.noteTitle}
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Ex: Observations chantier, Mesures particulières..."
+            error={errors.title}
           />
-        </View>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            title={loading ? "Sauvegarde..." : strings.saveChanges}
-            onPress={handleSave}
-            disabled={loading}
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <View style={styles.contentInputContainer}>
+            <Input
+              label={strings.noteContent}
+              value={content}
+              onChangeText={setContent}
+              placeholder={strings.writeYourNote}
+              multiline
+              numberOfLines={15}
+              style={styles.contentInput}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Bouton fixe en bas du viewport */}
+      <View style={styles.fixedFooter}>
+        <Button
+          title={loading ? "Sauvegarde..." : strings.saveChanges}
+          onPress={handleSave}
+          disabled={loading}
+          style={styles.footerButton}
+        />
+      </View>
+    </View>
   );
 }
 
@@ -194,12 +199,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  keyboardContainer: {
+    flex: 1,
+  },
   content: {
     flex: 1,
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 100,
+    paddingBottom: 120, // Espace pour le bouton fixe
   },
   loadingContainer: {
     flex: 1,
@@ -231,7 +239,23 @@ const createStyles = (theme: any) => StyleSheet.create({
     minHeight: 300,
     textAlignVertical: 'top',
   },
-  buttonContainer: {
-    marginTop: 24,
+  fixedFooter: {
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    bottom: Platform.OS === 'web' ? 20 : 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    backgroundColor: theme.colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1000,
+  },
+  footerButton: {
+    width: '100%',
   },
 });
