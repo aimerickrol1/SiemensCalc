@@ -62,6 +62,8 @@ export default function CreateBuildingScreen() {
     }
   };
 
+  const styles = createStyles(theme);
+
   return (
     <KeyboardAvoidingView 
       style={styles.container} 
@@ -106,6 +108,23 @@ export default function CreateBuildingScreen() {
     </KeyboardAvoidingView>
   );
 }
+
+const createStyles = (theme: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 100,
+  },
+  buttonContainer: {
+    marginTop: 24,
+  },
+});
 
 const createStyles = (theme: any) => StyleSheet.create({
   container: {
