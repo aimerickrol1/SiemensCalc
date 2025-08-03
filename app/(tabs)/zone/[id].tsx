@@ -210,27 +210,32 @@ export default function ZoneDetailScreen() {
   };
 
   const handleDeleteShutter = async (shutter: Shutter) => {
-    showModal(<DeleteShutterModal 
-      shutter={shutter}
-      onConfirm={() => confirmDeleteShutter(shutter)}
-      onCancel={() => hideModal()}
-      strings={strings}
-    />);
-  };
-
-  const confirmDeleteShutter = async (shutter: Shutter) => {
-    try {
-      const success = await deleteShutter(shutter.id);
-      if (success) {
-        console.log('✅ Volet supprimé avec succès');
-        await loadZone();
-        hideModal();
-      } else {
-        console.error('❌ Erreur lors de la suppression du volet');
-      }
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-    }
+    Alert.alert(
+      strings.deleteShutter,
+      `${strings.deleteShutterConfirm} "${shutter.name}" ?`,
+      [
+        { text: strings.cancel, style: 'cancel' },
+        {
+          text: strings.delete,
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const success = await deleteShutter(shutter.id);
+              if (success) {
+                console.log('✅ Volet supprimé avec succès');
+                await loadZone();
+              } else {
+                console.error('❌ Erreur lors de la suppression du volet');
+                Alert.alert(strings.error, 'Impossible de supprimer le volet');
+              }
+            } catch (error) {
+              console.error('Erreur lors de la suppression:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer le volet');
+            }
+          }
+        }
+      ]
+    );
   };
 
   // Fonctions pour le mode sélection
@@ -1335,6 +1340,49 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: theme.colors.separator,
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+    flex: 1,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    marginBottom: 20,
+  },
+  modalText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+    lineHeight: 20,
+  },
+  modalBold: {
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+  },
+  modalFooter: {
+    flexDirection: 'row',
     gap: 12,
   },
   modalButton: {
