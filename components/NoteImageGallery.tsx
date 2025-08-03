@@ -32,6 +32,8 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
 
   const handleImagePress = (index: number) => {
     setSelectedImageIndex(index);
+    console.log('🖼️ Ouverture lightbox - Image', index, 'URI:', images[index]?.substring(0, 50));
+    console.log('🖼️ Total images pour lightbox:', images.length);
     showModal(
       <ImageViewerModal
         images={images}

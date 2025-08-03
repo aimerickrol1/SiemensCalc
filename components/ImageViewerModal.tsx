@@ -13,6 +13,7 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
   const { theme } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const [imageLoadStates, setImageLoadStates] = useState<Set<number>>(new Set());
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -21,6 +22,12 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
   const screenHeight = Dimensions.get('window').height;
 
   useEffect(() => {
+    console.log('🖼️ ImageViewerModal - Images reçues:', images.length);
+    console.log('🖼️ ImageViewerModal - Index initial:', initialIndex);
+    images.forEach((img, idx) => {
+      console.log(`🖼️ Image ${idx} format:`, img?.substring(0, 50));
+    });
+    
     // Animation d'ouverture
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -96,11 +103,13 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
   };
 
   const handleImageError = (index: number) => {
-    console.warn('Erreur de chargement image à l\'index:', index);
+    console.error('❌ Erreur chargement lightbox image', index, 'URI:', images[index]?.substring(0, 50));
     setImageErrors(prev => new Set([...prev, index]));
   };
 
   const handleImageLoad = (index: number) => {
+    console.log('✅ Image lightbox', index, 'chargée avec succès');
+    setImageLoadStates(prev => new Set([...prev, index]));
     setImageErrors(prev => {
       const newSet = new Set(prev);
       newSet.delete(index);
@@ -152,10 +161,16 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
         >
           {images.map((imageBase64, index) => (
             <View key={index} style={[styles.imageContainer, { width: screenWidth }]}>
-              {imageErrors.has(index) ? (
+              {!imageBase64 || imageBase64.trim() === '' ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>Image vide</Text>
+                  <Text style={styles.errorTextSmall}>Index: {index}</Text>
+                </View>
+              ) : imageErrors.has(index) ? (
                 <View style={styles.errorContainer}>
                   <Text style={styles.errorText}>Impossible de charger l'image</Text>
                   <Text style={styles.errorTextSmall}>Index: {index}</Text>
+                  <Text style={styles.errorTextSmall}>URI: {imageBase64.substring(0, 30)}...</Text>
                 </View>
               ) : (
                 <Image
@@ -163,12 +178,12 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
                   style={styles.fullImage}
                   resizeMode="contain"
                   onError={(error) => {
-                    console.error(`❌ Erreur chargement lightbox image ${index}:`, error);
-                    console.error(`❌ URI problématique lightbox:`, imageBase64.substring(0, 50));
+                    console.error(`❌ Erreur chargement lightbox image ${index}:`, error.nativeEvent?.error || error);
+                    console.error(`❌ URI problématique lightbox:`, imageBase64.substring(0, 100));
                     handleImageError(index);
                   }}
                   onLoad={() => {
-                    console.log(`✅ Image ${index} chargée avec succès dans lightbox`);
+                    console.log(`✅ Image lightbox ${index} chargée - URI:`, imageBase64.substring(0, 50));
                     handleImageLoad(index);
                   }}
                 />
