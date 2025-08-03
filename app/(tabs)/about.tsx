@@ -750,8 +750,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     width: '100%',
-    maxWidth: 650,
-    maxHeight: Platform.OS === 'web' ? '50%' : '75%', // Hauteur réduite
+    maxWidth: 800,
+    maxHeight: Platform.OS === 'web' ? '85%' : '90%', // Hauteur augmentée
     marginVertical: 40,
   },
   // Modal des prochaines nouveautés optimisé pour mobile SANS BARRE DE SCROLL
@@ -760,8 +760,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     width: '100%',
-    maxWidth: 650,
-    maxHeight: Platform.OS === 'web' ? '50%' : '75%', // Hauteur réduite
+    maxWidth: 800,
+    maxHeight: Platform.OS === 'web' ? '85%' : '90%', // Hauteur augmentée
     marginVertical: 40,
   },
   modalHeader: {
