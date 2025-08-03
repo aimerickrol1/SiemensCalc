@@ -658,9 +658,18 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    paddingBottom: Platform.OS === 'web' ? 140 : 20, // Plus d'espace pour la tab bar fixe sur web
-    paddingTop: Platform.OS === 'web' ? 60 : 20, // Espace en haut pour éviter le débordement
+    padding: Platform.OS === 'web' ? 0 : 20,
+    ...(Platform.OS === 'web' && {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+      paddingTop: 40,
+      paddingBottom: 100,
+      paddingHorizontal: 20,
+    }),
   },
   modalContent: {
     backgroundColor: theme.colors.surface,
