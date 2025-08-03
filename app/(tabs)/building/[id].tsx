@@ -249,6 +249,7 @@ export default function BuildingDetailScreen() {
 
   const confirmDeleteZone = async (zone: FunctionalZone) => {
     try {
+      console.log('🗑️ Confirmation suppression zone:', zone.id);
       const success = await deleteFunctionalZone(zone.id);
       if (success) {
         console.log('✅ Zone supprimée avec succès');
@@ -256,9 +257,11 @@ export default function BuildingDetailScreen() {
       } else {
         console.error('❌ Erreur: Zone non trouvée pour la suppression');
         hideModal();
+        hideModal();
       }
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
+      hideModal();
     }
   };
 

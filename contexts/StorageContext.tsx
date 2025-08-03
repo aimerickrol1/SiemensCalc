@@ -349,12 +349,18 @@ export function StorageProvider({ children }: StorageProviderProps) {
     console.log('🗑️ Début suppression bâtiment:', buildingId);
     
     for (let i = 0; i < newProjects.length; i++) {
+      // Vérification de sécurité pour le projet
+      if (!newProjects[i] || !newProjects[i].buildings) {
+        console.warn('⚠️ Projet ou liste de bâtiments introuvable à l\'index:', i);
+        continue;
+      }
+      
       const buildingIndex = newProjects[i].buildings.findIndex(b => b.id === buildingId);
       if (buildingIndex !== -1) {
         console.log('✅ Bâtiment trouvé dans projet:', newProjects[i].name);
         newProjects[i] = {
           ...newProjects[i],
-          buildings: newProjects[i].buildings.filter(b => b.id !== buildingId),
+          buildings: (newProjects[i].buildings || []).filter(b => b.id !== buildingId),
           updatedAt: new Date()
         };
         found = true;
@@ -364,7 +370,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     
     if (found) {
       console.log('💾 Sauvegarde après suppression bâtiment');
-      const newFavoriteBuildings = favoriteBuildings.filter(fId => fId !== buildingId);
+      const newFavoriteBuildings = (favoriteBuildings || []).filter(fId => fId !== buildingId);
       await Promise.all([
         saveProjects(newProjects),
         setFavoriteBuildings(newFavoriteBuildings)
@@ -455,7 +461,19 @@ export function StorageProvider({ children }: StorageProviderProps) {
     console.log('🗑️ Début suppression zone:', zoneId);
     
     for (let i = 0; i < newProjects.length; i++) {
+      // Vérification de sécurité pour le projet
+      if (!newProjects[i] || !newProjects[i].buildings) {
+        console.warn('⚠️ Projet ou liste de bâtiments introuvable à l\'index:', i);
+        continue;
+      }
+      
       for (let j = 0; j < newProjects[i].buildings.length; j++) {
+        // Vérification de sécurité pour le bâtiment
+        if (!newProjects[i].buildings[j] || !newProjects[i].buildings[j].functionalZones) {
+          console.warn('⚠️ Bâtiment ou liste de zones introuvable à l\'index:', j);
+          continue;
+        }
+        
         const zoneIndex = newProjects[i].buildings[j].functionalZones.findIndex(z => z.id === zoneId);
         if (zoneIndex !== -1) {
           console.log('✅ Zone trouvée dans bâtiment:', newProjects[i].buildings[j].name);
@@ -465,7 +483,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
               ...newProjects[i].buildings.slice(0, j),
               {
                 ...newProjects[i].buildings[j],
-                functionalZones: (newProjects[i].buildings[j].functionalZones || []).filter(z => z.id !== zoneId)
+                functionalZones: (newProjects[i].buildings[j].functionalZones || []).filter(z => z && z.id !== zoneId)
               },
               ...newProjects[i].buildings.slice(j + 1)
             ],
@@ -480,7 +498,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     
     if (found) {
       console.log('💾 Sauvegarde après suppression zone');
-      const newFavoriteZones = favoriteZones.filter(fId => fId !== zoneId);
+      const newFavoriteZones = (favoriteZones || []).filter(fId => fId !== zoneId);
       await Promise.all([
         saveProjects(newProjects),
         setFavoriteZones(newFavoriteZones)
@@ -601,8 +619,26 @@ export function StorageProvider({ children }: StorageProviderProps) {
     console.log('🗑️ Début suppression volet:', shutterId);
     
     for (let i = 0; i < newProjects.length; i++) {
+      // Vérification de sécurité pour le projet
+      if (!newProjects[i] || !newProjects[i].buildings) {
+        console.warn('⚠️ Projet ou liste de bâtiments introuvable à l\'index:', i);
+        continue;
+      }
+      
       for (let j = 0; j < newProjects[i].buildings.length; j++) {
+        // Vérification de sécurité pour le bâtiment
+        if (!newProjects[i].buildings[j] || !newProjects[i].buildings[j].functionalZones) {
+          console.warn('⚠️ Bâtiment ou liste de zones introuvable à l\'index:', j);
+          continue;
+        }
+        
         for (let k = 0; k < newProjects[i].buildings[j].functionalZones.length; k++) {
+          // Vérification de sécurité pour la zone
+          if (!newProjects[i].buildings[j].functionalZones[k] || !newProjects[i].buildings[j].functionalZones[k].shutters) {
+            console.warn('⚠️ Zone ou liste de volets introuvable à l\'index:', k);
+            continue;
+          }
+          
           const shutterIndex = newProjects[i].buildings[j].functionalZones[k].shutters.findIndex(s => s.id === shutterId);
           if (shutterIndex !== -1) {
             console.log('✅ Volet trouvé dans zone:', newProjects[i].buildings[j].functionalZones[k].name);
@@ -616,7 +652,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
                     ...newProjects[i].buildings[j].functionalZones.slice(0, k),
                     {
                       ...newProjects[i].buildings[j].functionalZones[k],
-                      shutters: newProjects[i].buildings[j].functionalZones[k].shutters.filter(s => s.id !== shutterId)
+                      shutters: (newProjects[i].buildings[j].functionalZones[k].shutters || []).filter(s => s && s.id !== shutterId)
                     },
                     ...newProjects[i].buildings[j].functionalZones.slice(k + 1)
                   ]
@@ -636,7 +672,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     
     if (found) {
       console.log('💾 Sauvegarde après suppression volet');
-      const newFavoriteShutters = favoriteShutters.filter(fId => fId !== shutterId);
+      const newFavoriteShutters = (favoriteShutters || []).filter(fId => fId !== shutterId);
       await Promise.all([
         saveProjects(newProjects),
         setFavoriteShutters(newFavoriteShutters)

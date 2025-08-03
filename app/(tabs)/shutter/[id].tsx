@@ -128,6 +128,7 @@ export default function ShutterDetailScreen() {
     if (!shutter) return;
 
     try {
+      console.log('🗑️ Confirmation suppression volet depuis page détail:', shutter.id);
       const success = await deleteShutter(shutter.id);
       if (success) {
         console.log('✅ Volet supprimé avec succès');
@@ -135,9 +136,11 @@ export default function ShutterDetailScreen() {
         handleBack();
       } else {
         console.error('❌ Erreur: Volet non trouvé pour la suppression');
+        hideModal();
       }
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
+      hideModal();
     }
   };
 

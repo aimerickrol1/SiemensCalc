@@ -130,6 +130,7 @@ export default function ProjectDetailScreen() {
 
   const confirmBulkDeleteBuildings = async () => {
     try {
+      console.log('🗑️ Suppression en lot de', selectedBuildings.size, 'bâtiments');
       for (const buildingId of selectedBuildings) {
         const success = await deleteBuilding(buildingId);
         if (!success) {
@@ -141,6 +142,7 @@ export default function ProjectDetailScreen() {
       hideModal();
     } catch (error) {
       console.error('Erreur lors de la suppression en lot:', error);
+      hideModal();
     }
   };
 
@@ -291,15 +293,18 @@ export default function ProjectDetailScreen() {
 
   const confirmDeleteBuilding = async (building: BuildingType) => {
     try {
+      console.log('🗑️ Confirmation suppression bâtiment:', building.id);
       const success = await deleteBuilding(building.id);
       if (success) {
         console.log('✅ Bâtiment supprimé avec succès');
         hideModal();
       } else {
         console.error('❌ Erreur: Bâtiment non trouvé pour la suppression');
+        hideModal();
       }
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
+      hideModal();
     }
   };
 
