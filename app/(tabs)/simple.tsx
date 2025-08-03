@@ -306,19 +306,7 @@ export default function SimpleCalculatorScreen() {
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>NF S61-933 Annexe H</Text>
           <Text style={styles.infoText}>
-            {strings.nfStandardDesc}
-            <Text>{'\n\n'}</Text>
-            <Text>• </Text>
-            <Text style={{ color: '#10B981', fontFamily: 'Inter-SemiBold' }}>{strings.compliant}</Text>
-            <Text> : {strings.deviation} ≤ ±10%</Text>
-            <Text>{'\n'}</Text>
-            <Text>• </Text>
-            <Text style={{ color: '#F59E0B', fontFamily: 'Inter-SemiBold' }}>{strings.acceptable}</Text>
-            <Text> : {strings.deviation} ±10% - ±20%</Text>
-            <Text>{'\n'}</Text>
-            <Text>• </Text>
-            <Text style={{ color: '#EF4444', fontFamily: 'Inter-SemiBold' }}>{strings.nonCompliant}</Text>
-            <Text> : {strings.deviation} > ±20%</Text>
+            {strings.nfStandardDesc}<Text>{'\n\n'}</Text><Text>• </Text><Text style={{ color: '#10B981', fontFamily: 'Inter-SemiBold' }}>{strings.compliant}</Text><Text> : {strings.deviation} ≤ ±10%</Text><Text>{'\n'}</Text><Text>• </Text><Text style={{ color: '#F59E0B', fontFamily: 'Inter-SemiBold' }}>{strings.acceptable}</Text><Text> : {strings.deviation} ±10% - ±20%</Text><Text>{'\n'}</Text><Text>• </Text><Text style={{ color: '#EF4444', fontFamily: 'Inter-SemiBold' }}>{strings.nonCompliant}</Text><Text> : {strings.deviation} > ±20%</Text>
           </Text>
         </View>
       </ScrollView>
