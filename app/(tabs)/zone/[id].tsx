@@ -210,32 +210,27 @@ export default function ZoneDetailScreen() {
   };
 
   const handleDeleteShutter = async (shutter: Shutter) => {
-    Alert.alert(
-      strings.deleteShutter,
-      `${strings.deleteShutterConfirm} "${shutter.name}" ?`,
-      [
-        { text: strings.cancel, style: 'cancel' },
-        {
-          text: strings.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const success = await deleteShutter(shutter.id);
-              if (success) {
-                console.log('✅ Volet supprimé avec succès');
-                await loadZone();
-              } else {
-                console.error('❌ Erreur lors de la suppression du volet');
-                Alert.alert(strings.error, 'Impossible de supprimer le volet');
-              }
-            } catch (error) {
-              console.error('Erreur lors de la suppression:', error);
-              Alert.alert(strings.error, 'Impossible de supprimer le volet');
-            }
-          }
-        }
-      ]
-    );
+    showModal(<DeleteShutterModal 
+      shutter={shutter}
+      onConfirm={() => confirmDeleteShutter(shutter)}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const confirmDeleteShutter = async (shutter: Shutter) => {
+    try {
+      const success = await deleteShutter(shutter.id);
+      if (success) {
+        console.log('✅ Volet supprimé avec succès');
+        await loadZone();
+        hideModal();
+      } else {
+        console.error('❌ Erreur lors de la suppression du volet');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+    }
   };
 
   // Fonctions pour le mode sélection

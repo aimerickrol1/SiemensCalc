@@ -241,27 +241,32 @@ export default function BuildingDetailScreen() {
   };
 
   const handleDeleteZone = async (zone: FunctionalZone) => {
-    showModal(<DeleteZoneModal 
-      zone={zone}
-      onConfirm={() => confirmDeleteZone(zone)}
-      onCancel={() => hideModal()}
-      strings={strings}
-    />);
-  };
-
-  const confirmDeleteZone = async (zone: FunctionalZone) => {
-    try {
-      const success = await deleteFunctionalZone(zone.id);
-      if (success) {
-        console.log('✅ Zone supprimée avec succès');
-        await loadBuilding();
-        hideModal();
-      } else {
-        console.error('❌ Erreur lors de la suppression de la zone');
-      }
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-    }
+    Alert.alert(
+      strings.deleteZone,
+      `Êtes-vous sûr de vouloir supprimer la zone "${zone.name}" ?`,
+      [
+        { text: strings.cancel, style: 'cancel' },
+        {
+          text: strings.delete,
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const success = await deleteFunctionalZone(zone.id);
+              if (success) {
+                console.log('✅ Zone supprimée avec succès');
+                await loadBuilding();
+              } else {
+                console.error('❌ Erreur lors de la suppression de la zone');
+                Alert.alert(strings.error, 'Impossible de supprimer la zone');
+              }
+            } catch (error) {
+              console.error('Erreur lors de la suppression:', error);
+              Alert.alert(strings.error, 'Impossible de supprimer la zone');
+            }
+          }
+        }
+      ]
+    );
   };
 
   // Fonction pour obtenir le détail des volets par type
@@ -767,6 +772,49 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 3,
     borderRadius: 3,
     backgroundColor: theme.colors.surfaceSecondary,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+    flex: 1,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    marginBottom: 20,
+  },
+  modalText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+    lineHeight: 20,
+  },
+  modalBold: {
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
   },
 
   modalOverlay: {
