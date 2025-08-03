@@ -229,11 +229,9 @@ export default function ZoneDetailScreen() {
       } else {
         console.error('❌ Erreur lors de la suppression du volet');
         hideModal();
-        hideModal();
       }
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
-      hideModal();
       hideModal();
     }
   };
@@ -282,7 +280,6 @@ export default function ZoneDetailScreen() {
       hideModal();
     } catch (error) {
       console.error('Erreur lors de la suppression en lot:', error);
-      hideModal();
       hideModal();
     }
   };

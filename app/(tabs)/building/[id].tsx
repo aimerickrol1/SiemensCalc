@@ -259,11 +259,9 @@ export default function BuildingDetailScreen() {
       } else {
         console.error('❌ Erreur lors de la suppression de la zone');
         hideModal();
-        hideModal();
       }
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
-      hideModal();
       hideModal();
     }
   };

@@ -24,7 +24,8 @@ export default function ProjectDetailScreen() {
     createBuilding,
     deleteBuilding,
     setFavoriteBuildings,
-    updateBuilding
+    updateBuilding,
+    storage
   } = useStorage();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
@@ -294,11 +295,9 @@ export default function ProjectDetailScreen() {
   const confirmDeleteBuilding = async (building: BuildingType) => {
     try {
       console.log('🗑️ Suppression du bâtiment:', building.id);
-      console.log('🗑️ Suppression du bâtiment:', building.id);
       const success = await deleteBuilding(building.id);
       if (success) {
         console.log('✅ Bâtiment supprimé avec succès');
-        await loadProject(); // Recharger les données
         await loadProject();
         hideModal();
       } else {
