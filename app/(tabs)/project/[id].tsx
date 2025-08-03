@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, ScrollView, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ScrollView, TextInput, Platform } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { Plus, Settings, Building, Wind, Star, Trash2, SquareCheck as CheckSquare, Square, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
@@ -12,10 +12,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAndroidBackButton } from '@/utils/BackHandler';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { useModal } from '@/contexts/ModalContext';
 
 export default function ProjectDetailScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
+  const { showModal, hideModal } = useModal();
   const { 
     projects,
     favoriteBuildings,
@@ -27,7 +29,6 @@ export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-  const [createBuildingModalVisible, setCreateBuildingModalVisible] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedBuildings, setSelectedBuildings] = useState<Set<string>>(new Set());
   
@@ -37,15 +38,6 @@ export default function ProjectDetailScreen() {
   const [formLoading, setFormLoading] = useState(false);
   const [errors, setErrors] = useState<{ name?: string }>({});
 
-  // NOUVEAU : Modal pour éditer le nom du bâtiment
-  const [nameEditModal, setNameEditModal] = useState<{
-    visible: boolean;
-    building: BuildingType | null;
-    name: string;
-  }>({ visible: false, building: null, name: '' });
-
-  // NOUVEAU : Référence pour l'auto-focus
-  const nameInputRef = useRef<TextInput>(null);
 
   // Configure Android back button to go back to the home screen
   useAndroidBackButton(() => {
@@ -53,16 +45,6 @@ export default function ProjectDetailScreen() {
     return true;
   });
 
-  // NOUVEAU : Auto-focus sur l'input du nom quand le modal s'ouvre
-  useEffect(() => {
-    if (nameEditModal.visible && nameInputRef.current) {
-      const timer = setTimeout(() => {
-        nameInputRef.current?.focus();
-      }, 300);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [nameEditModal.visible]);
 
   const loadProject = useCallback(async () => {
     try {
@@ -106,7 +88,17 @@ export default function ProjectDetailScreen() {
 
   const handleCreateBuilding = () => {
     resetForm();
-    setCreateBuildingModalVisible(true);
+    showModal(<CreateBuildingModal 
+      onSubmit={handleSubmitBuilding}
+      onCancel={() => hideModal()}
+      buildingName={buildingName}
+      setBuildingName={setBuildingName}
+      buildingDescription={buildingDescription}
+      setBuildingDescription={setBuildingDescription}
+      errors={errors}
+      loading={formLoading}
+      strings={strings}
+    />);
   };
 
   const handleSelectionMode = () => {
@@ -201,7 +193,7 @@ export default function ProjectDetailScreen() {
 
       if (building) {
         console.log('✅ Bâtiment créé avec succès:', building.id);
-        setCreateBuildingModalVisible(false);
+        hideModal();
         resetForm();
         loadProject();
         
@@ -229,22 +221,23 @@ export default function ProjectDetailScreen() {
 
   // NOUVEAU : Fonction pour ouvrir le modal d'édition du nom
   const openNameEditModal = (building: BuildingType) => {
-    setNameEditModal({
-      visible: true,
-      building,
-      name: building.name
-    });
+    showModal(<EditBuildingNameModal 
+      building={building}
+      onSave={saveNameChange}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
   };
 
   // CORRIGÉ : Fonction pour sauvegarder le changement de nom avec mise à jour instantanée
-  const saveNameChange = async () => {
-    if (!nameEditModal.building || !nameEditModal.name.trim()) return;
+  const saveNameChange = async (building: BuildingType, newName: string) => {
+    if (!building || !newName.trim()) return;
 
     try {
-      console.log('✏️ Modification du nom du bâtiment:', nameEditModal.building.id, 'nouveau nom:', nameEditModal.name.trim());
+      console.log('✏️ Modification du nom du bâtiment:', building.id, 'nouveau nom:', newName.trim());
       
-      const updatedBuilding = await updateBuilding(nameEditModal.building.id, {
-        name: nameEditModal.name.trim(),
+      const updatedBuilding = await updateBuilding(building.id, {
+        name: newName.trim(),
       });
       
       if (updatedBuilding) {
@@ -257,14 +250,14 @@ export default function ProjectDetailScreen() {
           return {
             ...prevProject,
             buildings: prevProject.buildings.map(b => 
-              b.id === nameEditModal.building!.id 
-                ? { ...b, name: nameEditModal.name.trim() }
+              b.id === building.id 
+                ? { ...b, name: newName.trim() }
                 : b
             )
           };
         });
         
-        setNameEditModal({ visible: false, building: null, name: '' });
+        hideModal();
       } else {
         console.error('❌ Erreur: Bâtiment non trouvé pour la modification');
         Alert.alert(strings.error, 'Impossible de modifier le nom du bâtiment');
@@ -616,111 +609,6 @@ export default function ProjectDetailScreen() {
         )}
       </View>
 
-      {/* Modal de création de bâtiment */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={createBuildingModalVisible}
-        onRequestClose={() => setCreateBuildingModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{strings.newBuilding}</Text>
-              <TouchableOpacity 
-                onPress={() => setCreateBuildingModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <X size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Input
-                label={strings.buildingName + " *"}
-                value={buildingName}
-                onChangeText={setBuildingName}
-                placeholder="Ex: Bâtiment A, Tour Nord"
-                error={errors.name}
-              />
-
-              <Input
-                label={strings.description + " (" + strings.optional + ")"}
-                value={buildingDescription}
-                onChangeText={setBuildingDescription}
-                placeholder="Ex: Bâtiment principal, 5 étages"
-                multiline
-                numberOfLines={3}
-              />
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
-              <Button
-                title={strings.cancel}
-                onPress={() => setCreateBuildingModalVisible(false)}
-                variant="secondary"
-                style={styles.modalButton}
-              />
-              <Button
-                title={formLoading ? "Création..." : strings.create}
-                onPress={handleSubmitBuilding}
-                disabled={formLoading}
-                style={styles.modalButton}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* NOUVEAU : Modal pour éditer le nom du bâtiment avec auto-focus */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={nameEditModal.visible}
-        onRequestClose={() => setNameEditModal({ visible: false, building: null, name: '' })}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.nameEditModalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Modifier le nom du bâtiment</Text>
-              <TouchableOpacity 
-                onPress={() => setNameEditModal({ visible: false, building: null, name: '' })}
-                style={styles.closeButton}
-              >
-                <X size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              <Text style={styles.inputLabel}>{strings.buildingName} *</Text>
-              <TextInput
-                ref={nameInputRef}
-                style={styles.nameTextInput}
-                value={nameEditModal.name}
-                onChangeText={(text) => setNameEditModal(prev => ({ ...prev, name: text }))}
-                placeholder="Ex: Bâtiment A, Tour Nord"
-                placeholderTextColor={theme.colors.textTertiary}
-                autoFocus={true}
-                selectTextOnFocus={true}
-              />
-            </View>
-
-            <View style={styles.modalFooter}>
-              <Button
-                title={strings.cancel}
-                onPress={() => setNameEditModal({ visible: false, building: null, name: '' })}
-                variant="secondary"
-                style={styles.modalButton}
-              />
-              <Button
-                title={strings.save}
-                onPress={saveNameChange}
-                style={styles.modalButton}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -1010,23 +898,113 @@ const createStyles = (theme: any) => StyleSheet.create({
   modalButton: {
     flex: 1,
   },
-  // NOUVEAU : Styles pour l'input avec auto-focus
-  inputLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: theme.colors.textSecondary,
-    marginBottom: 6,
-  },
-  nameTextInput: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    backgroundColor: theme.colors.inputBackground,
-    color: theme.colors.text,
-    minHeight: 48,
-  },
 });
+
+// Composants modaux séparés pour utiliser le portail global
+function CreateBuildingModal({ 
+  onSubmit, 
+  onCancel, 
+  buildingName, 
+  setBuildingName, 
+  buildingDescription, 
+  setBuildingDescription, 
+  errors, 
+  loading, 
+  strings 
+}: any) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>{strings.newBuilding}</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+        <Input
+          label={strings.buildingName + " *"}
+          value={buildingName}
+          onChangeText={setBuildingName}
+          placeholder="Ex: Bâtiment A, Tour Nord"
+          error={errors.name}
+        />
+
+        <Input
+          label={strings.description + " (" + strings.optional + ")"}
+          value={buildingDescription}
+          onChangeText={setBuildingDescription}
+          placeholder="Ex: Bâtiment principal, 5 étages"
+          multiline
+          numberOfLines={3}
+        />
+      </ScrollView>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={loading ? "Création..." : strings.create}
+          onPress={onSubmit}
+          disabled={loading}
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
+
+function EditBuildingNameModal({ building, onSave, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const [name, setName] = useState(building.name);
+  const styles = createStyles(theme);
+
+  const handleSave = () => {
+    onSave(building, name);
+  };
+
+  return (
+    <View style={styles.nameEditModalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Modifier le nom du bâtiment</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.modalBody}>
+        <Text style={styles.inputLabel}>{strings.buildingName} *</Text>
+        <TextInput
+          style={styles.nameTextInput}
+          value={name}
+          onChangeText={setName}
+          placeholder="Ex: Bâtiment A, Tour Nord"
+          placeholderTextColor={theme.colors.textTertiary}
+          autoFocus={true}
+          selectTextOnFocus={true}
+        />
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={strings.save}
+          onPress={handleSave}
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}

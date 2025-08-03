@@ -103,10 +103,18 @@ input, textarea {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 1000;
+  z-index: 10;
   background-color: #009999;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* S'assurer qu'aucun élément ne crée de stacking context isolant */
+#root, .expo-root {
+  isolation: auto !important;
+  transform: none !important;
+  will-change: auto !important;
+  contain: none !important;
 }
 
 /* Empêcher le pull-to-refresh sur iOS */
@@ -122,8 +130,10 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 9999;
+  z-index: 2147483647;
   background-color: rgba(0, 0, 0, 0.5);
+  isolation: isolate;
+  contain: layout style paint;
 }
 
 /* Améliorer la lisibilité sur petits écrans */

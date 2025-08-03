@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput, Platform } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { Plus, Settings, Wind, Star, Trash2, SquareCheck as CheckSquare, Square, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
@@ -10,10 +10,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAndroidBackButton } from '@/utils/BackHandler';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { useModal } from '@/contexts/ModalContext';
 
 export default function BuildingDetailScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
+  const { showModal, hideModal } = useModal();
   const { 
     projects, 
     favoriteZones, 
@@ -33,15 +35,6 @@ export default function BuildingDetailScreen() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedZones, setSelectedZones] = useState<Set<string>>(new Set());
 
-  // Modal pour éditer le nom de la zone
-  const [nameEditModal, setNameEditModal] = useState<{
-    visible: boolean;
-    zone: FunctionalZone | null;
-    name: string;
-  }>({ visible: false, zone: null, name: '' });
-
-  // Référence pour l'auto-focus
-  const nameInputRef = useRef<TextInput>(null);
 
   // Configure Android back button to go back to the project screen
   useAndroidBackButton(() => {
@@ -49,16 +42,6 @@ export default function BuildingDetailScreen() {
     return true;
   });
 
-  // Auto-focus sur l'input du nom quand le modal s'ouvre
-  useEffect(() => {
-    if (nameEditModal.visible && nameInputRef.current) {
-      const timer = setTimeout(() => {
-        nameInputRef.current?.focus();
-      }, 300);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [nameEditModal.visible]);
 
   const loadBuilding = useCallback(async () => {
     try {
@@ -139,20 +122,21 @@ export default function BuildingDetailScreen() {
 
   // Fonction pour ouvrir le modal d'édition du nom
   const openNameEditModal = (zone: FunctionalZone) => {
-    setNameEditModal({
-      visible: true,
-      zone,
-      name: zone.name
-    });
+    showModal(<EditZoneNameModal 
+      zone={zone}
+      onSave={saveNameChange}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
   };
 
   // CORRIGÉ : Fonction pour sauvegarder le changement de nom avec mise à jour instantanée
-  const saveNameChange = async () => {
-    if (!nameEditModal.zone || !nameEditModal.name.trim()) return;
+  const saveNameChange = async (zone: FunctionalZone, newName: string) => {
+    if (!zone || !newName.trim()) return;
 
     try {
-      const updatedZone = await updateFunctionalZone(nameEditModal.zone.id, {
-        name: nameEditModal.name.trim(),
+      const updatedZone = await updateFunctionalZone(zone.id, {
+        name: newName.trim(),
       });
       
       if (updatedZone) {
@@ -163,14 +147,14 @@ export default function BuildingDetailScreen() {
           return {
             ...prevBuilding,
             functionalZones: prevBuilding.functionalZones.map(z => 
-              z.id === nameEditModal.zone!.id 
-                ? { ...z, name: nameEditModal.name.trim() }
+              z.id === zone.id 
+                ? { ...z, name: newName.trim() }
                 : z
             )
           };
         });
         
-        setNameEditModal({ visible: false, zone: null, name: '' });
+        hideModal();
       } else {
         Alert.alert(strings.error, 'Impossible de modifier le nom de la zone');
       }
@@ -512,55 +496,6 @@ export default function BuildingDetailScreen() {
         )}
       </View>
 
-      {/* Modal pour éditer le nom de la zone avec auto-focus */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={nameEditModal.visible}
-        onRequestClose={() => setNameEditModal({ visible: false, zone: null, name: '' })}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.nameEditModalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Modifier le nom de la zone</Text>
-              <TouchableOpacity 
-                onPress={() => setNameEditModal({ visible: false, zone: null, name: '' })}
-                style={styles.closeButton}
-              >
-                <X size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              <Text style={styles.inputLabel}>{strings.zoneName} *</Text>
-              <TextInput
-                ref={nameInputRef}
-                style={styles.nameTextInput}
-                value={nameEditModal.name}
-                onChangeText={(text) => setNameEditModal(prev => ({ ...prev, name: text }))}
-                placeholder="Ex: ZF01, Zone Hall"
-                placeholderTextColor={theme.colors.textTertiary}
-                autoFocus={true}
-                selectTextOnFocus={true}
-              />
-            </View>
-
-            <View style={styles.modalFooter}>
-              <Button
-                title={strings.cancel}
-                onPress={() => setNameEditModal({ visible: false, zone: null, name: '' })}
-                variant="secondary"
-                style={styles.modalButton}
-              />
-              <Button
-                title={strings.save}
-                onPress={saveNameChange}
-                style={styles.modalButton}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -872,22 +807,53 @@ const createStyles = (theme: any) => StyleSheet.create({
   modalButton: {
     flex: 1,
   },
-  inputLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: theme.colors.textSecondary,
-    marginBottom: 6,
-  },
-  nameTextInput: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    backgroundColor: theme.colors.inputBackground,
-    color: theme.colors.text,
-    minHeight: 48,
-  },
 });
+
+// Composant modal séparé pour utiliser le portail global
+function EditZoneNameModal({ zone, onSave, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const [name, setName] = useState(zone.name);
+  const styles = createStyles(theme);
+
+  const handleSave = () => {
+    onSave(zone, name);
+  };
+
+  return (
+    <View style={styles.nameEditModalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Modifier le nom de la zone</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.modalBody}>
+        <Text style={styles.inputLabel}>{strings.zoneName} *</Text>
+        <TextInput
+          style={styles.nameTextInput}
+          value={name}
+          onChangeText={setName}
+          placeholder="Ex: ZF01, Zone Hall"
+          placeholderTextColor={theme.colors.textTertiary}
+          autoFocus={true}
+          selectTextOnFocus={true}
+        />
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={strings.save}
+          onPress={handleSave}
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}

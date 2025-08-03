@@ -26,16 +26,16 @@ function WebPortal({ children, isVisible }: { children: ReactNode; isVisible: bo
   useEffect(() => {
     if (Platform.OS !== 'web') return;
 
-    // Créer un élément portal complètement séparé
+    // Créer un élément portal complètement séparé et l'ajouter directement au body
     const portalDiv = document.createElement('div');
-    portalDiv.id = 'modal-portal-root';
+    portalDiv.id = `modal-portal-${Date.now()}`;
     portalDiv.style.cssText = `
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
       right: 0 !important;
       bottom: 0 !important;
-      z-index: 999999 !important;
+      z-index: 2147483647 !important;
       pointer-events: ${isVisible ? 'auto' : 'none'} !important;
       opacity: ${isVisible ? '1' : '0'} !important;
       transition: opacity 0.3s ease !important;
@@ -47,20 +47,26 @@ function WebPortal({ children, isVisible }: { children: ReactNode; isVisible: bo
       box-sizing: border-box !important;
       overflow-y: auto !important;
       -webkit-overflow-scrolling: touch !important;
+      isolation: isolate !important;
+      contain: layout style paint !important;
     `;
 
-    // Ajouter directement au body (pas dans #root)
+    // Ajouter directement au body en tant que dernier enfant
     document.body.appendChild(portalDiv);
     setPortalElement(portalDiv);
 
     // Empêcher le scroll du body quand la modale est ouverte
     if (isVisible) {
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
     }
 
     return () => {
       // Restaurer le scroll du body
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
       // Supprimer l'élément portal
       if (document.body.contains(portalDiv)) {
         document.body.removeChild(portalDiv);
@@ -75,9 +81,18 @@ function WebPortal({ children, isVisible }: { children: ReactNode; isVisible: bo
     portalElement.style.pointerEvents = isVisible ? 'auto' : 'none';
     portalElement.style.opacity = isVisible ? '1' : '0';
     portalElement.style.backgroundColor = isVisible ? 'rgba(0, 0, 0, 0.5)' : 'transparent';
+    portalElement.style.zIndex = '2147483647';
 
     // Gérer le scroll du body
-    document.body.style.overflow = isVisible ? 'hidden' : '';
+    if (isVisible) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
   }, [isVisible, portalElement]);
 
   // Rendre le contenu dans le portal sur web

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput, Platform } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { Plus, Settings, Copy, Clipboard, Filter, Star, Trash2, SquareCheck as CheckSquare, Square, MessageSquare, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
@@ -12,10 +12,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAndroidBackButton } from '@/utils/BackHandler';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { useModal } from '@/contexts/ModalContext';
 
 export default function ZoneDetailScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
+  const { showModal, hideModal } = useModal();
   const { 
     projects, 
     favoriteShutters, 
@@ -41,23 +43,6 @@ export default function ZoneDetailScreen() {
     hasBeenFocused: { referenceFlow: boolean; measuredFlow: boolean };
   }}>({});
 
-  // Modal pour éditer le nom
-  const [nameEditModal, setNameEditModal] = useState<{
-    visible: boolean;
-    shutter: Shutter | null;
-    name: string;
-  }>({ visible: false, shutter: null, name: '' });
-
-  // Modal pour éditer les remarques
-  const [remarksEditModal, setRemarksEditModal] = useState<{
-    visible: boolean;
-    shutter: Shutter | null;
-    remarks: string;
-  }>({ visible: false, shutter: null, remarks: '' });
-
-  // Références pour l'auto-focus des inputs
-  const nameInputRef = useRef<TextInput>(null);
-  const remarksInputRef = useRef<TextInput>(null);
 
   // Configure Android back button to go back to the building screen
   useAndroidBackButton(() => {
@@ -128,27 +113,6 @@ export default function ZoneDetailScreen() {
     }
   }, [zone]);
 
-  // Auto-focus sur l'input du nom quand le modal s'ouvre
-  useEffect(() => {
-    if (nameEditModal.visible && nameInputRef.current) {
-      const timer = setTimeout(() => {
-        nameInputRef.current?.focus();
-      }, 300);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [nameEditModal.visible]);
-
-  // Auto-focus sur l'input des remarques quand le modal s'ouvre
-  useEffect(() => {
-    if (remarksEditModal.visible && remarksInputRef.current) {
-      const timer = setTimeout(() => {
-        remarksInputRef.current?.focus();
-      }, 300);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [remarksEditModal.visible]);
 
   const handleBack = () => {
     try {
@@ -437,22 +401,23 @@ export default function ZoneDetailScreen() {
 
   // Fonctions pour éditer le nom
   const openNameEditModal = (shutter: Shutter) => {
-    setNameEditModal({
-      visible: true,
-      shutter,
-      name: shutter.name
-    });
+    showModal(<EditShutterNameModal 
+      shutter={shutter}
+      onSave={saveNameChange}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
   };
 
-  const saveNameChange = async () => {
-    if (!nameEditModal.shutter || !nameEditModal.name.trim()) return;
+  const saveNameChange = async (shutter: Shutter, newName: string) => {
+    if (!shutter || !newName.trim()) return;
 
     try {
-      await updateShutter(nameEditModal.shutter.id, {
-        name: nameEditModal.name.trim(),
+      await updateShutter(shutter.id, {
+        name: newName.trim(),
       });
       
-      setNameEditModal({ visible: false, shutter: null, name: '' });
+      hideModal();
       loadZone();
     } catch (error) {
       Alert.alert(strings.error, 'Impossible de modifier le nom');
@@ -461,22 +426,23 @@ export default function ZoneDetailScreen() {
 
   // Fonctions pour éditer les remarques
   const openRemarksEditModal = (shutter: Shutter) => {
-    setRemarksEditModal({
-      visible: true,
-      shutter,
-      remarks: shutter.remarks || ''
-    });
+    showModal(<EditShutterRemarksModal 
+      shutter={shutter}
+      onSave={saveRemarksChange}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
   };
 
-  const saveRemarksChange = async () => {
-    if (!remarksEditModal.shutter) return;
+  const saveRemarksChange = async (shutter: Shutter, newRemarks: string) => {
+    if (!shutter) return;
 
     try {
-      await updateShutter(remarksEditModal.shutter.id, {
-        remarks: remarksEditModal.remarks.trim() || undefined,
+      await updateShutter(shutter.id, {
+        remarks: newRemarks.trim() || undefined,
       });
       
-      setRemarksEditModal({ visible: false, shutter: null, remarks: '' });
+      hideModal();
       loadZone();
     } catch (error) {
       Alert.alert(strings.error, 'Impossible de modifier les remarques');
@@ -927,107 +893,6 @@ export default function ZoneDetailScreen() {
         )}
       </View>
 
-      {/* Modal pour éditer le nom */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={nameEditModal.visible}
-        onRequestClose={() => setNameEditModal({ visible: false, shutter: null, name: '' })}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Modifier le nom du volet</Text>
-              <TouchableOpacity 
-                onPress={() => setNameEditModal({ visible: false, shutter: null, name: '' })}
-                style={styles.closeButton}
-              >
-                <X size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              <Text style={styles.inputLabel}>{strings.shutterName} *</Text>
-              <TextInput
-                ref={nameInputRef}
-                style={styles.nameTextInput}
-                value={nameEditModal.name}
-                onChangeText={(text) => setNameEditModal(prev => ({ ...prev, name: text }))}
-                placeholder="Ex: VH01, VB01"
-                placeholderTextColor={theme.colors.textTertiary}
-                autoFocus={true}
-                selectTextOnFocus={true}
-              />
-            </View>
-
-            <View style={styles.modalFooter}>
-              <Button
-                title={strings.cancel}
-                onPress={() => setNameEditModal({ visible: false, shutter: null, name: '' })}
-                variant="secondary"
-                style={styles.modalButton}
-              />
-              <Button
-                title={strings.save}
-                onPress={saveNameChange}
-                style={styles.modalButton}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal pour éditer les remarques */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={remarksEditModal.visible}
-        onRequestClose={() => setRemarksEditModal({ visible: false, shutter: null, remarks: '' })}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Modifier les remarques</Text>
-              <TouchableOpacity 
-                onPress={() => setRemarksEditModal({ visible: false, shutter: null, remarks: '' })}
-                style={styles.closeButton}
-              >
-                <X size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              <Text style={styles.inputLabel}>{strings.remarks}</Text>
-              <TextInput
-                ref={remarksInputRef}
-                style={styles.remarksTextInput}
-                value={remarksEditModal.remarks}
-                onChangeText={(text) => setRemarksEditModal(prev => ({ ...prev, remarks: text }))}
-                placeholder="Observations, conditions de mesure..."
-                placeholderTextColor={theme.colors.textTertiary}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-                autoFocus={true}
-              />
-            </View>
-
-            <View style={styles.modalFooter}>
-              <Button
-                title={strings.cancel}
-                onPress={() => setRemarksEditModal({ visible: false, shutter: null, remarks: '' })}
-                variant="secondary"
-                style={styles.modalButton}
-              />
-              <Button
-                title={strings.save}
-                onPress={saveRemarksChange}
-                style={styles.modalButton}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -1494,3 +1359,102 @@ const createStyles = (theme: any) => StyleSheet.create({
     maxHeight: 150,
   },
 });
+
+// Composants modaux séparés pour utiliser le portail global
+function EditShutterNameModal({ shutter, onSave, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const [name, setName] = useState(shutter.name);
+  const styles = createStyles(theme);
+
+  const handleSave = () => {
+    onSave(shutter, name);
+  };
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Modifier le nom du volet</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.modalBody}>
+        <Text style={styles.inputLabel}>{strings.shutterName} *</Text>
+        <TextInput
+          style={styles.nameTextInput}
+          value={name}
+          onChangeText={setName}
+          placeholder="Ex: VH01, VB01"
+          placeholderTextColor={theme.colors.textTertiary}
+          autoFocus={true}
+          selectTextOnFocus={true}
+        />
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={strings.save}
+          onPress={handleSave}
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
+
+function EditShutterRemarksModal({ shutter, onSave, onCancel, strings }: any) {
+  const { theme } = useTheme();
+  const [remarks, setRemarks] = useState(shutter.remarks || '');
+  const styles = createStyles(theme);
+
+  const handleSave = () => {
+    onSave(shutter, remarks);
+  };
+
+  return (
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Modifier les remarques</Text>
+        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+          <X size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.modalBody}>
+        <Text style={styles.inputLabel}>{strings.remarks}</Text>
+        <TextInput
+          style={styles.remarksTextInput}
+          value={remarks}
+          onChangeText={setRemarks}
+          placeholder="Observations, conditions de mesure..."
+          placeholderTextColor={theme.colors.textTertiary}
+          multiline
+          numberOfLines={4}
+          textAlignVertical="top"
+          autoFocus={true}
+        />
+      </View>
+
+      <View style={styles.modalFooter}>
+        <Button
+          title={strings.cancel}
+          onPress={onCancel}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={strings.save}
+          onPress={handleSave}
+          style={styles.modalButton}
+        />
+      </View>
+    </View>
+  );
+}
