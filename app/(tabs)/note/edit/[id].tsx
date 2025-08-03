@@ -189,35 +189,10 @@ export default function EditNoteScreen() {
             placeholder="Ex: Observations chantier, Mesures particulières..."
             error={errors.title}
           />
-
-
-        {/* Galerie d'images */}
-        <NoteImageGallery 
-          images={images}
-          onRemoveImage={handleRemoveImage}
-          editable={true}
-        />
-
-        {/* Bouton ajouter image */}
-        <View style={styles.imageButtonContainer}>
-          <Button
-            title="📷 Ajouter une image"
-            onPress={handleAddImage}
-            variant="secondary"
-            style={styles.imageButton}
-          />
-        </View>
-          <View style={styles.contentInputContainer}>
-            <Input
-              label={strings.noteContent}
-              value={content}
-              onChangeText={setContent}
-              placeholder={strings.writeYourNote}
-              multiline
-              numberOfLines={15}
-              style={styles.contentInput}
-            />
-          </View>
+        
+        <Text style={styles.infoText}>
+          Le contenu et les images peuvent être modifiés directement depuis la page de la note.
+        </Text>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -279,12 +254,16 @@ const createStyles = (theme: any) => StyleSheet.create({
     minHeight: 300,
     textAlignVertical: 'top',
   },
-  imageButtonContainer: {
+  infoText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
     marginTop: 16,
-    alignItems: 'center',
-  },
-  imageButton: {
-    paddingHorizontal: 24,
+    padding: 16,
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 8,
   },
   fixedFooter: {
     position: Platform.OS === 'web' ? 'fixed' : 'absolute',

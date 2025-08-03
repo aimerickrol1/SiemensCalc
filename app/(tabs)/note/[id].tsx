@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
-import { CreditCard as Edit3, Trash2, Calendar, X, Check } from 'lucide-react-native';
+import { CreditCard as Edit3, Trash2, Calendar, X, Check, Camera } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
 import { InlineNoteEditor } from '@/components/InlineNoteEditor';
 import { NoteImageGallery } from '@/components/NoteImageGallery';
+import { ImagePicker } from '@/components/ImagePicker';
 import { Note } from '@/types';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -22,9 +23,7 @@ export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingContent, setIsEditingContent] = useState(false);
-  const [editingTitle, setEditingTitle] = useState('');
   const [editingContent, setEditingContent] = useState('');
 
   // Configure Android back button
@@ -58,7 +57,6 @@ export default function NoteDetailScreen() {
   // Initialiser les valeurs d'édition quand la note change
   useEffect(() => {
     if (note) {
-      setEditingTitle(note.title || '');
       setEditingContent(note.content || '');
     }
   }, [note]);
@@ -88,7 +86,7 @@ export default function NoteDetailScreen() {
     }
   };
 
-  const handleEdit = () => {
+  const handleEditTitle = () => {
     safeNavigate(`/(tabs)/note/edit/${id}`);
   };
 
@@ -125,50 +123,73 @@ export default function NoteDetailScreen() {
 
   // Auto-save avec debounce
   const autoSaveNote = useCallback(
-    debounce(async (field: 'title' | 'content', value: string) => {
+    debounce(async (value: string) => {
       if (!note) return;
       
       try {
-        console.log(`💾 Auto-save ${field}:`, value.substring(0, 50));
+        console.log('💾 Auto-save content:', value.substring(0, 50));
         const updatedNote = await updateNote(note.id, {
-          [field]: value.trim() || (field === 'title' ? strings.untitledNote : ''),
+          content: value.trim(),
         });
         
         if (updatedNote) {
           setNote(updatedNote);
-          console.log(`✅ ${field} sauvegardé automatiquement`);
+          console.log('✅ Contenu sauvegardé automatiquement');
         }
       } catch (error) {
-        console.error(`Erreur auto-save ${field}:`, error);
+        console.error('Erreur auto-save content:', error);
       }
     }, 1000),
-    [note, updateNote, strings.untitledNote]
+    [note, updateNote]
   );
-
-  const handleTitleEdit = (value: string) => {
-    setEditingTitle(value);
-    autoSaveNote('title', value);
-  };
 
   const handleContentEdit = (value: string) => {
     setEditingContent(value);
-    autoSaveNote('content', value);
-  };
-
-  const handleTitlePress = () => {
-    setIsEditingTitle(true);
+    autoSaveNote(value);
   };
 
   const handleContentPress = () => {
     setIsEditingContent(true);
   };
 
-  const handleTitleBlur = () => {
-    setIsEditingTitle(false);
-  };
-
   const handleContentBlur = () => {
     setIsEditingContent(false);
+  };
+
+  const handleAddImage = () => {
+    showModal(
+      <ImagePicker 
+        onImageSelected={async (imageBase64) => {
+          console.log('📝 Image ajoutée à la note, format:', imageBase64.substring(0, 30));
+          if (note) {
+            const currentImages = note.images || [];
+            const updatedNote = await updateNote(note.id, {
+              images: [...currentImages, imageBase64],
+            });
+            if (updatedNote) {
+              setNote(updatedNote);
+            }
+          }
+          hideModal();
+        }}
+        onClose={hideModal}
+      />
+    );
+  };
+
+  const handleRemoveImage = async (index: number) => {
+    if (!note) return;
+    
+    const currentImages = note.images || [];
+    const newImages = currentImages.filter((_, i) => i !== index);
+    
+    const updatedNote = await updateNote(note.id, {
+      images: newImages.length > 0 ? newImages : undefined,
+    });
+    
+    if (updatedNote) {
+      setNote(updatedNote);
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -201,11 +222,14 @@ export default function NoteDetailScreen() {
   return (
     <View style={styles.container}>
       <Header
-        title={isEditingTitle ? "Modification du titre..." : (note.title || strings.untitledNote)}
+        title={note.title || strings.untitledNote}
         onBack={handleBack}
         rightComponent={
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={handleEdit} style={styles.actionButton}>
+            <TouchableOpacity onPress={handleAddImage} style={styles.actionButton}>
+              <Camera size={20} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleEditTitle} style={styles.actionButton}>
               <Edit3 size={20} color={theme.colors.primary} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleDelete} style={styles.actionButton}>
@@ -240,35 +264,20 @@ export default function NoteDetailScreen() {
         {/* Galerie d'images en lecture seule */}
         <NoteImageGallery 
           images={note.images || []}
-          onRemoveImage={() => {}} // Pas d'édition en mode lecture
-          editable={false}
+          onRemoveImage={handleRemoveImage}
+          editable={true}
         />
-
-        {/* Titre éditable inline */}
-        <View style={styles.titleCard}>
-          <Text style={styles.titleLabel}>Titre</Text>
-          <InlineNoteEditor
-            value={editingTitle}
-            onValueChange={handleTitleEdit}
-            onPress={handleTitlePress}
-            onBlur={handleTitleBlur}
-            isEditing={isEditingTitle}
-            placeholder={strings.untitledNote}
-            multiline={false}
-            style={styles.titleEditor}
-          />
-        </View>
 
         {/* Contenu éditable inline */}
         <View style={styles.contentCard}>
-          <Text style={styles.contentLabel}>Contenu</Text>
+          <Text style={styles.contentLabel}>Note</Text>
           <InlineNoteEditor
             value={editingContent}
             onValueChange={handleContentEdit}
             onPress={handleContentPress}
             onBlur={handleContentBlur}
             isEditing={isEditingContent}
-            placeholder="Cette note est vide. Cliquez pour ajouter du contenu..."
+            placeholder="Cette note est vide. Cliquez ici pour écrire..."
             multiline={true}
             style={styles.contentEditor}
           />
@@ -411,11 +420,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: theme.colors.textSecondary,
     marginBottom: 8,
-  },
-  titleEditor: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    lineHeight: 24,
   },
   contentCard: {
     backgroundColor: theme.colors.surface,
