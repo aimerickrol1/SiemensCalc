@@ -10,7 +10,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useModal } from '@/contexts/ModalContext';
 
-type SortOption = 'newest' | 'oldest' | 'title' | 'updated';
+type SortOption = 'newest' | 'oldest' | 'title';
 type FilterOption = 'all' | 'with-images' | 'text-only';
 
 // Composant séparé pour chaque note
@@ -313,9 +313,6 @@ export default function NotesScreen() {
       case 'title':
         filteredNotes.sort((a, b) => (a.title || strings.untitledNote).localeCompare(b.title || strings.untitledNote));
         break;
-      case 'updated':
-        filteredNotes.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-        break;
       default: // newest
         filteredNotes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
@@ -446,14 +443,6 @@ export default function NotesScreen() {
                 >
                   <Text style={[styles.filterButtonText, sortOption === 'oldest' && styles.filterButtonTextActive]}>
                     Plus anciennes
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.filterButton, sortOption === 'updated' && styles.filterButtonActive]}
-                  onPress={() => setSortOption('updated')}
-                >
-                  <Text style={[styles.filterButtonText, sortOption === 'updated' && styles.filterButtonTextActive]}>
-                    Modifiées
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
