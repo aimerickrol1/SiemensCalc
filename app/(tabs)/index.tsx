@@ -59,13 +59,7 @@ export default function ProjectsScreen() {
     } catch (error) {
       console.error('Erreur de navigation vers création projet:', error);
     }
-    
-    // Nettoyage de l'écouteur au démontage
-    return () => {
-      console.log('🧹 Nettoyage de l\'écouteur d\'événements');
-      removeListener();
-    };
-  }, [handleCreateModal]);
+  }, []);
 
   const loadProjects = useCallback(async () => {
     try {
