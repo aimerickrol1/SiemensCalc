@@ -389,7 +389,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   floatingButton: {
     position: 'absolute',
-    bottom: Platform.OS === 'web' ? 100 : 80,
+    bottom: Platform.OS === 'web' ? 20 : 20,
     right: 20,
     width: 56,
     height: 56,
