@@ -88,27 +88,9 @@ export default function NoteDetailScreen() {
   const handleEditTitle = () => {
     showModal(<EditNoteTitleDetailModal 
       note={note}
-      onSave={saveNoteTitleChange}
       onCancel={() => hideModal()}
       strings={strings}
     />);
-  };
-
-  const saveNoteTitleChange = async (note: Note, newTitle: string) => {
-    if (!note) return;
-
-    try {
-      const updatedNote = await updateNote(note.id, {
-        title: newTitle.trim() || strings.untitledNote,
-      });
-      
-      if (updatedNote) {
-        setNote(updatedNote);
-        hideModal();
-      }
-    } catch (error) {
-      console.error('Erreur lors de la modification du titre:', error);
-    }
   };
 
   const handleDelete = () => {
@@ -368,18 +350,33 @@ function DeleteNoteDetailModal({ note, onConfirm, onCancel, strings }: any) {
 }
 
 // Modal d'édition du titre de note (page détail)
-function EditNoteTitleDetailModal({ note, onSave, onCancel, strings }: {
+function EditNoteTitleDetailModal({ note, onCancel, strings }: {
   note: Note;
-  onSave: (note: Note, newTitle: string) => void;
   onCancel: () => void;
   strings: any;
 }) {
   const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const { updateNote } = useStorage();
   const [title, setTitle] = useState(note.title || '');
   const styles = createStyles(theme);
 
-  const handleSave = () => {
-    onSave(note, title);
+  const handleSave = async () => {
+    if (!note) return;
+
+    try {
+      const updatedNote = await updateNote(note.id, {
+        title: title.trim() || strings.untitledNote,
+      });
+      
+      if (updatedNote) {
+        // Mettre à jour l'état local de la note dans le composant parent
+        // Note: Le parent se rechargera automatiquement via useFocusEffect
+        hideModal();
+      }
+    } catch (error) {
+      console.error('Erreur lors de la modification du titre:', error);
+    }
   };
 
   return (

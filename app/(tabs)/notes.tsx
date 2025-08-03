@@ -198,25 +198,9 @@ export default function NotesScreen() {
   const handleEditNote = (note: Note) => {
     showModal(<EditNoteTitleModal 
       note={note}
-      onSave={saveNoteTitleChange}
       onCancel={() => hideModal()}
       strings={strings}
     />);
-  };
-
-  const saveNoteTitleChange = async (note: Note, newTitle: string) => {
-    if (!note) return;
-
-    try {
-      const { updateNote } = useStorage();
-      await updateNote(note.id, {
-        title: newTitle.trim() || strings.untitledNote,
-      });
-      
-      hideModal();
-    } catch (error) {
-      console.error('Erreur lors de la modification du titre:', error);
-    }
   };
 
   const handleDeleteNote = (note: Note) => {
@@ -667,18 +651,29 @@ const BulkDeleteNotesModal = ({ count, onConfirm, onCancel, strings }: {
 };
 
 // Modal d'édition du titre de note
-const EditNoteTitleModal = ({ note, onSave, onCancel, strings }: {
+const EditNoteTitleModal = ({ note, onCancel, strings }: {
   note: Note;
-  onSave: (note: Note, newTitle: string) => void;
   onCancel: () => void;
   strings: any;
 }) => {
   const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const { updateNote } = useStorage();
   const [title, setTitle] = useState(note.title || '');
   const modalStyles = createStyles(theme);
 
-  const handleSave = () => {
-    onSave(note, title);
+  const handleSave = async () => {
+    if (!note) return;
+
+    try {
+      await updateNote(note.id, {
+        title: title.trim() || strings.untitledNote,
+      });
+      
+      hideModal();
+    } catch (error) {
+      console.error('Erreur lors de la modification du titre:', error);
+    }
   };
 
   return (
