@@ -290,18 +290,18 @@ export function CreateProjectModal({ onSubmit, loading }: CreateProjectModalProp
   const styles = createStyles(theme);
 
   return (
-    <View style={styles.modalContainer}>
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>Nouveau projet</Text>
-        <TouchableOpacity 
-          onPress={handleClose}
-          style={styles.closeButton}
-        >
-          <X size={20} color={theme.colors.textSecondary} />
-        </TouchableOpacity>
-      </View>
+    <>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Nouveau projet</Text>
+          <TouchableOpacity 
+            onPress={handleClose}
+            style={styles.closeButton}
+          >
+            <X size={20} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.modalContent}>
         <ScrollView 
           ref={modalScrollViewRef}
           style={styles.modalBody} 
@@ -475,23 +475,24 @@ export function CreateProjectModal({ onSubmit, loading }: CreateProjectModalProp
               </View>
             )}
         </ScrollView>
-
-        <View style={styles.modalFooter}>
-          <Button
-            title="Annuler"
-            onPress={handleClose}
-            variant="secondary"
-            style={styles.modalButton}
-          />
-          <Button
-            title="Créer le projet"
-            onPress={handleSubmit}
-            disabled={loading}
-            style={styles.modalButton}
-          />
-        </View>
       </View>
-    </View>
+
+      {/* Bouton fixe en bas du viewport */}
+      <View style={styles.fixedFooter}>
+        <Button
+          title="Annuler"
+          onPress={handleClose}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title="Créer le projet"
+          onPress={handleSubmit}
+          disabled={loading}
+          style={styles.modalButton}
+        />
+      </View>
+    </>
   );
 }
 
@@ -500,16 +501,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderRadius: 20,
     width: '100%',
-    maxWidth: 500,
-    maxHeight: Platform.OS === 'web' ? '85%' : '90%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  modalContent: {
+    maxWidth: 600,
+    height: Platform.OS === 'web' ? '85vh' : '90vh',
     flex: 1,
-    display: 'flex',
     flexDirection: 'column',
-    position: 'relative',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -518,7 +513,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
-    flexShrink: 0,
   },
   modalTitle: {
     fontSize: 20,
@@ -530,45 +524,36 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   modalBody: {
     flex: 1,
-    minHeight: 0,
   },
   modalBodyContent: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: Platform.OS === 'web' ? 100 : 80, // Espace pour le bouton fixe
+    paddingBottom: 120, // Espace pour le bouton fixe
   },
-  modalFooter: {
+  // Nouveau style pour le footer fixe au viewport
+  fixedFooter: {
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    bottom: Platform.OS === 'web' ? 20 : 0,
+    left: Platform.OS === 'web' ? '50%' : 0,
+    right: Platform.OS === 'web' ? 'auto' : 0,
+    ...(Platform.OS === 'web' && {
+      transform: [{ translateX: '-50%' }],
+      width: '100%',
+      maxWidth: 560, // Largeur du modal moins padding
+    }),
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
+    padding: 20,
     gap: 12,
     backgroundColor: theme.colors.surface,
-    flexShrink: 0,
-    // Position fixe au viewport sur web
-    ...(Platform.OS === 'web' ? {
-      position: 'fixed',
-      bottom: 20,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      width: '100%',
-      maxWidth: 460, // Largeur du modal moins padding
-      zIndex: 2147483647,
-      borderRadius: 12,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 8,
-    } : {
-      // Sur mobile, reste en bas du modal
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      zIndex: 10,
-    }),
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    borderRadius: Platform.OS === 'web' ? 12 : 0,
+    zIndex: 2147483647,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
   },
   modalButton: {
     flex: 1,
