@@ -955,37 +955,26 @@ function EditZoneNameModal({ zone, onSave, onCancel, strings }: any) {
       </View>
 
       <View style={styles.modalBody}>
-        <Text style={styles.inputLabel}>{strings.zoneName} *</Text>
-        <TextInput
-          style={styles.nameTextInput}
+        <Input
+          label={`${strings.zoneName} *`}
           value={name}
           onChangeText={setName}
           placeholder="Ex: ZF01, Zone Hall"
-          placeholderTextColor={theme.colors.textTertiary}
-          autoFocus={true}
-          selectTextOnFocus={true}
-          returnKeyType="done"
-          blurOnSubmit={true}
         />
       </View>
 
       <View style={styles.modalFooter}>
-        <TouchableOpacity
-          style={[styles.modalButton, { backgroundColor: theme.colors.surfaceSecondary }]}
+        <Button
+          title={strings.cancel}
           onPress={onCancel}
-        >
-          <Text style={[styles.modalButtonText, { color: theme.colors.textSecondary }]}>
-            {strings.cancel}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
+          variant="secondary"
+          style={styles.modalButton}
+        />
+        <Button
+          title={strings.save}
           onPress={handleSave}
-        >
-          <Text style={[styles.modalButtonText, { color: 'white' }]}>
-            Enregistrer
-          </Text>
-        </TouchableOpacity>
+          style={styles.modalButton}
+        />
       </View>
     </View>
   );
