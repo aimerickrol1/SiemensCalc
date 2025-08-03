@@ -47,15 +47,15 @@ export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
     
     if (file && file.type.startsWith('image/')) {
       try {
-        console.log('📸 Fichier sélectionné:', file.name, 'Taille:', file.size, 'Type:', file.type);
+        console.log(`📸 ${isCamera ? 'Photo prise' : 'Fichier sélectionné'}:`, file.name, 'Taille:', file.size, 'Type:', file.type);
         
         // Créer un Blob URL pour l'affichage immédiat
         const blobUrl = URL.createObjectURL(file);
-        console.log('🔗 Blob URL créé:', blobUrl);
+        console.log(`🔗 ${isCamera ? 'Photo' : 'Image'} URL créée:`, blobUrl);
         
         // Compresser l'image pour le stockage
         const compressedBase64 = await compressImage(file);
-        console.log('💾 Image compressée pour stockage, taille:', compressedBase64.length);
+        console.log(`💾 ${isCamera ? 'Photo' : 'Image'} compressée pour stockage, taille:`, compressedBase64.length);
         
         // Passer l'image compressée (qui sera stockée)
         onImageSelected(compressedBase64);
@@ -190,12 +190,11 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.text,
-    flex: 1,
+    marginBottom: 4,
   },
   optionSubtitle: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: theme.colors.textSecondary,
-    flex: 1,
   },
 });
