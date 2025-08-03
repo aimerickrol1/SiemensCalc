@@ -6,6 +6,7 @@ import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function CreateBuildingScreen() {
   const { strings } = useLanguage();
