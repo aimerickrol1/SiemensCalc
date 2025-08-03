@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
-import { CreditCard as Edit3, Trash2, Calendar, X } from 'lucide-react-native';
+import { CreditCard as Edit3, Trash2, Calendar, X, Check } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
+import { InlineNoteEditor } from '@/components/InlineNoteEditor';
 import { NoteImageGallery } from '@/components/NoteImageGallery';
 import { Note } from '@/types';
 import { useStorage } from '@/contexts/StorageContext';
@@ -17,10 +18,14 @@ export default function NoteDetailScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
   const { showModal, hideModal } = useModal();
-  const { notes, deleteNote } = useStorage();
+  const { notes, deleteNote, updateNote } = useStorage();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isEditingContent, setIsEditingContent] = useState(false);
+  const [editingTitle, setEditingTitle] = useState('');
+  const [editingContent, setEditingContent] = useState('');
 
   // Configure Android back button
   useAndroidBackButton(() => {
@@ -49,6 +54,14 @@ export default function NoteDetailScreen() {
   useEffect(() => {
     loadNote();
   }, [loadNote]);
+
+  // Initialiser les valeurs d'édition quand la note change
+  useEffect(() => {
+    if (note) {
+      setEditingTitle(note.title || '');
+      setEditingContent(note.content || '');
+    }
+  }, [note]);
 
   const handleBack = () => {
     safeNavigate('/(tabs)/notes');
@@ -110,6 +123,54 @@ export default function NoteDetailScreen() {
     }
   };
 
+  // Auto-save avec debounce
+  const autoSaveNote = useCallback(
+    debounce(async (field: 'title' | 'content', value: string) => {
+      if (!note) return;
+      
+      try {
+        console.log(`💾 Auto-save ${field}:`, value.substring(0, 50));
+        const updatedNote = await updateNote(note.id, {
+          [field]: value.trim() || (field === 'title' ? strings.untitledNote : ''),
+        });
+        
+        if (updatedNote) {
+          setNote(updatedNote);
+          console.log(`✅ ${field} sauvegardé automatiquement`);
+        }
+      } catch (error) {
+        console.error(`Erreur auto-save ${field}:`, error);
+      }
+    }, 1000),
+    [note, updateNote, strings.untitledNote]
+  );
+
+  const handleTitleEdit = (value: string) => {
+    setEditingTitle(value);
+    autoSaveNote('title', value);
+  };
+
+  const handleContentEdit = (value: string) => {
+    setEditingContent(value);
+    autoSaveNote('content', value);
+  };
+
+  const handleTitlePress = () => {
+    setIsEditingTitle(true);
+  };
+
+  const handleContentPress = () => {
+    setIsEditingContent(true);
+  };
+
+  const handleTitleBlur = () => {
+    setIsEditingTitle(false);
+  };
+
+  const handleContentBlur = () => {
+    setIsEditingContent(false);
+  };
+
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('fr-FR', {
       day: 'numeric',
@@ -140,7 +201,7 @@ export default function NoteDetailScreen() {
   return (
     <View style={styles.container}>
       <Header
-        title={note.title || strings.untitledNote}
+        title={isEditingTitle ? "Modification du titre..." : (note.title || strings.untitledNote)}
         onBack={handleBack}
         rightComponent={
           <View style={styles.headerActions}>
@@ -183,14 +244,50 @@ export default function NoteDetailScreen() {
           editable={false}
         />
 
+        {/* Titre éditable inline */}
+        <View style={styles.titleCard}>
+          <Text style={styles.titleLabel}>Titre</Text>
+          <InlineNoteEditor
+            value={editingTitle}
+            onValueChange={handleTitleEdit}
+            onPress={handleTitlePress}
+            onBlur={handleTitleBlur}
+            isEditing={isEditingTitle}
+            placeholder={strings.untitledNote}
+            multiline={false}
+            style={styles.titleEditor}
+          />
+        </View>
+
+        {/* Contenu éditable inline */}
         <View style={styles.contentCard}>
-          <Text style={styles.contentText}>
-            {note.content || 'Cette note est vide.'}
-          </Text>
+          <Text style={styles.contentLabel}>Contenu</Text>
+          <InlineNoteEditor
+            value={editingContent}
+            onValueChange={handleContentEdit}
+            onPress={handleContentPress}
+            onBlur={handleContentBlur}
+            isEditing={isEditingContent}
+            placeholder="Cette note est vide. Cliquez pour ajouter du contenu..."
+            multiline={true}
+            style={styles.contentEditor}
+          />
         </View>
       </ScrollView>
     </View>
   );
+}
+
+// Fonction utilitaire pour debounce
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
 }
 
 // Modal de confirmation pour la suppression d'une note (page détail)
@@ -298,22 +395,50 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     textAlign: 'right',
   },
-  contentCard: {
+  titleCard: {
     backgroundColor: theme.colors.surface,
     borderRadius: 12,
-    padding: 20,
-    minHeight: 200,
+    padding: 16,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
   },
-  contentText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.text,
+  titleLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.textSecondary,
+    marginBottom: 8,
+  },
+  titleEditor: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
     lineHeight: 24,
+  },
+  contentCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    padding: 20,
+    minHeight: 250,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  contentLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.textSecondary,
+    marginBottom: 12,
+  },
+  contentEditor: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular', 
+    lineHeight: 24,
+    minHeight: 200,
   },
   // Styles pour le modal
   modalContent: {
