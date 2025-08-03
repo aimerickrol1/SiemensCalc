@@ -29,6 +29,7 @@ interface PredefinedBuilding {
 
 interface PredefinedStructure {
   enabled: boolean;
+  defaultReferenceFlow?: number;
   buildings: PredefinedBuilding[];
 }
 
@@ -142,7 +143,7 @@ export default function ProjectsScreen() {
                       const shutter = await createShutter(zone.id, {
                         name: shutterName,
                         type: 'high',
-                        referenceFlow: 0,
+                        referenceFlow: predefinedStructure.defaultReferenceFlow || 0,
                         measuredFlow: 0,
                       });
                       console.log(`  ✅ Volet ${shutterName} créé:`, shutter?.id);
@@ -162,7 +163,7 @@ export default function ProjectsScreen() {
                       const shutter = await createShutter(zone.id, {
                         name: shutterName,
                         type: 'low',
-                        referenceFlow: 0,
+                        referenceFlow: predefinedStructure.defaultReferenceFlow || 0,
                         measuredFlow: 0,
                       });
                       console.log(`  ✅ Volet ${shutterName} créé:`, shutter?.id);

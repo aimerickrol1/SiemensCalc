@@ -23,6 +23,7 @@ interface PredefinedBuilding {
 
 interface PredefinedStructure {
   enabled: boolean;
+  defaultReferenceFlow?: number;
   buildings: PredefinedBuilding[];
 }
 
@@ -45,6 +46,7 @@ export function CreateProjectModal({ onSubmit, loading }: CreateProjectModalProp
 
   const [predefinedStructure, setPredefinedStructure] = useState<PredefinedStructure>({
     enabled: false,
+    defaultReferenceFlow: undefined,
     buildings: []
   });
 
@@ -58,6 +60,7 @@ export function CreateProjectModal({ onSubmit, loading }: CreateProjectModalProp
     setErrors({});
     setPredefinedStructure({
       enabled: false,
+      defaultReferenceFlow: undefined,
       buildings: []
     });
   };
@@ -173,6 +176,7 @@ export function CreateProjectModal({ onSubmit, loading }: CreateProjectModalProp
       
       setPredefinedStructure(prev => ({
         ...prev,
+        defaultReferenceFlow: undefined,
         buildings: [newBuilding]
       }));
     }
@@ -352,6 +356,25 @@ export function CreateProjectModal({ onSubmit, loading }: CreateProjectModalProp
             {predefinedStructure.enabled && (
               <View style={styles.predefinedSection}>
                 <Text style={styles.predefinedTitle}>🏗️ Structure prédéfinie</Text>
+                
+                <View style={styles.defaultFlowContainer}>
+                  <Input
+                    label="Débit de référence par défaut (m³/h) - Optionnel"
+                    value={predefinedStructure.defaultReferenceFlow?.toString() || ''}
+                    onChangeText={(text) => {
+                      const value = text.trim() === '' ? undefined : parseFloat(text) || undefined;
+                      setPredefinedStructure(prev => ({
+                        ...prev,
+                        defaultReferenceFlow: value
+                      }));
+                    }}
+                    placeholder="Ex: 5000"
+                    keyboardType="numeric"
+                  />
+                  <Text style={styles.defaultFlowDescription}>
+                    Si renseigné, cette valeur sera appliquée automatiquement à tous les volets créés dans cette structure.
+                  </Text>
+                </View>
                 
                 <ScrollView style={styles.predefinedScroll} nestedScrollEnabled>
                   {predefinedStructure.buildings.map((building) => (
@@ -702,5 +725,20 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.primary,
     marginLeft: 8,
+  },
+  defaultFlowContainer: {
+    backgroundColor: theme.colors.primary + '20',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '40',
+  },
+  defaultFlowDescription: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.primary,
+    marginTop: 8,
+    lineHeight: 16,
   },
 });
