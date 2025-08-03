@@ -143,8 +143,8 @@ export function StorageProvider({ children }: StorageProviderProps) {
         'getProjects'
       );
 
-      if (projectsData) {
-        try {
+      try {
+        if (projectsData && projectsData !== 'undefined' && projectsData !== 'null') {
           const parsedProjects = JSON.parse(projectsData);
           const processedProjects = Array.isArray(parsedProjects) ? parsedProjects.map((project: any) => ({
             ...project,
@@ -168,59 +168,84 @@ export function StorageProvider({ children }: StorageProviderProps) {
           })) : [];
           setProjects(processedProjects);
           console.log(`✅ ${processedProjects.length} projets chargés`);
-        } catch (error) {
-          console.warn('Erreur parsing projets:', error);
+        } else {
+          console.log('📝 Aucun projet existant ou données invalides');
           setProjects([]);
         }
-      } else {
-        console.log('📝 Aucun projet existant');
+      } catch (error) {
+        console.warn('Erreur parsing projets, initialisation par défaut:', error);
         setProjects([]);
       }
 
       // Charger les favoris de manière séquentielle pour éviter les problèmes
       const favProjectsData = await safeStorageOperation(
         () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_PROJECTS),
-        '[]',
+        null,
         'getFavProjects'
       );
-      setFavoriteProjectsState(favProjectsData ? JSON.parse(favProjectsData) : []);
+      try {
+        setFavoriteProjectsState(favProjectsData && favProjectsData !== 'undefined' && favProjectsData !== 'null' ? JSON.parse(favProjectsData) : []);
+      } catch (error) {
+        console.warn('Erreur parsing favoris projets:', error);
+        setFavoriteProjectsState([]);
+      }
 
       const favBuildingsData = await safeStorageOperation(
         () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_BUILDINGS),
-        '[]',
+        null,
         'getFavBuildings'
       );
-      setFavoriteBuildingsState(favBuildingsData ? JSON.parse(favBuildingsData) : []);
+      try {
+        setFavoriteBuildingsState(favBuildingsData && favBuildingsData !== 'undefined' && favBuildingsData !== 'null' ? JSON.parse(favBuildingsData) : []);
+      } catch (error) {
+        console.warn('Erreur parsing favoris bâtiments:', error);
+        setFavoriteBuildingsState([]);
+      }
 
       const favZonesData = await safeStorageOperation(
         () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_ZONES),
-        '[]',
+        null,
         'getFavZones'
       );
-      setFavoriteZonesState(favZonesData ? JSON.parse(favZonesData) : []);
+      try {
+        setFavoriteZonesState(favZonesData && favZonesData !== 'undefined' && favZonesData !== 'null' ? JSON.parse(favZonesData) : []);
+      } catch (error) {
+        console.warn('Erreur parsing favoris zones:', error);
+        setFavoriteZonesState([]);
+      }
 
       const favShuttersData = await safeStorageOperation(
         () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_SHUTTERS),
-        '[]',
+        null,
         'getFavShutters'
       );
-      setFavoriteShuttersState(favShuttersData ? JSON.parse(favShuttersData) : []);
+      try {
+        setFavoriteShuttersState(favShuttersData && favShuttersData !== 'undefined' && favShuttersData !== 'null' ? JSON.parse(favShuttersData) : []);
+      } catch (error) {
+        console.warn('Erreur parsing favoris volets:', error);
+        setFavoriteShuttersState([]);
+      }
 
       // Charger l'historique
       const historyData = await safeStorageOperation(
         () => AsyncStorage.getItem(STORAGE_KEYS.QUICK_CALC_HISTORY),
-        '[]',
+        null,
         'getHistory'
       );
       
       try {
-        const parsedHistory = historyData ? JSON.parse(historyData) : [];
-        const processedHistory = Array.isArray(parsedHistory) ? parsedHistory.map((item: any) => ({
-          ...item,
-          timestamp: new Date(item.timestamp || Date.now())
-        })) : [];
-        setQuickCalcHistoryState(processedHistory);
+        if (historyData && historyData !== 'undefined' && historyData !== 'null') {
+          const parsedHistory = JSON.parse(historyData);
+          const processedHistory = Array.isArray(parsedHistory) ? parsedHistory.map((item: any) => ({
+            ...item,
+            timestamp: new Date(item.timestamp || Date.now())
+          })) : [];
+          setQuickCalcHistoryState(processedHistory);
+        } else {
+          setQuickCalcHistoryState([]);
+        }
       } catch (error) {
+        console.warn('Erreur parsing historique:', error);
         setQuickCalcHistoryState([]);
       }
 
