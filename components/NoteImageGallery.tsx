@@ -60,7 +60,7 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
       <Text style={styles.title}>Images ({images.length})</Text>
       <View style={[styles.imageGrid, { gap: 8 }]}>
         {images.map((imageBase64, index) => (
-          <ImageItem
+          <NoteImageItem
             key={index}
             imageBase64={imageBase64}
             index={index}
@@ -87,22 +87,10 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
   theme: any;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
+  const itemFadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
 
   React.useEffect(() => {
-    if (imageLoaded) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          delay: index * 100,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 100,
     if (imageLoaded) {
       Animated.parallel([
         Animated.timing(itemFadeAnim, {
@@ -128,9 +116,6 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
     <Animated.View 
       style={[
         styles.imageContainer,
-    <Animated.View 
-      style={[
-        styles.imageContainer,
         {
           width: imageWidth,
           opacity: itemFadeAnim,
@@ -138,18 +123,18 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
         }
       ]}
     >
-          opacity: fadeAnim,
+      <TouchableOpacity
         style={styles.imageButton}
         onPress={onPress}
         activeOpacity={0.8}
-      ]}
-    >
-      <Image
+      >
+        <Image
+          source={{ uri: `data:image/jpeg;base64,${imageBase64}` }}
           style={[styles.image, { width: imageWidth, height: imageWidth * 0.75 }]}
-        style={styles.image}
-        onLoad={() => setImageLoaded(true)}
-        resizeMode="cover"
-      )}
+          onLoad={() => setImageLoaded(true)}
+          resizeMode="cover"
+        />
+      </TouchableOpacity>
       {editable && (
         <TouchableOpacity 
           style={styles.removeButton} 
