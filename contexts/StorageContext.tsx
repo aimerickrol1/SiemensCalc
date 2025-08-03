@@ -599,7 +599,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
                     ...newProjects[i].buildings[j].functionalZones.slice(0, k),
                     {
                       ...newProjects[i].buildings[j].functionalZones[k],
-                      shutters: newProjects[i].buildings[j].functionalZones[k].shutters.filter(s => s.id !== shutterId)
+                      shutters: (newProjects[i].buildings[j].functionalZones[k].shutters || []).filter(s => s.id !== shutterId)
                     },
                     ...newProjects[i].buildings[j].functionalZones.slice(k + 1)
                   ]
