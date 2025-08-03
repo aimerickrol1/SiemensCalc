@@ -117,6 +117,16 @@ input, textarea {
   contain: none !important;
 }
 
+/* Corriger le padding bottom automatique d'Expo Router qui cache le contenu */
+.r-paddingBottom-1jnzvcq {
+  padding-bottom: 0 !important;
+}
+
+/* S'assurer que les conteneurs principaux n'ont pas de padding bottom excessif */
+.css-view-g5y9jx.r-flex-13awgt0.r-paddingBottom-1jnzvcq {
+  padding-bottom: 0 !important;
+}
+
 /* Empêcher le pull-to-refresh sur iOS */
 body {
   overscroll-behavior: none;
