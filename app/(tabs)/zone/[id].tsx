@@ -220,19 +220,16 @@ export default function ZoneDetailScreen() {
 
   const confirmDeleteShutter = async (shutter: Shutter) => {
     try {
-      console.log('🗑️ Suppression du volet:', shutter.id);
       const success = await deleteShutter(shutter.id);
       if (success) {
         console.log('✅ Volet supprimé avec succès');
-        await loadZone();
         hideModal();
       } else {
-        console.error('❌ Erreur lors de la suppression du volet');
+        console.error('❌ Erreur: Volet non trouvé pour la suppression');
         hideModal();
       }
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
-      hideModal();
     }
   };
 
@@ -267,7 +264,6 @@ export default function ZoneDetailScreen() {
 
   const confirmBulkDeleteShutters = async () => {
     try {
-      console.log('🗑️ Suppression en lot de', selectedShutters.size, 'volets');
       for (const shutterId of selectedShutters) {
         const success = await deleteShutter(shutterId);
         if (!success) {
@@ -276,11 +272,9 @@ export default function ZoneDetailScreen() {
       }
       setSelectedShutters(new Set());
       setSelectionMode(false);
-      await loadZone();
       hideModal();
     } catch (error) {
       console.error('Erreur lors de la suppression en lot:', error);
-      hideModal();
     }
   };
 
