@@ -46,8 +46,11 @@ export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
     
     if (file && file.type.startsWith('image/')) {
       try {
+        console.log('Fichier sélectionné:', file.name, 'Taille:', file.size, 'Type:', file.type);
         // Compresser l'image avant de la stocker
         const compressedBase64 = await compressImage(file);
+        console.log('Image compressée, taille Base64:', compressedBase64.length);
+        console.log('Format Base64:', compressedBase64.substring(0, 50));
         onImageSelected(compressedBase64);
         onClose();
       } catch (error) {
@@ -56,6 +59,7 @@ export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
         const reader = new FileReader();
         reader.onload = (e) => {
           const base64 = e.target?.result as string;
+          console.log('Fallback Base64:', base64.substring(0, 50));
           onImageSelected(base64);
           onClose();
         };

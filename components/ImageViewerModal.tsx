@@ -12,6 +12,7 @@ interface ImageViewerModalProps {
 export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerModalProps) {
   const { theme } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -94,6 +95,19 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
     });
   };
 
+  const handleImageError = (index: number) => {
+    console.warn('Erreur de chargement image à l\'index:', index);
+    setImageErrors(prev => new Set([...prev, index]));
+  };
+
+  const handleImageLoad = (index: number) => {
+    setImageErrors(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      return newSet;
+    });
+  };
+
   const styles = createStyles(theme);
 
   return (
@@ -138,11 +152,19 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
         >
           {images.map((imageBase64, index) => (
             <View key={index} style={[styles.imageContainer, { width: screenWidth }]}>
-              <Image
-                source={{ uri: imageBase64 }}
-                style={styles.fullImage}
-                resizeMode="contain"
-              />
+              {imageErrors.has(index) ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>Impossible de charger l'image</Text>
+                </View>
+              ) : (
+                <Image
+                  source={{ uri: imageBase64 }}
+                  style={styles.fullImage}
+                  resizeMode="contain"
+                  onError={() => handleImageError(index)}
+                  onLoad={() => handleImageLoad(index)}
+                />
+              )}
             </View>
           ))}
         </ScrollView>
@@ -282,5 +304,19 @@ const createStyles = (theme: any) => StyleSheet.create({
     width: 12,
     height: 8,
     borderRadius: 4,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    margin: 20,
+  },
+  errorText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
   },
 });

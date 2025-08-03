@@ -87,11 +87,12 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
   theme: any;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const itemFadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
 
   React.useEffect(() => {
-    if (imageLoaded) {
+    if (imageLoaded && !imageError) {
       Animated.parallel([
         Animated.timing(itemFadeAnim, {
           toValue: 1,
@@ -108,9 +109,14 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
         })
       ]).start();
     }
-  }, [imageLoaded, itemFadeAnim, scaleAnim, index]);
+  }, [imageLoaded, imageError, itemFadeAnim, scaleAnim, index]);
 
   const styles = createStyles(theme);
+
+  // Debug: Afficher les premiers caractères de l'image pour vérifier le format
+  React.useEffect(() => {
+    console.log(`Image ${index} format:`, imageBase64.substring(0, 50));
+  }, [imageBase64, index]);
 
   return (
     <Animated.View 
@@ -128,12 +134,26 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
         onPress={onPress}
         activeOpacity={0.8}
       >
-        <Image
-          source={{ uri: imageBase64 }}
-          style={[styles.image, { width: imageWidth, height: imageWidth * 0.75 }]}
-          onLoad={() => setImageLoaded(true)}
-          resizeMode="cover"
-        />
+        {imageError ? (
+          <View style={[styles.errorPlaceholder, { width: imageWidth, height: imageWidth * 0.75 }]}>
+            <Text style={styles.errorText}>❌</Text>
+            <Text style={styles.errorTextSmall}>Erreur image</Text>
+          </View>
+        ) : (
+          <Image
+            source={{ uri: imageBase64 }}
+            style={[styles.image, { width: imageWidth, height: imageWidth * 0.75 }]}
+            onLoad={() => {
+              console.log(`Image ${index} chargée avec succès`);
+              setImageLoaded(true);
+            }}
+            onError={(error) => {
+              console.error(`Erreur chargement image ${index}:`, error);
+              setImageError(true);
+            }}
+            resizeMode="cover"
+          />
+        )}
       </TouchableOpacity>
       {editable && (
         <TouchableOpacity 
@@ -245,6 +265,23 @@ const createStyles = (theme: any) => StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+  errorPlaceholder: {
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  errorText: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  errorTextSmall: {
+    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textTertiary,
   },
   // Styles pour le modal
   modalContent: {
