@@ -470,7 +470,8 @@ export default function NotesScreen() {
 
           <View style={styles.filterSection}>
             <Text style={styles.filterSectionTitle}>🔍 Contenu</Text>
-            <View style={styles.filterButtons}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+              <View style={styles.filterButtons}>
               <TouchableOpacity
                 style={[styles.filterButton, filterOption === 'all' && styles.filterButtonActive]}
                 onPress={() => setFilterOption('all')}
@@ -495,7 +496,8 @@ export default function NotesScreen() {
                   Texte seul ({notes.filter(n => !n.images || n.images.length === 0).length})
                 </Text>
               </TouchableOpacity>
-            </View>
+              </View>
+            </ScrollView>
           </View>
         </View>
       )}
@@ -724,11 +726,13 @@ const createStyles = (theme: any) => StyleSheet.create({
   filterScroll: {
     flexGrow: 0,
   },
+  filterScroll: {
+    flexGrow: 0,
+  },
   filterButtons: {
     flexDirection: 'row',
     gap: 8,
   },
-  filterButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
@@ -745,6 +749,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: theme.colors.textSecondary,
     textAlign: 'center',
+    whiteSpace: 'nowrap',
     whiteSpace: 'nowrap',
   },
   filterButtonTextActive: {
