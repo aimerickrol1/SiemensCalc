@@ -129,7 +129,7 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
         activeOpacity={0.8}
       >
         <Image
-          source={{ uri: `data:image/jpeg;base64,${imageBase64}` }}
+          source={{ uri: imageBase64 }}
           style={[styles.image, { width: imageWidth, height: imageWidth * 0.75 }]}
           onLoad={() => setImageLoaded(true)}
           resizeMode="cover"

@@ -87,6 +87,12 @@ function NoteItem({ item, index, onPress, onEdit, onDelete, theme, strings }: {
             {getPreviewText(item.content)}
           </Text>
         )}
+
+        {item.images && item.images.length > 0 && (
+          <View style={styles.imagePreview}>
+            <Text style={styles.imageCount}>📷 {item.images.length} image{item.images.length > 1 ? 's' : ''}</Text>
+          </View>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -386,6 +392,17 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: theme.colors.textSecondary,
     lineHeight: 20,
+  },
+  imagePreview: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.separator,
+  },
+  imageCount: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.primary,
   },
   floatingButton: {
     position: 'absolute',
