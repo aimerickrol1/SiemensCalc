@@ -125,44 +125,11 @@ export default function BuildingDetailScreen() {
   const openNameEditModal = (zone: FunctionalZone) => {
     showModal(<EditZoneNameModal 
       zone={zone}
-      onSave={saveNameChange}
       onCancel={() => hideModal()}
       strings={strings}
     />);
   };
 
-  // CORRIGÉ : Fonction pour sauvegarder le changement de nom avec mise à jour instantanée
-  const saveNameChange = async (zone: FunctionalZone, newName: string) => {
-    if (!zone || !newName.trim()) return;
-
-    try {
-      const updatedZone = await updateFunctionalZone(zone.id, {
-        name: newName.trim(),
-      });
-      
-      if (updatedZone) {
-        // CORRIGÉ : Mise à jour instantanée de l'état local du bâtiment
-        setBuilding(prevBuilding => {
-          if (!prevBuilding) return prevBuilding;
-          
-          return {
-            ...prevBuilding,
-            functionalZones: prevBuilding.functionalZones.map(z => 
-              z.id === zone.id 
-                ? { ...z, name: newName.trim() }
-                : z
-            )
-          };
-        });
-        
-        hideModal();
-      } else {
-        Alert.alert(strings.error, 'Impossible de modifier le nom de la zone');
-      }
-    } catch (error) {
-      Alert.alert(strings.error, 'Impossible de modifier le nom de la zone');
-    }
-  };
 
   // Fonctions pour le mode sélection
   const handleSelectionMode = () => {
@@ -812,6 +779,29 @@ const createStyles = (theme: any) => StyleSheet.create({
   modalButton: {
     flex: 1,
   },
+  inputLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.textSecondary,
+    marginBottom: 6,
+  },
+  nameTextInput: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    backgroundColor: theme.colors.inputBackground,
+    color: theme.colors.text,
+    minHeight: 48,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
+  },
 
   modalOverlay: {
     flex: 1,
@@ -932,15 +922,31 @@ function BulkDeleteZonesModal({ count, onConfirm, onCancel, strings }: any) {
 // Composant modal séparé pour utiliser le portail global
 function EditZoneNameModal({ zone, onSave, onCancel, strings }: any) {
   const { theme } = useTheme();
+  const { hideModal } = useModal();
+  const { updateFunctionalZone } = useStorage();
   const [name, setName] = useState(zone.name);
   const styles = createStyles(theme);
 
-  const handleSave = () => {
-    onSave(zone, name);
+  const handleSave = async () => {
+    if (!zone || !name.trim()) return;
+
+    try {
+      const updatedZone = await updateFunctionalZone(zone.id, {
+        name: name.trim(),
+      });
+      
+      if (updatedZone) {
+        hideModal();
+      } else {
+        console.error('Erreur lors de la modification du nom de la zone');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la modification du nom de la zone:', error);
+    }
   };
 
   return (
-    <View style={styles.nameEditModalContent}>
+    <View style={styles.modalContent}>
       <View style={styles.modalHeader}>
         <Text style={styles.modalTitle}>Modifier le nom de la zone</Text>
         <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
@@ -949,26 +955,37 @@ function EditZoneNameModal({ zone, onSave, onCancel, strings }: any) {
       </View>
 
       <View style={styles.modalBody}>
-        <Input
-          label={`${strings.zoneName} *`}
+        <Text style={styles.inputLabel}>{strings.zoneName} *</Text>
+        <TextInput
+          style={styles.nameTextInput}
           value={name}
           onChangeText={setName}
           placeholder="Ex: ZF01, Zone Hall"
+          placeholderTextColor={theme.colors.textTertiary}
+          autoFocus={true}
+          selectTextOnFocus={true}
+          returnKeyType="done"
+          blurOnSubmit={true}
         />
       </View>
 
       <View style={styles.modalFooter}>
-        <Button
-          title={strings.cancel}
+        <TouchableOpacity
+          style={[styles.modalButton, { backgroundColor: theme.colors.surfaceSecondary }]}
           onPress={onCancel}
-          variant="secondary"
-          style={styles.modalButton}
-        />
-        <Button
-          title={strings.save}
+        >
+          <Text style={[styles.modalButtonText, { color: theme.colors.textSecondary }]}>
+            {strings.cancel}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
           onPress={handleSave}
-          style={styles.modalButton}
-        />
+        >
+          <Text style={[styles.modalButtonText, { color: 'white' }]}>
+            Enregistrer
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
