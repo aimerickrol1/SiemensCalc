@@ -658,35 +658,36 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Platform.OS === 'web' ? 40 : 20,
-    paddingBottom: Platform.OS === 'web' ? 120 : 20, // Espace pour la tab bar fixe
+    padding: 20,
+    paddingBottom: Platform.OS === 'web' ? 140 : 20, // Plus d'espace pour la tab bar fixe sur web
+    paddingTop: Platform.OS === 'web' ? 60 : 20, // Espace en haut pour éviter le débordement
   },
   modalContent: {
     backgroundColor: theme.colors.surface,
     borderRadius: 16,
-    padding: Platform.OS === 'web' ? 20 : 24,
+    padding: 20,
     width: '100%',
     maxWidth: 400,
-    maxHeight: Platform.OS === 'web' ? '70%' : '80%', // Réduire la hauteur sur web
+    maxHeight: Platform.OS === 'web' ? '60%' : '80%', // Hauteur réduite sur web
   },
   // Modal des calculs de conformité optimisé pour mobile SANS BARRE DE SCROLL
   calculationsModalContent: {
     backgroundColor: theme.colors.surface,
     borderRadius: 16,
-    padding: Platform.OS === 'web' ? 16 : 20,
+    padding: 16,
     width: '100%',
     maxWidth: 650,
-    maxHeight: Platform.OS === 'web' ? '70%' : '85%', // Réduire la hauteur sur web
+    maxHeight: Platform.OS === 'web' ? '55%' : '85%', // Hauteur encore plus réduite sur web
     marginVertical: 40,
   },
   // Modal des prochaines nouveautés optimisé pour mobile SANS BARRE DE SCROLL
   upcomingFeaturesModalContent: {
     backgroundColor: theme.colors.surface,
     borderRadius: 16,
-    padding: Platform.OS === 'web' ? 16 : 20,
+    padding: 16,
     width: '100%',
     maxWidth: 650,
-    maxHeight: Platform.OS === 'web' ? '70%' : '85%', // Réduire la hauteur sur web
+    maxHeight: Platform.OS === 'web' ? '55%' : '85%', // Hauteur encore plus réduite sur web
     marginVertical: 40,
   },
   modalHeader: {
