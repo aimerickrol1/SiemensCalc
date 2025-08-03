@@ -18,7 +18,28 @@ export default function CreateNoteScreen() {
   const [errors, setErrors] = useState<{ title?: string }>({});
 
   const handleBack = () => {
-    router.push('/(tabs)/notes');
+    safeNavigate('/(tabs)/notes');
+  };
+
+  const safeNavigate = (path: string) => {
+    try {
+      if (router.canGoBack !== undefined) {
+        router.push(path);
+      } else {
+        setTimeout(() => {
+          router.push(path);
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Erreur de navigation:', error);
+      setTimeout(() => {
+        try {
+          router.push(path);
+        } catch (retryError) {
+          console.error('Erreur de navigation retry:', retryError);
+        }
+      }, 200);
+    }
   };
 
   const validateForm = () => {
@@ -46,7 +67,7 @@ export default function CreateNoteScreen() {
 
       if (note) {
         console.log('✅ Note créée avec succès:', note.id);
-        router.push(`/(tabs)/note/${note.id}`);
+        safeNavigate(`/(tabs)/note/${note.id}`);
       } else {
         console.error('❌ Erreur: Note non créée');
         Alert.alert(strings.error, 'Impossible de créer la note. Veuillez réessayer.');

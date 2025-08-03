@@ -50,20 +50,32 @@ export default function NoteDetailScreen() {
   }, [loadNote]);
 
   const handleBack = () => {
+    safeNavigate('/(tabs)/notes');
+  };
+
+  const safeNavigate = (path: string) => {
     try {
-      router.push('/(tabs)/notes');
+      if (router.canGoBack !== undefined) {
+        router.push(path);
+      } else {
+        setTimeout(() => {
+          router.push(path);
+        }, 100);
+      }
     } catch (error) {
       console.error('Erreur de navigation:', error);
-      router.push('/(tabs)/notes');
+      setTimeout(() => {
+        try {
+          router.push(path);
+        } catch (retryError) {
+          console.error('Erreur de navigation retry:', retryError);
+        }
+      }, 200);
     }
   };
 
   const handleEdit = () => {
-    try {
-      router.push(`/(tabs)/note/edit/${id}`);
-    } catch (error) {
-      console.error('Erreur de navigation vers édition:', error);
-    }
+    safeNavigate(`/(tabs)/note/edit/${id}`);
   };
 
   const handleDelete = () => {

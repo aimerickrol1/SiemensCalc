@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform, Animated } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Plus, FileText, Trash2, CreditCard as Edit3, Calendar } from 'lucide-react-native';
+import { Plus, FileText, Trash2, CreditCard as Edit3, Calendar, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
 import { Note } from '@/types';
@@ -9,6 +9,88 @@ import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useModal } from '@/contexts/ModalContext';
+
+// Composant séparé pour chaque note
+function NoteItem({ item, index, onPress, onEdit, onDelete, theme, strings }: {
+  item: Note;
+  index: number;
+  onPress: (note: Note) => void;
+  onEdit: (note: Note) => void;
+  onDelete: (note: Note) => void;
+  theme: any;
+  strings: any;
+}) {
+  const itemFadeAnim = React.useRef(new Animated.Value(0)).current;
+  
+  React.useEffect(() => {
+    Animated.timing(itemFadeAnim, {
+      toValue: 1,
+      duration: 300,
+      delay: index * 100,
+      useNativeDriver: true,
+    }).start();
+  }, [itemFadeAnim, index]);
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(date));
+  };
+
+  const getPreviewText = (content: string) => {
+    return content.length > 100 ? content.substring(0, 100) + '...' : content;
+  };
+
+  const styles = createStyles(theme);
+
+  return (
+    <Animated.View style={{ opacity: itemFadeAnim }}>
+      <TouchableOpacity
+        style={styles.noteCard}
+        onPress={() => onPress(item)}
+      >
+        <View style={styles.noteHeader}>
+          <View style={styles.noteInfo}>
+            <Text style={styles.noteTitle} numberOfLines={1}>
+              {item.title || strings.untitledNote}
+            </Text>
+            <View style={styles.noteMeta}>
+              <Calendar size={12} color={theme.colors.textTertiary} />
+              <Text style={styles.noteDate}>
+                {formatDate(item.updatedAt)}
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.noteActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => onEdit(item)}
+            >
+              <Edit3 size={16} color={theme.colors.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => onDelete(item)}
+            >
+              <Trash2 size={16} color={theme.colors.error} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {item.content && (
+          <Text style={styles.notePreview} numberOfLines={3}>
+            {getPreviewText(item.content)}
+          </Text>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
 export default function NotesScreen() {
   const { strings } = useLanguage();
@@ -32,28 +114,40 @@ export default function NotesScreen() {
     }, [fadeAnim])
   );
 
-  const handleCreateNote = () => {
+  const safeNavigate = (path: string) => {
     try {
-      router.push('/(tabs)/note/create');
+      // Vérifier que le router est prêt avant de naviguer
+      if (router.canGoBack !== undefined) {
+        router.push(path);
+      } else {
+        // Fallback avec délai si le router n'est pas encore prêt
+        setTimeout(() => {
+          router.push(path);
+        }, 100);
+      }
     } catch (error) {
-      console.error('Erreur de navigation vers création note:', error);
+      console.error('Erreur de navigation:', error);
+      // Retry après un délai
+      setTimeout(() => {
+        try {
+          router.push(path);
+        } catch (retryError) {
+          console.error('Erreur de navigation retry:', retryError);
+        }
+      }, 200);
     }
+  };
+
+  const handleCreateNote = () => {
+    safeNavigate('/(tabs)/note/create');
   };
 
   const handleNotePress = (note: Note) => {
-    try {
-      router.push(`/(tabs)/note/${note.id}`);
-    } catch (error) {
-      console.error('Erreur de navigation vers note:', error);
-    }
+    safeNavigate(`/(tabs)/note/${note.id}`);
   };
 
   const handleEditNote = (note: Note) => {
-    try {
-      router.push(`/(tabs)/note/edit/${note.id}`);
-    } catch (error) {
-      console.error('Erreur de navigation vers édition note:', error);
-    }
+    safeNavigate(`/(tabs)/note/edit/${note.id}`);
   };
 
   const handleDeleteNote = (note: Note) => {
@@ -84,75 +178,17 @@ export default function NotesScreen() {
     }
   };
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(date));
-  };
-
-  const getPreviewText = (content: string) => {
-    return content.length > 100 ? content.substring(0, 100) + '...' : content;
-  };
-
   const renderNote = ({ item, index }: { item: Note; index: number }) => {
-    // Animation stagger pour chaque note
-    const itemFadeAnim = React.useRef(new Animated.Value(0)).current;
-    
-    React.useEffect(() => {
-      Animated.timing(itemFadeAnim, {
-        toValue: 1,
-        duration: 300,
-        delay: index * 100, // Stagger effect
-        useNativeDriver: true,
-      }).start();
-    }, [itemFadeAnim, index]);
-
     return (
-      <Animated.View style={{ opacity: itemFadeAnim }}>
-        <TouchableOpacity
-          style={styles.noteCard}
-          onPress={() => handleNotePress(item)}
-        >
-          <View style={styles.noteHeader}>
-            <View style={styles.noteInfo}>
-              <Text style={styles.noteTitle} numberOfLines={1}>
-                {item.title || strings.untitledNote}
-              </Text>
-              <View style={styles.noteMeta}>
-                <Calendar size={12} color={theme.colors.textTertiary} />
-                <Text style={styles.noteDate}>
-                  {formatDate(item.updatedAt)}
-                </Text>
-              </View>
-            </View>
-            
-            <View style={styles.noteActions}>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => handleEditNote(item)}
-              >
-                <Edit3 size={16} color={theme.colors.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => handleDeleteNote(item)}
-              >
-                <Trash2 size={16} color={theme.colors.error} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {item.content && (
-            <Text style={styles.notePreview} numberOfLines={3}>
-              {getPreviewText(item.content)}
-            </Text>
-          )}
-        </TouchableOpacity>
-      </Animated.View>
+      <NoteItem
+        item={item}
+        index={index}
+        onPress={handleNotePress}
+        onEdit={handleEditNote}
+        onDelete={handleDeleteNote}
+        theme={theme}
+        strings={strings}
+      />
     );
   };
 

@@ -52,15 +52,31 @@ export default function EditNoteScreen() {
   };
 
   const handleBack = () => {
+    if (note) {
+      safeNavigate(`/(tabs)/note/${note.id}`);
+    } else {
+      safeNavigate('/(tabs)/notes');
+    }
+  };
+
+  const safeNavigate = (path: string) => {
     try {
-      if (note) {
-        router.push(`/(tabs)/note/${note.id}`);
+      if (router.canGoBack !== undefined) {
+        router.push(path);
       } else {
-        router.push('/(tabs)/notes');
+        setTimeout(() => {
+          router.push(path);
+        }, 100);
       }
     } catch (error) {
       console.error('Erreur de navigation:', error);
-      router.push('/(tabs)/notes');
+      setTimeout(() => {
+        try {
+          router.push(path);
+        } catch (retryError) {
+          console.error('Erreur de navigation retry:', retryError);
+        }
+      }, 200);
     }
   };
 
@@ -89,7 +105,7 @@ export default function EditNoteScreen() {
 
       if (updatedNote) {
         console.log('✅ Note mise à jour avec succès');
-        router.push(`/(tabs)/note/${note.id}`);
+        safeNavigate(`/(tabs)/note/${note.id}`);
       } else {
         console.error('❌ Erreur: Note non trouvée pour la mise à jour');
       }
