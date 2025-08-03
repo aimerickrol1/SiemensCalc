@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, TextInput } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { CreditCard as Edit3, Trash2, Calendar, X, Check, Camera } from 'lucide-react-native';
 import { Header } from '@/components/Header';
@@ -23,7 +23,6 @@ export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isEditingContent, setIsEditingContent] = useState(false);
   const [editingContent, setEditingContent] = useState('');
 
   // Configure Android back button
@@ -149,7 +148,7 @@ export default function NoteDetailScreen() {
       if (!note) return;
       
       try {
-        console.log('💾 Auto-save content:', value.substring(0, 50));
+        console.log('💾 Auto-save content:', value.substring(0, 50) + '...');
         const updatedNote = await updateNote(note.id, {
           content: value.trim(),
         });
@@ -161,7 +160,7 @@ export default function NoteDetailScreen() {
       } catch (error) {
         console.error('Erreur auto-save content:', error);
       }
-    }, 1000),
+    }, 2000), // Délai augmenté pour éviter trop de sauvegardes
     [note, updateNote]
   );
 
@@ -170,13 +169,6 @@ export default function NoteDetailScreen() {
     autoSaveNote(value);
   };
 
-  const handleContentPress = () => {
-    setIsEditingContent(true);
-  };
-
-  const handleContentBlur = () => {
-    setIsEditingContent(false);
-  };
 
   const handleAddImage = () => {
     showModal(
@@ -300,15 +292,19 @@ export default function NoteDetailScreen() {
         {/* Contenu éditable inline */}
         <View style={styles.contentCard}>
           <Text style={styles.contentLabel}>Note</Text>
-          <InlineNoteEditor
+          <TextInput
+            style={styles.contentTextInput}
             value={editingContent}
-            onValueChange={handleContentEdit}
-            onPress={handleContentPress}
-            onBlur={handleContentBlur}
-            isEditing={isEditingContent}
-            placeholder="Cette note est vide. Cliquez ici pour écrire..."
+            onChangeText={handleContentEdit}
+            placeholder="Cette note est vide. Tapez ici pour écrire..."
+            placeholderTextColor={theme.colors.textTertiary}
             multiline={true}
-            style={styles.contentEditor}
+            numberOfLines={10}
+            textAlignVertical="top"
+            scrollEnabled={false}
+            autoCorrect={true}
+            spellCheck={true}
+            returnKeyType="default"
           />
         </View>
       </ScrollView>
@@ -528,6 +524,23 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-Regular', 
     lineHeight: 24,
     minHeight: 200,
+  },
+  contentTextInput: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.text,
+    lineHeight: 24,
+    minHeight: 200,
+    padding: 0,
+    margin: 0,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    textAlignVertical: 'top',
+    ...(Platform.OS === 'web' && {
+      outlineWidth: 0,
+      resize: 'none',
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+    }),
   },
   // Styles pour le modal
   modalContent: {
