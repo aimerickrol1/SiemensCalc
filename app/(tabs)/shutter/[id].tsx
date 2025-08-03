@@ -10,12 +10,14 @@ import { useStorage } from '@/contexts/StorageContext';
 import { calculateCompliance, formatDeviation } from '@/utils/compliance';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useModal } from '@/contexts/ModalContext';
 import { useAndroidBackButton } from '@/utils/BackHandler';
 import { LoadingScreen } from '@/components/LoadingScreen';
 
 export default function ShutterDetailScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
+  const { showModal, hideModal } = useModal();
   const { projects, updateShutter, deleteShutter } = useStorage();
   const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
   const [shutter, setShutter] = useState<Shutter | null>(null);
