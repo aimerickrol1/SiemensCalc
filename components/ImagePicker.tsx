@@ -33,6 +33,7 @@ export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
 
         // Convertir en base64 avec compression
         const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        console.log('Image compressée, format:', compressedBase64.substring(0, 30));
         resolve(compressedBase64);
       };
 
@@ -46,11 +47,17 @@ export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
     
     if (file && file.type.startsWith('image/')) {
       try {
-        console.log('Fichier sélectionné:', file.name, 'Taille:', file.size, 'Type:', file.type);
-        // Compresser l'image avant de la stocker
+        console.log('📸 Fichier sélectionné:', file.name, 'Taille:', file.size, 'Type:', file.type);
+        
+        // Créer un Blob URL pour l'affichage immédiat
+        const blobUrl = URL.createObjectURL(file);
+        console.log('🔗 Blob URL créé:', blobUrl);
+        
+        // Compresser l'image pour le stockage
         const compressedBase64 = await compressImage(file);
-        console.log('Image compressée, taille Base64:', compressedBase64.length);
-        console.log('Format Base64:', compressedBase64.substring(0, 50));
+        console.log('💾 Image compressée pour stockage, taille:', compressedBase64.length);
+        
+        // Passer l'image compressée (qui sera stockée)
         onImageSelected(compressedBase64);
         onClose();
       } catch (error) {
@@ -59,7 +66,7 @@ export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
         const reader = new FileReader();
         reader.onload = (e) => {
           const base64 = e.target?.result as string;
-          console.log('Fallback Base64:', base64.substring(0, 50));
+          console.log('📄 Fallback Base64 créé:', base64.substring(0, 30));
           onImageSelected(base64);
           onClose();
         };

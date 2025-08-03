@@ -155,14 +155,22 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
               {imageErrors.has(index) ? (
                 <View style={styles.errorContainer}>
                   <Text style={styles.errorText}>Impossible de charger l'image</Text>
+                  <Text style={styles.errorTextSmall}>Index: {index}</Text>
                 </View>
               ) : (
                 <Image
                   source={{ uri: imageBase64 }}
                   style={styles.fullImage}
                   resizeMode="contain"
-                  onError={() => handleImageError(index)}
-                  onLoad={() => handleImageLoad(index)}
+                  onError={(error) => {
+                    console.error(`❌ Erreur chargement lightbox image ${index}:`, error);
+                    console.error(`❌ URI problématique lightbox:`, imageBase64.substring(0, 50));
+                    handleImageError(index);
+                  }}
+                  onLoad={() => {
+                    console.log(`✅ Image ${index} chargée avec succès dans lightbox`);
+                    handleImageLoad(index);
+                  }}
                 />
               )}
             </View>
@@ -318,5 +326,13 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Medium',
     textAlign: 'center',
+  },
+  errorTextSmall: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+    marginTop: 4,
+    opacity: 0.8,
   },
 });

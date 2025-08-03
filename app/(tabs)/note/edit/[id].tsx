@@ -127,6 +127,7 @@ export default function EditNoteScreen() {
     showModal(
       <ImagePicker 
         onImageSelected={(imageBase64) => {
+          console.log('📝 Image ajoutée à la note (édition), format:', imageBase64.substring(0, 30));
           setImages(prev => [...prev, imageBase64]);
         }}
         onClose={hideModal}

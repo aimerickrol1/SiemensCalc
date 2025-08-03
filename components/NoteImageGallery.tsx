@@ -115,7 +115,8 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
 
   // Debug: Afficher les premiers caractères de l'image pour vérifier le format
   React.useEffect(() => {
-    console.log(`Image ${index} format:`, imageBase64.substring(0, 50));
+    console.log(`🖼️ Image ${index} - Format:`, imageBase64.substring(0, 30));
+    console.log(`🖼️ Image ${index} - Longueur:`, imageBase64.length);
   }, [imageBase64, index]);
 
   return (
@@ -144,11 +145,12 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
             source={{ uri: imageBase64 }}
             style={[styles.image, { width: imageWidth, height: imageWidth * 0.75 }]}
             onLoad={() => {
-              console.log(`Image ${index} chargée avec succès`);
+              console.log(`✅ Image ${index} chargée avec succès dans miniature`);
               setImageLoaded(true);
             }}
             onError={(error) => {
-              console.error(`Erreur chargement image ${index}:`, error);
+              console.error(`❌ Erreur chargement miniature ${index}:`, error);
+              console.error(`❌ URI problématique:`, imageBase64.substring(0, 50));
               setImageError(true);
             }}
             resizeMode="cover"
