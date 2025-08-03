@@ -183,28 +183,28 @@ export function StorageProvider({ children }: StorageProviderProps) {
         '[]',
         'getFavProjects'
       );
-      setFavoriteProjectsState(JSON.parse(favProjectsData));
+      setFavoriteProjectsState(favProjectsData ? JSON.parse(favProjectsData) : []);
 
       const favBuildingsData = await safeStorageOperation(
         () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_BUILDINGS),
         '[]',
         'getFavBuildings'
       );
-      setFavoriteBuildingsState(JSON.parse(favBuildingsData));
+      setFavoriteBuildingsState(favBuildingsData ? JSON.parse(favBuildingsData) : []);
 
       const favZonesData = await safeStorageOperation(
         () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_ZONES),
         '[]',
         'getFavZones'
       );
-      setFavoriteZonesState(JSON.parse(favZonesData));
+      setFavoriteZonesState(favZonesData ? JSON.parse(favZonesData) : []);
 
       const favShuttersData = await safeStorageOperation(
         () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_SHUTTERS),
         '[]',
         'getFavShutters'
       );
-      setFavoriteShuttersState(JSON.parse(favShuttersData));
+      setFavoriteShuttersState(favShuttersData ? JSON.parse(favShuttersData) : []);
 
       // Charger l'historique
       const historyData = await safeStorageOperation(
@@ -214,7 +214,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       );
       
       try {
-        const parsedHistory = JSON.parse(historyData);
+        const parsedHistory = historyData ? JSON.parse(historyData) : [];
         const processedHistory = Array.isArray(parsedHistory) ? parsedHistory.map((item: any) => ({
           ...item,
           timestamp: new Date(item.timestamp || Date.now())
