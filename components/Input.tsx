@@ -72,7 +72,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   inputWeb: {
     // Optimisations spécifiques pour web mobile
     fontSize: 16, // Empêcher le zoom sur iOS Safari
-    outline: 'none',
+    outlineWidth: 0,
     WebkitAppearance: 'none',
     WebkitTapHighlightColor: 'transparent',
   },

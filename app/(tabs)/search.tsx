@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Animated, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { Search as SearchIcon, ChevronDown, ChevronRight, Building, Wind, X, Filter, Layers, Target } from 'lucide-react-native';
 import { Header } from '@/components/Header';

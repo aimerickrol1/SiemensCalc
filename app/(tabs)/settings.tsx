@@ -359,11 +359,12 @@ export default function SettingsScreen() {
             </View>
             
             <Text style={styles.modalText}>
-              ⚠️ <Text style={styles.modalBold}>{strings.clearAllDataWarning}</Text>
-              {'\n\n'}
-              Tous vos projets, bâtiments, zones et volets seront définitivement supprimés.
-              {'\n\n'}
-              Assurez-vous d'avoir exporté vos données importantes avant de continuer.
+              <Text>⚠️ </Text>
+              <Text style={styles.modalBold}>{strings.clearAllDataWarning}</Text>
+              <Text>{'\n\n'}</Text>
+              <Text>Tous vos projets, bâtiments, zones et volets seront définitivement supprimés.</Text>
+              <Text>{'\n\n'}</Text>
+              <Text>Assurez-vous d'avoir exporté vos données importantes avant de continuer.</Text>
             </Text>
 
             <View style={styles.modalFooter}>
