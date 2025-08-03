@@ -32,11 +32,7 @@ export default function AboutScreen() {
   };
 
   const handleContactPress = () => {
-    Alert.alert(
-      strings.contact,
-      strings.contactDeveloperMessage,
-      [{ text: strings.ok }]
-    );
+    showModal(<ContactDeveloperModal />);
   };
 
   const handleOpenPDF = async () => {
