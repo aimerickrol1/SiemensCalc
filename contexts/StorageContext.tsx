@@ -25,6 +25,7 @@ interface StorageContextType {
   favoriteBuildings: string[];
   favoriteZones: string[];
   favoriteShutters: string[];
+  favoriteNotes: string[];
   quickCalcHistory: QuickCalcHistoryItem[];
   notes: Note[];
   
@@ -53,6 +54,7 @@ interface StorageContextType {
   setFavoriteBuildings: (favorites: string[]) => Promise<void>;
   setFavoriteZones: (favorites: string[]) => Promise<void>;
   setFavoriteShutters: (favorites: string[]) => Promise<void>;
+  setFavoriteNotes: (favorites: string[]) => Promise<void>;
   
   // Actions pour l'historique
   addQuickCalcHistory: (item: Omit<QuickCalcHistoryItem, 'id' | 'timestamp'>) => Promise<void>;
@@ -74,6 +76,7 @@ interface StorageContextType {
   getFavoriteBuildings: () => Promise<string[]>;
   getFavoriteZones: () => Promise<string[]>;
   getFavoriteShutters: () => Promise<string[]>;
+  getFavoriteNotes: () => Promise<string[]>;
 }
 
 const StorageContext = createContext<StorageContextType | undefined>(undefined);
@@ -85,6 +88,7 @@ const STORAGE_KEYS = {
   FAVORITE_BUILDINGS: 'SIEMENS_FAV_BUILDINGS',
   FAVORITE_ZONES: 'SIEMENS_FAV_ZONES',
   FAVORITE_SHUTTERS: 'SIEMENS_FAV_SHUTTERS',
+  FAVORITE_NOTES: 'SIEMENS_FAV_NOTES',
   QUICK_CALC_HISTORY: 'SIEMENS_CALC_HISTORY',
   NOTES: 'SIEMENS_NOTES',
 };
@@ -123,6 +127,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
   const [favoriteBuildings, setFavoriteBuildingsState] = useState<string[]>([]);
   const [favoriteZones, setFavoriteZonesState] = useState<string[]>([]);
   const [favoriteShutters, setFavoriteShuttersState] = useState<string[]>([]);
+  const [favoriteNotes, setFavoriteNotesState] = useState<string[]>([]);
   const [quickCalcHistory, setQuickCalcHistoryState] = useState<QuickCalcHistoryItem[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
 
@@ -232,6 +237,18 @@ export function StorageProvider({ children }: StorageProviderProps) {
       } catch (error) {
         console.warn('Erreur parsing favoris volets:', error);
         setFavoriteShuttersState([]);
+      }
+
+      const favNotesData = await safeStorageOperation(
+        () => AsyncStorage.getItem(STORAGE_KEYS.FAVORITE_NOTES),
+        null,
+        'getFavNotes'
+      );
+      try {
+        setFavoriteNotesState(favNotesData && favNotesData !== 'undefined' && favNotesData !== 'null' ? JSON.parse(favNotesData) : []);
+      } catch (error) {
+        console.warn('Erreur parsing favoris notes:', error);
+        setFavoriteNotesState([]);
       }
 
       // Charger l'historique
@@ -780,6 +797,15 @@ export function StorageProvider({ children }: StorageProviderProps) {
     setFavoriteShuttersState(favorites);
   };
 
+  const setFavoriteNotes = async (favorites: string[]) => {
+    await safeStorageOperation(
+      () => AsyncStorage.setItem(STORAGE_KEYS.FAVORITE_NOTES, JSON.stringify(favorites)),
+      undefined,
+      'setFavoriteNotes'
+    );
+    setFavoriteNotesState(favorites);
+  };
+
   // Actions pour l'historique
   const addQuickCalcHistory = async (item: Omit<QuickCalcHistoryItem, 'id' | 'timestamp'>) => {
     const newItem: QuickCalcHistoryItem = {
@@ -902,6 +928,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       setFavoriteBuildingsState([]);
       setFavoriteZonesState([]);
       setFavoriteShuttersState([]);
+      setFavoriteNotesState([]);
       setQuickCalcHistoryState([]);
       setNotes([]);
     } catch (error) {
@@ -943,6 +970,10 @@ export function StorageProvider({ children }: StorageProviderProps) {
     return favoriteShutters;
   };
 
+  const getFavoriteNotes = async (): Promise<string[]> => {
+    return favoriteNotes;
+  };
+
   const value: StorageContextType = {
     isLoading,
     isInitialized,
@@ -951,6 +982,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     favoriteBuildings,
     favoriteZones,
     favoriteShutters,
+    favoriteNotes,
     quickCalcHistory,
     notes,
     createProject,
@@ -969,6 +1001,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     setFavoriteBuildings,
     setFavoriteZones,
     setFavoriteShutters,
+    setFavoriteNotes,
     addQuickCalcHistory,
     clearQuickCalcHistory,
     getQuickCalcHistory,
@@ -982,6 +1015,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     getFavoriteBuildings,
     getFavoriteZones,
     getFavoriteShutters,
+    getFavoriteNotes,
   };
 
   return (
