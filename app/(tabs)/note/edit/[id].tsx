@@ -190,9 +190,6 @@ export default function EditNoteScreen() {
             error={errors.title}
           />
         
-        <Text style={styles.infoText}>
-          Le contenu et les images peuvent être modifiés directement depuis la page de la note.
-        </Text>
         </ScrollView>
       </KeyboardAvoidingView>
 
