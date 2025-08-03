@@ -501,7 +501,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 20,
     width: '100%',
     maxWidth: 500,
-    maxHeight: Platform.OS === 'web' ? '70%' : '90%',
+    maxHeight: Platform.OS === 'web' ? '85%' : '90%',
     display: 'flex',
     flexDirection: 'column',
   },
@@ -509,6 +509,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
+    position: 'relative',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -534,7 +535,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   modalBodyContent: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 20,
+    paddingBottom: Platform.OS === 'web' ? 100 : 80, // Espace pour le bouton fixe
   },
   modalFooter: {
     flexDirection: 'row',
@@ -545,9 +546,27 @@ const createStyles = (theme: any) => StyleSheet.create({
     gap: 12,
     backgroundColor: theme.colors.surface,
     flexShrink: 0,
-    ...(Platform.OS === 'web' && {
-      position: 'sticky',
+    // Position fixe au viewport sur web
+    ...(Platform.OS === 'web' ? {
+      position: 'fixed',
+      bottom: 20,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      width: '100%',
+      maxWidth: 460, // Largeur du modal moins padding
+      zIndex: 2147483647,
+      borderRadius: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 8,
+    } : {
+      // Sur mobile, reste en bas du modal
+      position: 'absolute',
       bottom: 0,
+      left: 0,
+      right: 0,
       zIndex: 10,
     }),
   },
