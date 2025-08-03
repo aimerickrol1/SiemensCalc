@@ -80,9 +80,16 @@ function NoteItem({ item, index, onPress, onEdit, onDelete, onToggleFavorite, is
             </TouchableOpacity>
           )}
           <View style={styles.noteInfo}>
-            <Text style={styles.noteTitle} numberOfLines={1}>
-              {item.title || strings.untitledNote}
-            </Text>
+            <TouchableOpacity 
+              style={[styles.noteTitleContainer, selectionMode && styles.noteTitleContainerSelection]}
+              onPress={() => !selectionMode && onEdit(item)}
+              disabled={selectionMode}
+            >
+              <Text style={styles.noteTitle} numberOfLines={1}>
+                {item.title || strings.untitledNote}
+              </Text>
+              {!selectionMode && <Text style={styles.editIcon}>✏️</Text>}
+            </TouchableOpacity>
             <View style={styles.noteMeta}>
               <Calendar size={12} color={theme.colors.textTertiary} />
               <Text style={styles.noteDate}>
@@ -102,12 +109,6 @@ function NoteItem({ item, index, onPress, onEdit, onDelete, onToggleFavorite, is
                   color={isFavorite ? "#F59E0B" : theme.colors.textTertiary} 
                   fill={isFavorite ? "#F59E0B" : "none"}
                 />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => onEdit(item)}
-              >
-                <Edit3 size={14} color={theme.colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.actionButton}
@@ -822,11 +823,27 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
+  noteTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    backgroundColor: theme.colors.surfaceSecondary,
+    marginBottom: 4,
+  },
+  noteTitleContainerSelection: {
+    backgroundColor: 'transparent',
+  },
   noteTitle: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.text,
-    marginBottom: 4,
+    flex: 1,
+  },
+  editIcon: {
+    fontSize: 12,
   },
   noteMeta: {
     flexDirection: 'row',
