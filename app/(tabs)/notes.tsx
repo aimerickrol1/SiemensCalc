@@ -726,13 +726,11 @@ const createStyles = (theme: any) => StyleSheet.create({
   filterScroll: {
     flexGrow: 0,
   },
-  filterScroll: {
-    flexGrow: 0,
-  },
   filterButtons: {
     flexDirection: 'row',
     gap: 8,
   },
+  filterButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
@@ -749,8 +747,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    whiteSpace: 'nowrap',
-    whiteSpace: 'nowrap',
   },
   filterButtonTextActive: {
     color: '#ffffff',
