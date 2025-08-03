@@ -552,7 +552,7 @@ function ContactDeveloperModal() {
   const { hideModal } = useModal();
   const styles = createStyles(theme);
 
-  const developerEmail = 'developer@siemens-calcconform.com';
+  const developerEmail = 'aimeric.krol@siemens.com';
   const emailSubject = 'Contact depuis CalcConform';
   const emailBody = 'Bonjour,\n\nJe vous contacte concernant l\'application CalcConform.\n\n';
 
