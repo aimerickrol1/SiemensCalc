@@ -137,9 +137,11 @@ export default function ShutterDetailScreen() {
       } else {
         console.error('❌ Erreur lors de la suppression du volet');
         hideModal();
+        hideModal();
       }
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
+      hideModal();
       hideModal();
     }
   };

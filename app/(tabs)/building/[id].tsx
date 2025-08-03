@@ -193,6 +193,7 @@ export default function BuildingDetailScreen() {
 
   const confirmBulkDeleteZones = async () => {
     try {
+      console.log('🗑️ Suppression en lot de', selectedZones.size, 'zones');
       for (const zoneId of selectedZones) {
         const success = await deleteFunctionalZone(zoneId);
         if (!success) {
@@ -205,6 +206,7 @@ export default function BuildingDetailScreen() {
       hideModal();
     } catch (error) {
       console.error('Erreur lors de la suppression en lot:', error);
+      hideModal();
       hideModal();
     }
   };
@@ -257,9 +259,11 @@ export default function BuildingDetailScreen() {
       } else {
         console.error('❌ Erreur lors de la suppression de la zone');
         hideModal();
+        hideModal();
       }
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
+      hideModal();
       hideModal();
     }
   };

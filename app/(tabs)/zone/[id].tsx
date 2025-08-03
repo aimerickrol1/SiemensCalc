@@ -229,9 +229,11 @@ export default function ZoneDetailScreen() {
       } else {
         console.error('❌ Erreur lors de la suppression du volet');
         hideModal();
+        hideModal();
       }
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
+      hideModal();
       hideModal();
     }
   };
@@ -267,6 +269,7 @@ export default function ZoneDetailScreen() {
 
   const confirmBulkDeleteShutters = async () => {
     try {
+      console.log('🗑️ Suppression en lot de', selectedShutters.size, 'volets');
       for (const shutterId of selectedShutters) {
         const success = await deleteShutter(shutterId);
         if (!success) {
@@ -279,6 +282,7 @@ export default function ZoneDetailScreen() {
       hideModal();
     } catch (error) {
       console.error('Erreur lors de la suppression en lot:', error);
+      hideModal();
       hideModal();
     }
   };
