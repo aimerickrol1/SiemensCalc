@@ -601,9 +601,6 @@ export default function ZoneDetailScreen() {
           </View>
           
           <View style={styles.shutterHeaderRight}>
-            <Text style={styles.shutterType}>
-              {item.type === 'high' ? strings.shutterHigh : strings.shutterLow}
-            </Text>
             {!selectionMode && (
               <>
                 <TouchableOpacity
@@ -811,6 +808,12 @@ export default function ZoneDetailScreen() {
               <Text style={styles.copiedText}>
                 {strings.shutter} "{copiedShutter.name}" {strings.copied}
               </Text>
+              <TouchableOpacity 
+                style={styles.cancelCopyButton}
+                onPress={() => setCopiedShutter(null)}
+              >
+                <X size={16} color={theme.colors.success} />
+              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -1035,6 +1038,11 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: theme.colors.success,
     flex: 1,
+  },
+  cancelCopyButton: {
+    padding: 4,
+    borderRadius: 4,
+    backgroundColor: theme.colors.success + '20',
   },
   // Styles pour la barre de filtre
   filterBar: {
