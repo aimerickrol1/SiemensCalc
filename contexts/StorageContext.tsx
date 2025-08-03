@@ -270,7 +270,8 @@ export function StorageProvider({ children }: StorageProviderProps) {
           const processedNotes = Array.isArray(parsedNotes) ? parsedNotes.map((note: any) => ({
             ...note,
             createdAt: new Date(note.createdAt || Date.now()),
-            updatedAt: new Date(note.updatedAt || Date.now())
+            updatedAt: new Date(note.updatedAt || Date.now()),
+            images: note.images || []
           })) : [];
           setNotes(processedNotes);
         } else {

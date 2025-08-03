@@ -4,6 +4,7 @@ import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { CreditCard as Edit3, Trash2, Calendar, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
+import { NoteImageGallery } from '@/components/NoteImageGallery';
 import { Note } from '@/types';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -174,6 +175,13 @@ export default function NoteDetailScreen() {
             </View>
           )}
         </View>
+
+        {/* Galerie d'images en lecture seule */}
+        <NoteImageGallery 
+          images={note.images || []}
+          onRemoveImage={() => {}} // Pas d'édition en mode lecture
+          editable={false}
+        />
 
         <View style={styles.contentCard}>
           <Text style={styles.contentText}>

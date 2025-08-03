@@ -4,20 +4,25 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Header } from '@/components/Header';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
+import { ImagePicker } from '@/components/ImagePicker';
+import { NoteImageGallery } from '@/components/NoteImageGallery';
 import { Note } from '@/types';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useModal } from '@/contexts/ModalContext';
 import { useAndroidBackButton } from '@/utils/BackHandler';
 
 export default function EditNoteScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
+  const { showModal, hideModal } = useModal();
   const { notes, updateNote } = useStorage();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [note, setNote] = useState<Note | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [errors, setErrors] = useState<{ title?: string }>({});
@@ -41,6 +46,7 @@ export default function EditNoteScreen() {
         setNote(foundNote);
         setTitle(foundNote.title);
         setContent(foundNote.content);
+        setImages(foundNote.images || []);
       } else {
         console.error('❌ Note non trouvée avec ID:', id);
       }
@@ -83,7 +89,7 @@ export default function EditNoteScreen() {
   const validateForm = () => {
     const newErrors: { title?: string } = {};
 
-    if (!title.trim() && !content.trim()) {
+    if (!title.trim() && !content.trim() && images.length === 0) {
       newErrors.title = 'Le titre ou le contenu est requis';
     }
 
@@ -101,6 +107,7 @@ export default function EditNoteScreen() {
       const updatedNote = await updateNote(note.id, {
         title: title.trim() || strings.untitledNote,
         content: content.trim(),
+        images: images.length > 0 ? images : undefined,
       });
 
       if (updatedNote) {
@@ -114,6 +121,21 @@ export default function EditNoteScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddImage = () => {
+    showModal(
+      <ImagePicker 
+        onImageSelected={(imageBase64) => {
+          setImages(prev => [...prev, imageBase64]);
+        }}
+        onClose={hideModal}
+      />
+    );
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const styles = createStyles(theme);
@@ -167,6 +189,23 @@ export default function EditNoteScreen() {
             error={errors.title}
           />
 
+
+        {/* Galerie d'images */}
+        <NoteImageGallery 
+          images={images}
+          onRemoveImage={handleRemoveImage}
+          editable={true}
+        />
+
+        {/* Bouton ajouter image */}
+        <View style={styles.imageButtonContainer}>
+          <Button
+            title="📷 Ajouter une image"
+            onPress={handleAddImage}
+            variant="secondary"
+            style={styles.imageButton}
+          />
+        </View>
           <View style={styles.contentInputContainer}>
             <Input
               label={strings.noteContent}
@@ -238,6 +277,13 @@ const createStyles = (theme: any) => StyleSheet.create({
   contentInput: {
     minHeight: 300,
     textAlignVertical: 'top',
+  },
+  imageButtonContainer: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  imageButton: {
+    paddingHorizontal: 24,
   },
   fixedFooter: {
     position: Platform.OS === 'web' ? 'fixed' : 'absolute',

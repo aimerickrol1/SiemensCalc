@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
+import { ImagePlus } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
+import { ImagePicker } from '@/components/ImagePicker';
+import { NoteImageGallery } from '@/components/NoteImageGallery';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useModal } from '@/contexts/ModalContext';
 
 export default function CreateNoteScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
+  const { showModal, hideModal } = useModal();
   const { createNote } = useStorage();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ title?: string }>({});
 
@@ -45,7 +51,7 @@ export default function CreateNoteScreen() {
   const validateForm = () => {
     const newErrors: { title?: string } = {};
 
-    if (!title.trim() && !content.trim()) {
+    if (!title.trim() && !content.trim() && images.length === 0) {
       newErrors.title = 'Le titre ou le contenu est requis';
     }
 
@@ -63,6 +69,7 @@ export default function CreateNoteScreen() {
       const note = await createNote({
         title: title.trim() || strings.untitledNote,
         content: content.trim(),
+        images: images.length > 0 ? images : undefined,
       });
 
       if (note) {
@@ -78,6 +85,21 @@ export default function CreateNoteScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddImage = () => {
+    showModal(
+      <ImagePicker 
+        onImageSelected={(imageBase64) => {
+          setImages(prev => [...prev, imageBase64]);
+        }}
+        onClose={hideModal}
+      />
+    );
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const styles = createStyles(theme);
@@ -108,6 +130,23 @@ export default function CreateNoteScreen() {
             error={errors.title}
           />
 
+
+        {/* Galerie d'images */}
+        <NoteImageGallery 
+          images={images}
+          onRemoveImage={handleRemoveImage}
+          editable={true}
+        />
+
+        {/* Bouton ajouter image */}
+        <View style={styles.imageButtonContainer}>
+          <Button
+            title="📷 Ajouter une image"
+            onPress={handleAddImage}
+            variant="secondary"
+            style={styles.imageButton}
+          />
+        </View>
           <View style={styles.contentInputContainer}>
             <Input
               label={strings.noteContent}
@@ -157,6 +196,13 @@ const createStyles = (theme: any) => StyleSheet.create({
   contentInput: {
     minHeight: 300,
     textAlignVertical: 'top',
+  },
+  imageButtonContainer: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  imageButton: {
+    paddingHorizontal: 24,
   },
   fixedFooter: {
     position: Platform.OS === 'web' ? 'fixed' : 'absolute',

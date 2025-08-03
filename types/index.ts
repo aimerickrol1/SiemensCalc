@@ -56,7 +56,7 @@ export interface Note {
   content: string;
   createdAt: Date;
   updatedAt: Date;
-  // Future: images?: string[];
+  images?: string[]; // Base64 encoded images
 }
 
 // Search result interface
