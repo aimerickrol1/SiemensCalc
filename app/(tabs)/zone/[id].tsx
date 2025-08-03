@@ -548,6 +548,18 @@ export default function ZoneDetailScreen() {
     const currentMeasFlow = editData ? parseFloat(editData.measuredFlow) || 0 : item.measuredFlow;
     const compliance = calculateCompliance(currentRefFlow, currentMeasFlow);
 
+    // Gestionnaire de clic pour la carte qui vérifie si le clic vient d'un input
+    const handleCardClick = (event: any) => {
+      // Empêcher l'ouverture si le clic vient d'un input, textarea ou button
+      if (event?.target?.tagName === 'INPUT' || 
+          event?.target?.tagName === 'TEXTAREA' || 
+          event?.target?.tagName === 'BUTTON' ||
+          event?.target?.closest?.('input, textarea, button')) {
+        return;
+      }
+      
+      handleShutterPress(item);
+    };
     return (
       <TouchableOpacity
         style={[
@@ -555,7 +567,7 @@ export default function ZoneDetailScreen() {
           isSelected && styles.selectedCard,
           isFavorite && styles.favoriteCard
         ]}
-        onPress={() => handleShutterPress(item)}
+        onPress={handleCardClick}
         onLongPress={() => {
           if (!selectionMode) {
             setSelectionMode(true);
@@ -636,6 +648,8 @@ export default function ZoneDetailScreen() {
                 onChangeText={(text) => handleFlowChange(item.id, 'referenceFlow', text)}
                 onFocus={() => handleFlowFocus(item.id, 'referenceFlow')}
                 onBlur={() => handleFlowBlur(item, 'referenceFlow')}
+                onPressIn={(e) => e.stopPropagation()}
+                onPress={(e) => e.stopPropagation()}
                 keyboardType="numeric"
                 placeholder="Ex: 5000"
                 placeholderTextColor={theme.colors.textTertiary}
@@ -654,6 +668,8 @@ export default function ZoneDetailScreen() {
                 onChangeText={(text) => handleFlowChange(item.id, 'measuredFlow', text)}
                 onFocus={() => handleFlowFocus(item.id, 'measuredFlow')}
                 onBlur={() => handleFlowBlur(item, 'measuredFlow')}
+                onPressIn={(e) => e.stopPropagation()}
+                onPress={(e) => e.stopPropagation()}
                 keyboardType="numeric"
                 placeholder="Ex: 4800"
                 placeholderTextColor={theme.colors.textTertiary}
@@ -1244,6 +1260,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.text,
     textAlign: 'center',
     height: 40,
+    // Empêcher la propagation des événements tactiles
+    pointerEvents: 'auto',
   },
   deviationDisplay: {
     borderWidth: 1,
