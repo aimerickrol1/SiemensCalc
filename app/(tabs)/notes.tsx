@@ -828,6 +828,8 @@ const createStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    paddingVertical: 64,
+    minHeight: '60%',
   },
   emptyTitle: {
     fontSize: 24,
