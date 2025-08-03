@@ -519,7 +519,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     width: '100%',
     maxWidth: 400,
-    maxHeight: '80%',
+    maxHeight: '70%',
   },
   themeModalContent: {
     backgroundColor: theme.colors.surface,
@@ -527,7 +527,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     width: '100%',
     maxWidth: 450,
-    maxHeight: '70%',
+    maxHeight: '60%',
   },
   languageModalContent: {
     backgroundColor: theme.colors.surface,
@@ -535,7 +535,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     width: '100%',
     maxWidth: 450,
-    maxHeight: '85%',
+    maxHeight: '75%',
   },
   modalHeader: {
     flexDirection: 'row',

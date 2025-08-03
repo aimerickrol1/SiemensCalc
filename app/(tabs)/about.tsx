@@ -657,7 +657,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     width: '100%',
     maxWidth: 400,
-    maxHeight: '80%',
+    maxHeight: '70%',
   },
   // Modal des calculs de conformité optimisé pour mobile SANS BARRE DE SCROLL
   calculationsModalContent: {
@@ -666,7 +666,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 16,
     width: '100%',
     maxWidth: 650,
-    maxHeight: Platform.OS === 'web' ? '55%' : '85%', // Hauteur encore plus réduite sur web
+    maxHeight: Platform.OS === 'web' ? '50%' : '75%', // Hauteur réduite
     marginVertical: 40,
   },
   // Modal des prochaines nouveautés optimisé pour mobile SANS BARRE DE SCROLL
@@ -676,7 +676,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 16,
     width: '100%',
     maxWidth: 650,
-    maxHeight: Platform.OS === 'web' ? '55%' : '85%', // Hauteur encore plus réduite sur web
+    maxHeight: Platform.OS === 'web' ? '50%' : '75%', // Hauteur réduite
     marginVertical: 40,
   },
   modalHeader: {
