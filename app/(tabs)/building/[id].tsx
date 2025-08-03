@@ -4,6 +4,7 @@ import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { Plus, Settings, Wind, Star, Trash2, SquareCheck as CheckSquare, Square, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
+import { Input } from '@/components/Input';
 import { Project, Building, FunctionalZone } from '@/types';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -829,15 +830,11 @@ function EditZoneNameModal({ zone, onSave, onCancel, strings }: any) {
       </View>
 
       <View style={styles.modalBody}>
-        <Text style={styles.inputLabel}>{strings.zoneName} *</Text>
-        <TextInput
-          style={styles.nameTextInput}
+        <Input
+          label={`${strings.zoneName} *`}
           value={name}
           onChangeText={setName}
           placeholder="Ex: ZF01, Zone Hall"
-          placeholderTextColor={theme.colors.textTertiary}
-          autoFocus={true}
-          selectTextOnFocus={true}
         />
       </View>
 

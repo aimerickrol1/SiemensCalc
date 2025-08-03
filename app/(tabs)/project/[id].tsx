@@ -980,15 +980,11 @@ function EditBuildingNameModal({ building, onSave, onCancel, strings }: any) {
       </View>
 
       <View style={styles.modalBody}>
-        <Text style={styles.inputLabel}>{strings.buildingName} *</Text>
-        <TextInput
-          style={styles.nameTextInput}
+        <Input
+          label={`${strings.buildingName} *`}
           value={name}
           onChangeText={setName}
           placeholder="Ex: Bâtiment A, Tour Nord"
-          placeholderTextColor={theme.colors.textTertiary}
-          autoFocus={true}
-          selectTextOnFocus={true}
         />
       </View>
 
