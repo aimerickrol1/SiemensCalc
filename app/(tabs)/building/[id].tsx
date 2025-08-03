@@ -241,32 +241,27 @@ export default function BuildingDetailScreen() {
   };
 
   const handleDeleteZone = async (zone: FunctionalZone) => {
-    Alert.alert(
-      strings.deleteZone,
-      `Êtes-vous sûr de vouloir supprimer la zone "${zone.name}" ?`,
-      [
-        { text: strings.cancel, style: 'cancel' },
-        {
-          text: strings.delete,
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const success = await deleteFunctionalZone(zone.id);
-              if (success) {
-                console.log('✅ Zone supprimée avec succès');
-                await loadBuilding();
-              } else {
-                console.error('❌ Erreur lors de la suppression de la zone');
-                Alert.alert(strings.error, 'Impossible de supprimer la zone');
-              }
-            } catch (error) {
-              console.error('Erreur lors de la suppression:', error);
-              Alert.alert(strings.error, 'Impossible de supprimer la zone');
-            }
-          }
-        }
-      ]
-    );
+    showModal(<DeleteZoneModal 
+      zone={zone}
+      onConfirm={() => confirmDeleteZone(zone)}
+      onCancel={() => hideModal()}
+      strings={strings}
+    />);
+  };
+
+  const confirmDeleteZone = async (zone: FunctionalZone) => {
+    try {
+      const success = await deleteFunctionalZone(zone.id);
+      if (success) {
+        console.log('✅ Zone supprimée avec succès');
+        await loadBuilding();
+        hideModal();
+      } else {
+        console.error('❌ Erreur lors de la suppression de la zone');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+    }
   };
 
   // Fonction pour obtenir le détail des volets par type
