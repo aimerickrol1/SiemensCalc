@@ -290,7 +290,7 @@ export function CreateProjectModal({ onSubmit, loading }: CreateProjectModalProp
   const styles = createStyles(theme);
 
   return (
-    <View style={styles.modalContent}>
+    <View style={styles.modalContainer}>
       <View style={styles.modalHeader}>
         <Text style={styles.modalTitle}>Nouveau projet</Text>
         <TouchableOpacity 
@@ -301,11 +301,13 @@ export function CreateProjectModal({ onSubmit, loading }: CreateProjectModalProp
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        ref={modalScrollViewRef}
-        style={styles.modalBody} 
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.modalContent}>
+        <ScrollView 
+          ref={modalScrollViewRef}
+          style={styles.modalBody} 
+          contentContainerStyle={styles.modalBodyContent}
+          showsVerticalScrollIndicator={false}
+        >
             <Input
               label="Nom du projet *"
               value={name}
@@ -472,33 +474,41 @@ export function CreateProjectModal({ onSubmit, loading }: CreateProjectModalProp
                 </ScrollView>
               </View>
             )}
-      </ScrollView>
+        </ScrollView>
 
-      <View style={styles.modalFooter}>
-        <Button
-          title="Annuler"
-          onPress={handleClose}
-          variant="secondary"
-          style={styles.modalButton}
-        />
-        <Button
-          title="Créer le projet"
-          onPress={handleSubmit}
-          disabled={loading}
-          style={styles.modalButton}
-        />
+        <View style={styles.modalFooter}>
+          <Button
+            title="Annuler"
+            onPress={handleClose}
+            variant="secondary"
+            style={styles.modalButton}
+          />
+          <Button
+            title="Créer le projet"
+            onPress={handleSubmit}
+            disabled={loading}
+            style={styles.modalButton}
+          />
+        </View>
       </View>
     </View>
   );
 }
 
 const createStyles = (theme: any) => StyleSheet.create({
-  modalContent: {
+  modalContainer: {
     backgroundColor: theme.colors.surface,
     borderRadius: 20,
     width: '100%',
     maxWidth: 500,
     maxHeight: Platform.OS === 'web' ? '70%' : '90%',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  modalContent: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -507,6 +517,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
+    flexShrink: 0,
   },
   modalTitle: {
     fontSize: 20,
@@ -518,9 +529,12 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   modalBody: {
     flex: 1,
+    minHeight: 0,
+  },
+  modalBodyContent: {
     paddingHorizontal: 20,
-    paddingTop: 0,
-    paddingBottom: 10,
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   modalFooter: {
     flexDirection: 'row',
@@ -530,6 +544,12 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderTopColor: theme.colors.border,
     gap: 12,
     backgroundColor: theme.colors.surface,
+    flexShrink: 0,
+    ...(Platform.OS === 'web' && {
+      position: 'sticky',
+      bottom: 0,
+      zIndex: 10,
+    }),
   },
   modalButton: {
     flex: 1,
