@@ -71,14 +71,20 @@ export default function CreateShutterScreen() {
       newErrors.name = strings.nameRequired;
     }
 
-    const refFlow = parseFloat(referenceFlow);
-    if (!referenceFlow || isNaN(refFlow) || refFlow < 0) {
-      newErrors.referenceFlow = strings.positiveOrZeroRequired;
+    // Validation optionnelle pour le débit de référence
+    if (referenceFlow.trim() !== '') {
+      const refFlow = parseFloat(referenceFlow);
+      if (isNaN(refFlow) || refFlow < 0) {
+        newErrors.referenceFlow = strings.positiveOrZeroRequired;
+      }
     }
 
-    const measFlow = parseFloat(measuredFlow);
-    if (!measuredFlow || isNaN(measFlow) || measFlow < 0) {
-      newErrors.measuredFlow = strings.positiveOrZeroRequired;
+    // Validation optionnelle pour le débit mesuré
+    if (measuredFlow.trim() !== '') {
+      const measFlow = parseFloat(measuredFlow);
+      if (isNaN(measFlow) || measFlow < 0) {
+        newErrors.measuredFlow = strings.positiveOrZeroRequired;
+      }
     }
 
     setErrors(newErrors);
@@ -102,8 +108,8 @@ export default function CreateShutterScreen() {
       const shutter = await createShutter(zoneId, {
         name: name.trim(),
         type,
-        referenceFlow: parseFloat(referenceFlow),
-        measuredFlow: parseFloat(measuredFlow),
+        referenceFlow: referenceFlow.trim() !== '' ? parseFloat(referenceFlow) : 0,
+        measuredFlow: measuredFlow.trim() !== '' ? parseFloat(measuredFlow) : 0,
         remarks: remarks.trim() || undefined,
       });
 
@@ -175,7 +181,7 @@ export default function CreateShutterScreen() {
         </View>
 
         <Input
-          label={`${strings.referenceFlow} (${strings.cubicMeterPerHour}) *`}
+          label={`${strings.referenceFlow} (${strings.cubicMeterPerHour}) (${strings.optional})`}
           value={referenceFlow}
           onChangeText={setReferenceFlow}
           placeholder="Ex: 5000"
@@ -184,7 +190,7 @@ export default function CreateShutterScreen() {
         />
 
         <Input
-          label={`${strings.measuredFlow} (${strings.cubicMeterPerHour}) *`}
+          label={`${strings.measuredFlow} (${strings.cubicMeterPerHour}) (${strings.optional})`}
           value={measuredFlow}
           onChangeText={setMeasuredFlow}
           placeholder="Ex: 4800"
