@@ -15,6 +15,8 @@ interface PredefinedZone {
   name: string;
   highShutters: number;
   lowShutters: number;
+  referenceFlow?: number;
+  useReferenceFlow: boolean;
 }
 
 interface PredefinedBuilding {
@@ -25,7 +27,6 @@ interface PredefinedBuilding {
 
 interface PredefinedStructure {
   enabled: boolean;
-  defaultReferenceFlow?: number;
   buildings: PredefinedBuilding[];
 }
 
@@ -42,7 +43,6 @@ export default function CreateProjectScreen() {
 
   const [predefinedStructure, setPredefinedStructure] = useState<PredefinedStructure>({
     enabled: false,
-    defaultReferenceFlow: undefined,
     buildings: []
   });
 
@@ -153,7 +153,7 @@ export default function CreateProjectScreen() {
                       const shutter = await createShutter(zone.id, {
                         name: shutterName,
                         type: 'high',
-                        referenceFlow: predefinedStructure.defaultReferenceFlow || 0,
+                        referenceFlow: zoneData.referenceFlow || 0,
                         measuredFlow: 0,
                       });
                       console.log(`  ✅ Volet ${shutterName} créé:`, shutter?.id);
@@ -173,7 +173,7 @@ export default function CreateProjectScreen() {
                       const shutter = await createShutter(zone.id, {
                         name: shutterName,
                         type: 'low',
-                        referenceFlow: predefinedStructure.defaultReferenceFlow || 0,
+                        referenceFlow: zoneData.referenceFlow || 0,
                         measuredFlow: 0,
                       });
                       console.log(`  ✅ Volet ${shutterName} créé:`, shutter?.id);
@@ -218,13 +218,14 @@ export default function CreateProjectScreen() {
           id: generateUniqueId(),
           name: 'ZF01',
           highShutters: 2,
-          lowShutters: 2
+          lowShutters: 2,
+          referenceFlow: undefined,
+          useReferenceFlow: false
         }]
       };
       
       setPredefinedStructure(prev => ({
         ...prev,
-        defaultReferenceFlow: undefined,
         buildings: [newBuilding]
       }));
     }
@@ -238,7 +239,9 @@ export default function CreateProjectScreen() {
         id: generateUniqueId(),
         name: `ZF${(predefinedStructure.buildings.length + 1).toString().padStart(2, '0')}`,
         highShutters: 2,
-        lowShutters: 2
+        lowShutters: 2,
+        referenceFlow: undefined,
+        useReferenceFlow: false
       }]
     };
     
@@ -272,7 +275,9 @@ export default function CreateProjectScreen() {
       id: generateUniqueId(),
       name: `ZF${zoneNumber.toString().padStart(2, '0')}`,
       highShutters: 0,
-      lowShutters: 0
+      lowShutters: 0,
+      referenceFlow: undefined,
+      useReferenceFlow: false
     };
 
     setPredefinedStructure(prev => ({
@@ -326,6 +331,49 @@ export default function CreateProjectScreen() {
                   ? { 
                       ...z, 
                       [type === 'high' ? 'highShutters' : 'lowShutters']: clampedCount 
+                    }
+                  : z
+              )
+            }
+          : b
+      )
+    }));
+  };
+
+  const toggleZoneReferenceFlow = (buildingId: string, zoneId: string) => {
+    setPredefinedStructure(prev => ({
+      ...prev,
+      buildings: prev.buildings.map(b => 
+        b.id === buildingId 
+          ? { 
+              ...b, 
+              zones: b.zones.map(z => 
+                z.id === zoneId 
+                  ? { 
+                      ...z, 
+                      useReferenceFlow: !z.useReferenceFlow,
+                      referenceFlow: !z.useReferenceFlow ? 5000 : undefined
+                    }
+                  : z
+              )
+            }
+          : b
+      )
+    }));
+  };
+
+  const updateZoneReferenceFlow = (buildingId: string, zoneId: string, flow: number | undefined) => {
+    setPredefinedStructure(prev => ({
+      ...prev,
+      buildings: prev.buildings.map(b => 
+        b.id === buildingId 
+          ? { 
+              ...b, 
+              zones: b.zones.map(z => 
+                z.id === zoneId 
+                  ? { 
+                      ...z, 
+                      referenceFlow: flow
                     }
                   : z
               )
@@ -417,28 +465,6 @@ export default function CreateProjectScreen() {
 
             {predefinedStructure.enabled && (
               <View style={styles.predefinedContent}>
-                {/* Débit de référence par défaut */}
-                <View style={styles.defaultFlowCard}>
-                  <Text style={styles.defaultFlowTitle}>⚙️ Configuration par défaut</Text>
-                  <Input
-                    label="Débit de référence par défaut (m³/h)"
-                    value={predefinedStructure.defaultReferenceFlow?.toString() || ''}
-                    onChangeText={(text) => {
-                      const value = text.trim() === '' ? undefined : parseFloat(text) || undefined;
-                      setPredefinedStructure(prev => ({
-                        ...prev,
-                        defaultReferenceFlow: value
-                      }));
-                    }}
-                    placeholder="Ex: 5000"
-                    keyboardType="numeric"
-                    containerStyle={styles.defaultFlowInput}
-                  />
-                  <Text style={styles.defaultFlowDescription}>
-                    💡 Cette valeur sera appliquée automatiquement à tous les volets créés
-                  </Text>
-                </View>
-
                 {/* Liste des bâtiments */}
                 <View style={styles.buildingsSection}>
                   <View style={styles.buildingsSectionHeader}>
@@ -563,10 +589,46 @@ export default function CreateProjectScreen() {
                               </View>
 
                               {/* Résumé de la zone */}
-                              <View style={styles.zoneSummaryImproved}>
-                                <Text style={styles.zoneSummaryTextImproved}>
+                              <View style={styles.zoneSummary}>
+                                <Text style={styles.zoneSummaryText}>
                                   Total: {zone.highShutters + zone.lowShutters} volets
                                 </Text>
+                              </View>
+
+                              {/* Configuration débit de référence par zone */}
+                              <View style={styles.zoneReferenceFlowSection}>
+                                <View style={styles.zoneReferenceFlowHeader}>
+                                  <Text style={styles.zoneReferenceFlowTitle}>⚙️ Débit de référence</Text>
+                                  <TouchableOpacity
+                                    style={[styles.zoneToggle, zone.useReferenceFlow && styles.zoneToggleActive]}
+                                    onPress={() => toggleZoneReferenceFlow(building.id, zone.id)}
+                                  >
+                                    <View style={[styles.zoneToggleThumb, zone.useReferenceFlow && styles.zoneToggleThumbActive]} />
+                                  </TouchableOpacity>
+                                </View>
+                                
+                                {zone.useReferenceFlow && (
+                                  <View style={styles.zoneReferenceFlowInput}>
+                                    <TextInput
+                                      style={styles.referenceFlowInput}
+                                      value={zone.referenceFlow?.toString() || ''}
+                                      onChangeText={(text) => {
+                                        const value = text.trim() === '' ? undefined : parseFloat(text) || undefined;
+                                        updateZoneReferenceFlow(building.id, zone.id, value);
+                                      }}
+                                      placeholder="Ex: 5000"
+                                      placeholderTextColor={theme.colors.textTertiary}
+                                      keyboardType="numeric"
+                                    />
+                                    <Text style={styles.referenceFlowUnit}>m³/h</Text>
+                                  </View>
+                                )}
+                                
+                                {zone.useReferenceFlow && (
+                                  <Text style={styles.zoneReferenceFlowDescription}>
+                                    💡 Appliqué automatiquement aux {zone.highShutters + zone.lowShutters} volets de cette zone
+                                  </Text>
+                                )}
                               </View>
                             </View>
                           ))}
@@ -700,33 +762,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     transform: [{ translateX: 18 }],
   },
   predefinedContent: {
-    marginTop: 12,
-  },
-  
-  // Configuration par défaut
-  defaultFlowCard: {
-    backgroundColor: theme.colors.primary + '15',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: theme.colors.primary,
-  },
-  defaultFlowTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.colors.primary,
-    marginBottom: 8,
-  },
-  defaultFlowInput: {
-    marginBottom: 6,
-  },
-  defaultFlowDescription: {
-    fontSize: 11,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.primary,
-    lineHeight: 14,
-    fontStyle: 'italic',
+    marginTop: 8,
   },
   
   // Section bâtiments
@@ -753,7 +789,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     elevation: 4,
   },
   buildingsSectionTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.text,
   },
@@ -774,15 +810,15 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.primary,
   },
   buildingsScroll: {
-    maxHeight: 300,
+    maxHeight: 350,
   },
   
   // Cartes de bâtiment améliorées
   buildingCard: {
     backgroundColor: theme.colors.surfaceSecondary,
     borderRadius: 12,
-    padding: 10,
-    marginBottom: 8,
+    padding: 12,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: theme.colors.border,
     shadowColor: '#000',
@@ -1022,17 +1058,94 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   
   // Résumé zone amélioré
-  zoneSummaryImproved: {
+  zoneSummary: {
     alignItems: 'center', 
-    paddingTop: 8,
+    paddingTop: 6,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
-    marginTop: 2,
+    marginTop: 4,
+    marginBottom: 8,
   },
-  zoneSummaryTextImproved: {
+  zoneSummaryText: {
     fontSize: 11,
     fontFamily: 'Inter-Medium',
     color: theme.colors.textSecondary,
+    fontStyle: 'italic',
+  },
+  
+  // Configuration débit de référence par zone
+  zoneReferenceFlowSection: {
+    backgroundColor: theme.colors.primary + '15',
+    borderRadius: 8,
+    padding: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: theme.colors.primary,
+  },
+  zoneReferenceFlowHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  zoneReferenceFlowTitle: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.primary,
+  },
+  zoneToggle: {
+    width: 36,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: theme.colors.border,
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  zoneToggleActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  zoneToggleThumb: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: theme.colors.surface,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  zoneToggleThumbActive: {
+    transform: [{ translateX: 14 }],
+  },
+  zoneReferenceFlowInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  referenceFlowInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '40',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    backgroundColor: theme.colors.surface,
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+  referenceFlowUnit: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.primary,
+  },
+  zoneReferenceFlowDescription: {
+    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.primary,
+    lineHeight: 13,
     fontStyle: 'italic',
   },
   
