@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { ImagePlus } from 'lucide-react-native';
+import { Camera } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
@@ -141,12 +141,13 @@ export default function CreateNoteScreen() {
 
           {/* Bouton ajouter image */}
           <View style={styles.imageButtonContainer}>
-            <Button
-              title="📷 Ajouter une image"
+            <TouchableOpacity
+              style={styles.addPhotoButton}
               onPress={handleAddImage}
-              variant="secondary"
-              style={styles.imageButton}
-            />
+            >
+              <Camera size={16} color={theme.colors.primary} />
+              <Text style={styles.addPhotoText}>Ajouter une photo</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Champ de contenu simplifié */}
@@ -239,12 +240,22 @@ const createStyles = (theme: any) => StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  imageButton: {
-    paddingHorizontal: 12,
+  addPhotoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     height: 36,
-    alignSelf: 'center',
-    minWidth: 'auto',
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  addPhotoText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.primary,
   },
   fixedFooter: {
     position: Platform.OS === 'web' ? 'fixed' : 'absolute',

@@ -10,8 +10,7 @@ interface ImagePickerProps {
 
 export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
   const { theme } = useTheme();
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.8): Promise<string> => {
     return new Promise((resolve) => {
@@ -41,21 +40,21 @@ export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
     });
   };
 
-  const handleFileSelect = async (event: Event, isCamera: boolean = false) => {
+  const handleFileSelect = async (event: Event) => {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
     
     if (file && file.type.startsWith('image/')) {
       try {
-        console.log(`📸 ${isCamera ? 'Photo prise' : 'Fichier sélectionné'}:`, file.name, 'Taille:', file.size, 'Type:', file.type);
+        console.log('📸 Image sélectionnée:', file.name, 'Taille:', file.size, 'Type:', file.type);
         
         // Créer un Blob URL pour l'affichage immédiat
         const blobUrl = URL.createObjectURL(file);
-        console.log(`🔗 ${isCamera ? 'Photo' : 'Image'} URL créée:`, blobUrl);
+        console.log('🔗 Image URL créée:', blobUrl);
         
         // Compresser l'image pour le stockage
         const compressedBase64 = await compressImage(file);
-        console.log(`💾 ${isCamera ? 'Photo' : 'Image'} compressée pour stockage, taille:`, compressedBase64.length);
+        console.log('💾 Image compressée pour stockage, taille:', compressedBase64.length);
         
         // Passer l'image compressée (qui sera stockée)
         onImageSelected(compressedBase64);
@@ -78,15 +77,9 @@ export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
     target.value = '';
   };
 
-  const handleCameraClick = () => {
-    if (Platform.OS === 'web' && cameraInputRef.current) {
-      cameraInputRef.current.click();
-    }
-  };
-
-  const handleGalleryClick = () => {
-    if (Platform.OS === 'web' && galleryInputRef.current) {
-      galleryInputRef.current.click();
+  const handlePhotoClick = () => {
+    if (Platform.OS === 'web' && fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
@@ -101,43 +94,23 @@ export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.options}>
-        <TouchableOpacity style={styles.option} onPress={handleCameraClick}>
-          <View style={styles.optionIcon}>
-            <Camera size={24} color={theme.colors.primary} />
-          </View>
-          <Text style={styles.optionTitle}>Prendre une photo</Text>
-          <Text style={styles.optionSubtitle}>Utiliser l'appareil photo</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.option} onPress={handleGalleryClick}>
-          <View style={styles.optionIcon}>
-            <ImageIcon size={24} color={theme.colors.primary} />
-          </View>
-          <Text style={styles.optionTitle}>Choisir depuis la galerie</Text>
-          <Text style={styles.optionSubtitle}>Sélectionner une image existante</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.singleOption} onPress={handlePhotoClick}>
+        <View style={styles.optionIcon}>
+          <Camera size={24} color={theme.colors.primary} />
+        </View>
+        <Text style={styles.optionTitle}>Ajouter une photo</Text>
+        <Text style={styles.optionSubtitle}>Galerie, appareil photo ou fichiers</Text>
+      </TouchableOpacity>
 
       {/* Inputs cachés pour web */}
       {Platform.OS === 'web' && (
-        <>
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            style={{ display: 'none' }}
-            onChange={(e) => handleFileSelect(e as any, true)}
-          />
-          <input
-            ref={galleryInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={(e) => handleFileSelect(e as any, false)}
-          />
-        </>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => handleFileSelect(e as any)}
+        />
       )}
     </View>
   );
@@ -167,6 +140,15 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   options: {
     gap: 12,
+  },
+  singleOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   option: {
     flexDirection: 'row',
