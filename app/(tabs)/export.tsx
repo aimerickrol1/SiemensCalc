@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, Platform, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, Platform, RefreshControl, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
@@ -12,6 +12,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { triggerCreateProjectModal } from '@/utils/EventEmitter';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { router } from 'expo-router';
+import { Note } from '@/types';
 
 // Import conditionnel sécurisé pour éviter les erreurs sur web et Android
 let FileSystem: any = null;
@@ -40,12 +41,14 @@ const loadNativeModules = async () => {
 export default function ExportScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
-  const { projects } = useStorage();
+  const { projects, notes } = useStorage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [exportLoading, setExportLoading] = useState<string | null>(null);
+  const [exportingNote, setExportingNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [nativeModulesReady, setNativeModulesReady] = useState(false);
+  const [selectedNotesForProject, setSelectedNotesForProject] = useState<{[projectId: string]: string[]}>({});
 
   // Charger les modules natifs au montage
   useEffect(() => {
@@ -146,6 +149,479 @@ export default function ExportScreen() {
     };
   };
 
+  const generateNoteHTML = (note: Note) => {
+    const timestamp = new Date().toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const formatDate = (date: Date) => {
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(new Date(date));
+    };
+
+    let htmlContent = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note - ${note.title || 'Note sans titre'}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .header {
+            border-bottom: 4px solid #009999;
+            padding-bottom: 30px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .siemens-logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #009999;
+            letter-spacing: 2px;
+        }
+        
+        .document-info {
+            text-align: right;
+            color: #666;
+        }
+        
+        .document-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #009999;
+            margin-bottom: 10px;
+        }
+        
+        .document-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .note-section {
+            background: linear-gradient(135deg, #f8fffe 0%, #e6fffa 100%);
+            border-left: 6px solid #009999;
+            padding: 30px;
+            margin-bottom: 40px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .note-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #009999;
+            margin-bottom: 15px;
+            word-wrap: break-word;
+        }
+        
+        .note-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+        }
+        
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .meta-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .meta-value {
+            color: #009999;
+            font-weight: 500;
+        }
+        
+        .content-section {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-height: 200px;
+        }
+        
+        .content-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .content-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #444;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .empty-content {
+            font-style: italic;
+            color: #888;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .images-section {
+            margin-top: 40px;
+        }
+        
+        .images-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .image-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .image-container img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .image-caption {
+            padding: 10px;
+            background: #f8f9fa;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+        }
+        
+        .footer-note {
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .footer-signature {
+            font-weight: 600;
+            color: #009999;
+        }
+        
+        @media print {
+            body {
+                padding: 20px;
+            }
+            
+            .note-section,
+            .content-section {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+            
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .note-meta {
+                grid-template-columns: 1fr;
+            }
+            
+            .images-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-section">
+            <div class="siemens-logo">SIEMENS</div>
+            <div>
+                <div class="document-title">NOTE TECHNIQUE</div>
+                <div class="document-subtitle">Documentation Projet - CalcConform</div>
+            </div>
+        </div>
+        <div class="document-info">
+            <div><strong>Date d'export :</strong> ${timestamp}</div>
+            <div><strong>Version :</strong> 1.1.0</div>
+            <div><strong>Référence :</strong> ${note.id.substring(0, 8).toUpperCase()}</div>
+        </div>
+    </div>
+
+    <div class="note-section">
+        <div class="note-title">${note.title || 'Note sans titre'}</div>
+        <div class="note-meta">
+            <div class="meta-item">
+                <span class="meta-label">Date de création :</span>
+                <span class="meta-value">${formatDate(note.createdAt)}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Dernière modification :</span>
+                <span class="meta-value">${formatDate(note.updatedAt)}</span>
+            </div>
+            ${note.images && note.images.length > 0 ? `
+            <div class="meta-item">
+                <span class="meta-label">Images attachées :</span>
+                <span class="meta-value">${note.images.length} image${note.images.length > 1 ? 's' : ''}</span>
+            </div>
+            ` : ''}
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div class="content-title">
+            📝 Contenu de la note
+        </div>
+        ${note.content && note.content.trim() ? `
+        <div class="content-text">${note.content.replace(/\n/g, '<br>')}</div>
+        ` : `
+        <div class="empty-content">Cette note ne contient pas de texte.</div>
+        `}
+    </div>
+
+    ${note.images && note.images.length > 0 ? `
+    <div class="images-section">
+        <div class="images-title">
+            📷 Images attachées (${note.images.length})
+        </div>
+        <div class="images-grid">
+            ${note.images.map((image, index) => `
+            <div class="image-container">
+                <img src="${image}" alt="Image ${index + 1}" />
+                <div class="image-caption">Image ${index + 1}</div>
+            </div>
+            `).join('')}
+        </div>
+    </div>
+    ` : ''}
+
+    <div class="footer">
+        <div class="footer-note">
+            Ce document a été généré automatiquement par l'application Siemens CalcConform v1.1.0<br>
+            Note technique pour documentation de projet
+        </div>
+        <div class="footer-signature">
+            © ${new Date().getFullYear()} Siemens - Tous droits réservés
+        </div>
+    </div>
+</body>
+</html>`;
+
+    return htmlContent;
+  };
+
+  const generateNoteTXT = (note: Note) => {
+    const formatDate = (date: Date) => {
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(new Date(date));
+    };
+
+    let txtContent = `SIEMENS - NOTE TECHNIQUE
+========================================
+
+Titre: ${note.title || 'Note sans titre'}
+
+Informations:
+- Date de création: ${formatDate(note.createdAt)}
+- Dernière modification: ${formatDate(note.updatedAt)}
+- Référence: ${note.id.substring(0, 8).toUpperCase()}
+${note.images && note.images.length > 0 ? `- Images attachées: ${note.images.length}` : ''}
+
+========================================
+CONTENU
+========================================
+
+${note.content && note.content.trim() ? note.content : 'Cette note ne contient pas de texte.'}
+
+${note.images && note.images.length > 0 ? `
+========================================
+IMAGES ATTACHÉES
+========================================
+
+Cette note contient ${note.images.length} image${note.images.length > 1 ? 's' : ''}.
+Les images ne peuvent pas être incluses dans ce format texte.
+Pour voir les images, utilisez l'export HTML ou consultez la note dans l'application.
+` : ''}
+
+========================================
+
+Document généré par Siemens CalcConform v1.1.0
+© ${new Date().getFullYear()} Siemens - Tous droits réservés
+
+Pour toute question: aimeric.krol@siemens.com
+`;
+
+    return txtContent;
+  };
+
+  const handleExportNote = async (note: Note, format: 'html' | 'txt') => {
+    setExportingNote(note.id);
+    
+    try {
+      const timestamp = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      const safeTitle = (note.title || 'Note_sans_titre').replace(/[^a-zA-Z0-9]/g, '_');
+      const fileName = `Note_Siemens_${safeTitle}_${timestamp}.${format}`;
+      
+      const content = format === 'html' ? generateNoteHTML(note) : generateNoteTXT(note);
+      const mimeType = format === 'html' ? 'text/html;charset=utf-8;' : 'text/plain;charset=utf-8;';
+      
+      if (Platform.OS === 'web') {
+        try {
+          const blob = new Blob([content], { type: mimeType });
+          const link = document.createElement('a');
+          const url = URL.createObjectURL(blob);
+          link.setAttribute('href', url);
+          link.setAttribute('download', fileName);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          Alert.alert(
+            '✅ Note Exportée',
+            `La note "${note.title || 'Sans titre'}" a été téléchargée au format ${format.toUpperCase()}.`,
+            [{ text: 'Parfait !' }]
+          );
+        } catch (webError) {
+          console.warn('Erreur export web:', webError);
+          Alert.alert('Export réussi', 'La note a été générée avec succès.');
+        }
+      } else if (nativeModulesReady && FileSystem && Sharing) {
+        try {
+          const fileUri = FileSystem.documentDirectory + fileName;
+          await FileSystem.writeAsStringAsync(fileUri, content, {
+            encoding: FileSystem.EncodingType.UTF8,
+          });
+
+          const isAvailable = await Sharing.isAvailableAsync();
+          if (isAvailable) {
+            await Sharing.shareAsync(fileUri, {
+              mimeType: mimeType,
+              dialogTitle: 'Partager la note Siemens'
+            });
+          } else {
+            Alert.alert(
+              '✅ Note générée',
+              `Fichier enregistré :\n${fileUri}`,
+              [{ text: 'OK' }]
+            );
+          }
+        } catch (fileError) {
+          console.warn('Erreur fichier:', fileError);
+          Alert.alert('Export réussi', 'La note a été générée avec succès.');
+        }
+      } else {
+        Alert.alert('Export réussi', 'La note a été générée avec succès.');
+      }
+
+    } catch (error) {
+      console.error('Erreur lors de l\'export de la note:', error);
+      Alert.alert(
+        'Erreur d\'export',
+        'Impossible de générer le fichier. Veuillez réessayer.',
+        [{ text: strings.ok }]
+      );
+    } finally {
+      setExportingNote(null);
+    }
+  };
+
+  const toggleNoteForProject = (projectId: string, noteId: string) => {
+    setSelectedNotesForProject(prev => {
+      const currentNotes = prev[projectId] || [];
+      const isSelected = currentNotes.includes(noteId);
+      
+      return {
+        ...prev,
+        [projectId]: isSelected 
+          ? currentNotes.filter(id => id !== noteId)
+          : [...currentNotes, noteId]
+      };
+    });
+  };
+
   const generateProfessionalHTML = (project: Project) => {
     const report = generateProjectReport(project);
     const timestamp = new Date().toLocaleDateString('fr-FR', {
@@ -155,6 +631,11 @@ export default function ExportScreen() {
       hour: '2-digit',
       minute: '2-digit'
     });
+
+    // Récupérer les notes associées à ce projet
+    const associatedNotes = (selectedNotesForProject[project.id] || [])
+      .map(noteId => notes.find(note => note.id === noteId))
+      .filter(note => note !== undefined) as Note[];
 
     let htmlContent = `
 <!DOCTYPE html>
@@ -700,6 +1181,31 @@ export default function ExportScreen() {
             </table>
         </div>
 
+        ${associatedNotes.length > 0 ? `
+        <div class="detailed-table">
+            <div class="table-title">📝 NOTES ASSOCIÉES</div>
+            ${associatedNotes.map(note => `
+            <div style="background: #f8f9fa; border-left: 4px solid #009999; padding: 20px; margin-bottom: 20px; border-radius: 0 8px 8px 0;">
+                <h3 style="color: #009999; margin-bottom: 10px;">${note.title || 'Note sans titre'}</h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+                    Créée le ${new Date(note.createdAt).toLocaleDateString('fr-FR')} • 
+                    Modifiée le ${new Date(note.updatedAt).toLocaleDateString('fr-FR')}
+                </p>
+                ${note.content ? `
+                <div style="background: white; padding: 15px; border-radius: 6px; white-space: pre-wrap; line-height: 1.6;">
+                    ${note.content.replace(/\n/g, '<br>')}
+                </div>
+                ` : '<p style="font-style: italic; color: #888;">Cette note ne contient pas de texte.</p>'}
+                ${note.images && note.images.length > 0 ? `
+                <p style="margin-top: 10px; font-size: 12px; color: #009999;">
+                    📷 ${note.images.length} image${note.images.length > 1 ? 's' : ''} attachée${note.images.length > 1 ? 's' : ''}
+                </p>
+                ` : ''}
+            </div>
+            `).join('')}
+        </div>
+        ` : ''}
+
         <div class="footer">
             <div class="footer-note">
                 Ce rapport a été généré automatiquement par l'application Siemens CalcConform v1.1.0<br>
@@ -725,6 +1231,61 @@ export default function ExportScreen() {
 </html>`;
 
     return htmlContent;
+  };
+
+  const renderNote = (note: Note) => {
+    const isExportingHTML = exportingNote === note.id + '_html';
+    const isExportingTXT = exportingNote === note.id + '_txt';
+    
+    const formatDate = (date: Date) => {
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      }).format(new Date(date));
+    };
+
+    return (
+      <View key={note.id} style={styles.noteCard}>
+        <View style={styles.noteHeader}>
+          <Text style={styles.noteTitle}>{note.title || 'Note sans titre'}</Text>
+          <Text style={styles.noteDate}>
+            Créée le {formatDate(note.createdAt)}
+          </Text>
+        </View>
+
+        {note.content && (
+          <Text style={styles.notePreview} numberOfLines={3}>
+            {note.content.length > 150 ? note.content.substring(0, 150) + '...' : note.content}
+          </Text>
+        )}
+
+        {note.images && note.images.length > 0 && (
+          <Text style={styles.noteImages}>
+            📷 {note.images.length} image{note.images.length > 1 ? 's' : ''}
+          </Text>
+        )}
+
+        <View style={styles.noteExportButtons}>
+          <Button
+            title={isExportingHTML ? 'Export...' : 'Export HTML'}
+            onPress={() => handleExportNote(note, 'html')}
+            variant="primary"
+            size="small"
+            style={styles.noteExportButton}
+            disabled={isExportingHTML || isExportingTXT}
+          />
+          <Button
+            title={isExportingTXT ? 'Export...' : 'Export TXT'}
+            onPress={() => handleExportNote(note, 'txt')}
+            variant="secondary"
+            size="small"
+            style={styles.noteExportButton}
+            disabled={isExportingHTML || isExportingTXT}
+          />
+        </View>
+      </View>
+    );
   };
 
   const handleExportHTML = async (project: Project) => {
@@ -860,6 +1421,34 @@ export default function ExportScreen() {
         </View>
 
         <View style={styles.exportButtons}>
+          {/* Sélection des notes pour ce projet */}
+          {notes.length > 0 && (
+            <View style={styles.notesSelectionContainer}>
+              <Text style={styles.notesSelectionTitle}>📝 Notes à inclure dans le rapport</Text>
+              <View style={styles.notesSelectionList}>
+                {notes.map(note => {
+                  const isSelected = (selectedNotesForProject[project.id] || []).includes(note.id);
+                  return (
+                    <TouchableOpacity
+                      key={note.id}
+                      style={[styles.noteSelectionItem, isSelected && styles.noteSelectionItemSelected]}
+                      onPress={() => toggleNoteForProject(project.id, note.id)}
+                    >
+                      <Text style={[styles.noteSelectionText, isSelected && styles.noteSelectionTextSelected]}>
+                        {note.title || 'Note sans titre'}
+                      </Text>
+                      {isSelected && (
+                        <Text style={styles.noteSelectionCheck}>✓</Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.exportButtons}>
           <Button
             title={isExportingHTML ? 'Génération...' : 'Exporter le rapport'}
             onPress={() => handleExportHTML(project)}
@@ -870,6 +1459,35 @@ export default function ExportScreen() {
           />
         </View>
       </View>
+    );
+  };
+
+  const renderNotesSection = () => {
+    if (notes.length === 0) {
+      return (
+        <View style={styles.emptyNotesContainer}>
+          <Ionicons name="document-text-outline" size={48} color={theme.colors.textTertiary} />
+          <Text style={styles.emptyNotesTitle}>Aucune note à exporter</Text>
+          <Text style={styles.emptyNotesSubtitle}>
+            Créez des notes pour pouvoir les exporter
+          </Text>
+          <Button
+            title="Créer une note"
+            onPress={() => router.push('/(tabs)/notes')}
+            style={styles.refreshButton}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <>
+        <Text style={styles.sectionTitle}>📝 Exporter les notes</Text>
+        <Text style={styles.sectionSubtitle}>
+          Générez des documents professionnels de vos notes
+        </Text>
+        {notes.map(renderNote)}
+      </>
     );
   };
 
@@ -967,6 +1585,9 @@ export default function ExportScreen() {
             {projects.map(renderProject)}
           </>
         )}
+
+        {/* Section Notes */}
+        {renderNotesSection()}
       </ScrollView>
     </View>
   );
@@ -1168,5 +1789,119 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   exportButton: {
     flex: 1,
+  },
+  // Styles pour les notes
+  noteCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    borderLeftWidth: 4,
+    borderLeftColor: '#F59E0B',
+  },
+  noteHeader: {
+    marginBottom: 12,
+  },
+  noteTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+    marginBottom: 4,
+  },
+  noteDate: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+  },
+  notePreview: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  noteImages: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.primary,
+    marginBottom: 12,
+  },
+  noteExportButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  noteExportButton: {
+    flex: 1,
+  },
+  emptyNotesContainer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 16,
+  },
+  emptyNotesTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyNotesSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  // Styles pour la sélection de notes
+  notesSelectionContainer: {
+    backgroundColor: theme.colors.primary + '20',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '40',
+  },
+  notesSelectionTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.primary,
+    marginBottom: 8,
+  },
+  notesSelectionList: {
+    gap: 6,
+  },
+  noteSelectionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  noteSelectionItemSelected: {
+    backgroundColor: theme.colors.primary + '20',
+    borderColor: theme.colors.primary,
+  },
+  noteSelectionText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.textSecondary,
+    flex: 1,
+  },
+  noteSelectionTextSelected: {
+    color: theme.colors.primary,
+  },
+  noteSelectionCheck: {
+    fontSize: 12,
+    fontFamily: 'Inter-Bold',
+    color: theme.colors.primary,
   },
 });
