@@ -488,7 +488,6 @@ export default function CreateProjectScreen() {
 
                         {/* En-tête du bâtiment amélioré */}
                         <View style={styles.buildingHeaderImproved}>
-                          <Text style={styles.buildingNumberBadge}>#{buildingIndex + 1}</Text>
                           <TextInput
                             style={styles.buildingNameInputImproved}
                             value={building.name}
@@ -523,7 +522,6 @@ export default function CreateProjectScreen() {
 
                               {/* En-tête zone amélioré */}
                               <View style={styles.zoneHeaderImproved}>
-                                <Text style={styles.zoneNumberBadge}>Z{zoneIndex + 1}</Text>
                                 <TextInput
                                   style={styles.zoneNameInputImproved}
                                   value={zone.name}
@@ -852,22 +850,9 @@ const createStyles = (theme: any) => StyleSheet.create({
   buildingHeaderImproved: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 0,
     marginBottom: 10,
     paddingRight: 30, // Espace pour le badge de suppression
-  },
-  buildingNumberBadge: {
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
-    color: theme.colors.primary,
-    backgroundColor: theme.colors.primary + '20',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    minWidth: 28,
-    textAlign: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.primary + '40',
   },
   buildingNameInputImproved: {
     flex: 1,
@@ -963,22 +948,9 @@ const createStyles = (theme: any) => StyleSheet.create({
   zoneHeaderImproved: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 0,
     marginBottom: 12,
     paddingRight: 26, // Espace pour le badge de suppression
-  },
-  zoneNumberBadge: {
-    fontSize: 10,
-    fontFamily: 'Inter-Bold',
-    color: theme.colors.primary,
-    backgroundColor: theme.colors.primary + '20',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
-    minWidth: 24,
-    textAlign: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.primary + '40',
   },
   zoneNameInputImproved: {
     flex: 1,
@@ -1120,26 +1092,29 @@ const createStyles = (theme: any) => StyleSheet.create({
   zoneReferenceFlowInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
     marginBottom: 6,
   },
   referenceFlowInput: {
-    flex: 1,
+    flex: 0,
+    width: 80,
     borderWidth: 1,
     borderColor: theme.colors.primary + '40',
     borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     backgroundColor: theme.colors.surface,
     color: theme.colors.text,
     textAlign: 'center',
+    minHeight: 32,
   },
   referenceFlowUnit: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter-Medium',
     color: theme.colors.primary,
+    marginLeft: 4,
   },
   zoneReferenceFlowDescription: {
     fontSize: 10,
