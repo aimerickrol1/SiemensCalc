@@ -250,30 +250,9 @@ export default function SimpleCalculatorScreen() {
                 <ChevronRight size={16} color={theme.colors.primary} />
               )}
             </TouchableOpacity>
-            {quickCalcHistory.length > 0 && (
-              <TouchableOpacity 
-                style={styles.clearHistoryButton}
-                onPress={clearHistory}
-              >
-                <Trash2 size={10} color={theme.colors.error} />
-                <Text style={styles.clearHistoryText}>Tout effacer</Text>
-              </TouchableOpacity>
-            )}
           </View>
 
-          {!historyExpanded ? (
-            <View style={styles.collapsedHistoryContainer}>
-              <Text style={styles.collapsedHistoryText}>
-                {quickCalcHistory.length === 0 
-                  ? 'Aucun calcul sauvegardé'
-                  : `${quickCalcHistory.length} calcul${quickCalcHistory.length > 1 ? 's' : ''} sauvegardé${quickCalcHistory.length > 1 ? 's' : ''}`
-                }
-              </Text>
-              <Text style={styles.collapsedHistorySubtext}>
-                Cliquez pour {historyExpanded ? 'masquer' : 'afficher'}
-              </Text>
-            </View>
-          ) : quickCalcHistory.length === 0 ? (
+          {historyExpanded && quickCalcHistory.length === 0 ? (
             <View style={styles.emptyHistoryContainer}>
               <Text style={styles.emptyHistoryText}>
                 Aucun calcul effectué récemment
@@ -282,7 +261,19 @@ export default function SimpleCalculatorScreen() {
                 Vos calculs sauvegardés apparaîtront ici
               </Text>
             </View>
-          ) : (
+          ) : historyExpanded && (
+            <>
+              {quickCalcHistory.length > 0 && (
+                <View style={styles.historyActions}>
+                  <TouchableOpacity 
+                    style={styles.clearHistoryButton}
+                    onPress={clearHistory}
+                  >
+                    <Trash2 size={14} color={theme.colors.error} />
+                    <Text style={styles.clearHistoryText}>Tout effacer</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             <View style={styles.historyList}>
               {quickCalcHistory.map((item, index) => (
                 <View
@@ -294,9 +285,6 @@ export default function SimpleCalculatorScreen() {
                     onPress={() => useHistoryItem(item)}
                   >
                     <View style={styles.historyItemHeader}>
-                      <Text style={styles.historyItemTitle}>
-                        Calcul #{quickCalcHistory.length - index}
-                      </Text>
                       <Text style={styles.historyItemTime}>
                         {formatHistoryDate(item.timestamp)}
                       </Text>
@@ -341,6 +329,7 @@ export default function SimpleCalculatorScreen() {
                 </View>
               ))}
             </View>
+            </>
           )}
         </View>
 
@@ -495,9 +484,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     elevation: 3,
   },
   historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 16,
   },
   historyTitleContainer: {
@@ -512,34 +498,25 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.text,
     flex: 1,
   },
+  historyActions: {
+    alignItems: 'flex-end',
+    marginBottom: 12,
+  },
   clearHistoryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
     backgroundColor: theme.colors.error + '20',
+    borderWidth: 1,
+    borderColor: theme.colors.error + '40',
   },
   clearHistoryText: {
-    fontSize: 9,
+    fontSize: 12,
     fontFamily: 'Inter-Medium',
     color: theme.colors.error,
-  },
-  collapsedHistoryContainer: {
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  collapsedHistoryText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: theme.colors.textSecondary,
-    marginBottom: 4,
-  },
-  collapsedHistorySubtext: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.textTertiary,
   },
   emptyHistoryContainer: {
     alignItems: 'center',
@@ -574,14 +551,9 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   historyItemHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
     marginBottom: 8,
-  },
-  historyItemTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.colors.text,
   },
   historyItemTime: {
     fontSize: 11,
