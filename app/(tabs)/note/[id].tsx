@@ -318,38 +318,37 @@ export default function NoteDetailScreen() {
         }
       />
 
-      <ScrollView 
-        style={styles.content} 
-        contentContainerStyle={[
-          styles.contentContainer,
-          Platform.OS === 'web' && styles.contentContainerWeb
-        ]}
-      >
-        <View style={styles.metaCard}>
-          <View style={styles.metaRow}>
-            <Calendar size={16} color={theme.colors.textSecondary} />
-            <Text style={styles.metaLabel}>Créé le</Text>
-            <Text style={styles.metaValue}>{formatDate(note.createdAt)}</Text>
-          </View>
-          {note.updatedAt.getTime() !== note.createdAt.getTime() && (
+      <View style={styles.content}>
+        {/* Section fixe en haut avec méta et images */}
+        <View style={styles.topSection}>
+          <View style={styles.metaCard}>
             <View style={styles.metaRow}>
               <Calendar size={16} color={theme.colors.textSecondary} />
-              <Text style={styles.metaLabel}>Modifié le</Text>
-              <Text style={styles.metaValue}>{formatDate(note.updatedAt)}</Text>
+              <Text style={styles.metaLabel}>Créé le</Text>
+              <Text style={styles.metaValue}>{formatDate(note.createdAt)}</Text>
             </View>
-          )}
+            {note.updatedAt.getTime() !== note.createdAt.getTime() && (
+              <View style={styles.metaRow}>
+                <Calendar size={16} color={theme.colors.textSecondary} />
+                <Text style={styles.metaLabel}>Modifié le</Text>
+                <Text style={styles.metaValue}>{formatDate(note.updatedAt)}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Galerie d'images */}
+          <NoteImageGallery 
+            images={note.images || []}
+            onRemoveImage={handleRemoveImage}
+            editable={true}
+          />
+
+          {/* Label du contenu */}
+          <Text style={styles.contentLabel}>{strings.noteContent}</Text>
         </View>
 
-        {/* Galerie d'images en lecture seule */}
-        <NoteImageGallery 
-          images={note.images || []}
-          onRemoveImage={handleRemoveImage}
-          editable={true}
-        />
-
-        {/* Contenu éditable inline */}
-        <View style={styles.contentSection}>
-          <Text style={styles.contentLabel}>{strings.noteContent}</Text>
+        {/* Champ de contenu qui remplit tout l'espace restant */}
+        <View style={styles.contentContainer}>
           <TextInput
             style={styles.contentTextInput}
             value={editingContent}
@@ -365,7 +364,7 @@ export default function NoteDetailScreen() {
             blurOnSubmit={false}
           />
         </View>
-      </ScrollView>
+      </View>
 
       {/* Input caché pour web */}
       {Platform.OS === 'web' && (
@@ -515,11 +514,14 @@ const createStyles = (theme: any) => StyleSheet.create({
   content: {
     flex: 1,
   },
-  contentContainer: {
+  topSection: {
     padding: 16,
+    paddingBottom: 8,
   },
-  contentContainerWeb: {
-    paddingBottom: Platform.OS === 'web' ? 100 : 16,
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: Platform.OS === 'web' ? 100 : 80, // Espace pour la barre de navigation
   },
   errorContainer: {
     flex: 1,
@@ -569,49 +571,19 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     textAlign: 'right',
   },
-  titleCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  titleLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: theme.colors.textSecondary,
-    marginBottom: 8,
-  },
-  contentCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 20,
-    minHeight: 250,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  contentSection: {
-    marginTop: 16,
-  },
   contentLabel: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: theme.colors.textSecondary,
-    marginBottom: 12,
+    marginBottom: 8,
+    marginTop: 16,
   },
   contentTextInput: {
+    flex: 1,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: theme.colors.text,
     lineHeight: 24,
-    minHeight: 200,
     padding: 0,
     margin: 0,
     backgroundColor: 'transparent',
