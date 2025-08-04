@@ -287,6 +287,10 @@ export default function NoteDetailScreen() {
             autoCorrect={true}
             spellCheck={true}
             returnKeyType="default"
+            blurOnSubmit={false}
+            onSelectionChange={() => {
+              // Empêcher les modifications automatiques pendant la sélection
+            }}
           />
         </View>
       </ScrollView>
