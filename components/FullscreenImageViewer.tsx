@@ -1,15 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions, Platform } from 'react-native';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { PanGestureHandler, PinchGestureHandler, State } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedGestureHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-  runOnJS,
-} from 'react-native-reanimated';
 
 interface FullscreenImageViewerProps {
   images: string[];
@@ -19,104 +10,72 @@ interface FullscreenImageViewerProps {
 
 export function FullscreenImageViewer({ images, initialIndex, onClose }: FullscreenImageViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [imageError, setImageError] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const scrollViewRef = useRef<ScrollView>(null);
+
   const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
 
-  // Valeurs animées pour le zoom et le pan
-  const scale = useSharedValue(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const savedScale = useSharedValue(1);
-
-  // Reset des transformations quand on change d'image
   useEffect(() => {
-    scale.value = withSpring(1);
-    translateX.value = withSpring(0);
-    translateY.value = withSpring(0);
-    savedScale.value = 1;
-    setImageError(false);
-  }, [currentIndex]);
+    console.log('🖼️ FullscreenImageViewer - Images reçues:', images.length);
+    console.log('🖼️ FullscreenImageViewer - Index initial:', initialIndex);
+    
+    // Scroll vers l'image initiale
+    if (scrollViewRef.current && initialIndex > 0) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          x: initialIndex * screenWidth,
+          animated: false
+        });
+      }, 100);
+    }
+  }, [initialIndex, screenWidth]);
+
+  const handleScroll = (event: any) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(contentOffsetX / screenWidth);
+    if (newIndex !== currentIndex && newIndex >= 0 && newIndex < images.length) {
+      setCurrentIndex(newIndex);
+    }
+  };
 
   const goToPrevious = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+      const newIndex = currentIndex - 1;
+      setCurrentIndex(newIndex);
+      scrollViewRef.current?.scrollTo({
+        x: newIndex * screenWidth,
+        animated: true
+      });
     }
   };
 
   const goToNext = () => {
     if (currentIndex < images.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+      const newIndex = currentIndex + 1;
+      setCurrentIndex(newIndex);
+      scrollViewRef.current?.scrollTo({
+        x: newIndex * screenWidth,
+        animated: true
+      });
     }
   };
 
-  const handleImageError = () => {
-    console.error('❌ Erreur chargement image plein écran:', images[currentIndex]?.substring(0, 50));
-    setImageError(true);
+  const handleImageError = (index: number) => {
+    console.error('❌ Erreur chargement image plein écran', index);
+    setImageErrors(prev => new Set([...prev, index]));
   };
 
-  const handleImageLoad = () => {
-    console.log('✅ Image plein écran chargée avec succès');
-    setImageError(false);
+  const handleImageLoad = (index: number) => {
+    console.log('✅ Image plein écran', index, 'chargée avec succès');
+    setImageErrors(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      return newSet;
+    });
   };
-
-  // Gestionnaire de pincement pour le zoom
-  const pinchHandler = useAnimatedGestureHandler({
-    onStart: () => {
-      savedScale.value = scale.value;
-    },
-    onActive: (event) => {
-      scale.value = savedScale.value * event.scale;
-    },
-    onEnd: () => {
-      if (scale.value < 1) {
-        scale.value = withSpring(1);
-      } else if (scale.value > 3) {
-        scale.value = withSpring(3);
-      }
-      savedScale.value = scale.value;
-    },
-  });
-
-  // Gestionnaire de pan pour le déplacement
-  const panHandler = useAnimatedGestureHandler({
-    onStart: () => {
-      // Sauvegarder les positions actuelles
-    },
-    onActive: (event) => {
-      translateX.value = event.translationX;
-      translateY.value = event.translationY;
-    },
-    onEnd: (event) => {
-      // Si on tire vers le bas avec une vitesse suffisante, fermer
-      if (event.translationY > 100 && event.velocityY > 500) {
-        runOnJS(onClose)();
-      } else {
-        // Sinon, revenir à la position d'origine
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
-      }
-    },
-  });
-
-  // Style animé pour l'image
-  const animatedImageStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { scale: scale.value },
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-      ],
-    };
-  });
-
-  const currentImage = images[currentIndex];
 
   return (
     <View style={styles.container}>
-      {/* StatusBar cachée pour un vrai plein écran */}
-      {Platform.OS !== 'web' && <StatusBar hidden />}
-      
       {/* Header avec compteur et bouton fermer */}
       <View style={styles.header}>
         <View style={styles.counter}>
@@ -130,49 +89,56 @@ export function FullscreenImageViewer({ images, initialIndex, onClose }: Fullscr
       </View>
 
       {/* Contenu principal avec l'image */}
-      <View style={styles.imageContainer}>
-        {!currentImage || currentImage.trim() === '' ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>Image vide</Text>
-          </View>
-        ) : imageError ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>Impossible de charger l'image</Text>
-          </View>
-        ) : (
-          <PinchGestureHandler onGestureEvent={pinchHandler}>
-            <Animated.View style={styles.gestureContainer}>
-              <PanGestureHandler onGestureEvent={panHandler}>
-                <Animated.View style={styles.gestureContainer}>
-                  <Animated.Image
-                    source={{ uri: currentImage }}
-                    style={[styles.fullImage, animatedImageStyle]}
-                    onError={handleImageError}
-                    onLoad={handleImageLoad}
-                    resizeMode="contain"
-                  />
-                </Animated.View>
-              </PanGestureHandler>
-            </Animated.View>
-          </PinchGestureHandler>
+      <View style={styles.content}>
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {images.map((imageBase64, index) => (
+            <View key={index} style={[styles.imageContainer, { width: screenWidth }]}>
+              {!imageBase64 || imageBase64.trim() === '' ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>Image vide</Text>
+                </View>
+              ) : imageErrors.has(index) ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>Impossible de charger l'image</Text>
+                </View>
+              ) : (
+                <Image
+                  source={{ uri: imageBase64 }}
+                  style={styles.fullImage}
+                  resizeMode="contain"
+                  onError={() => handleImageError(index)}
+                  onLoad={() => handleImageLoad(index)}
+                />
+              )}
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Boutons de navigation (seulement si plusieurs images) */}
+        {images.length > 1 && (
+          <>
+            {currentIndex > 0 && (
+              <TouchableOpacity style={[styles.navButton, styles.navButtonLeft]} onPress={goToPrevious}>
+                <ChevronLeft size={32} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
+            {currentIndex < images.length - 1 && (
+              <TouchableOpacity style={[styles.navButton, styles.navButtonRight]} onPress={goToNext}>
+                <ChevronRight size={32} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
-
-      {/* Boutons de navigation (seulement si plusieurs images) */}
-      {images.length > 1 && (
-        <>
-          {currentIndex > 0 && (
-            <TouchableOpacity style={[styles.navButton, styles.navButtonLeft]} onPress={goToPrevious}>
-              <ChevronLeft size={32} color="#FFFFFF" />
-            </TouchableOpacity>
-          )}
-          {currentIndex < images.length - 1 && (
-            <TouchableOpacity style={[styles.navButton, styles.navButtonRight]} onPress={goToNext}>
-              <ChevronRight size={32} color="#FFFFFF" />
-            </TouchableOpacity>
-          )}
-        </>
-      )}
 
       {/* Indicateurs de pagination (seulement si plusieurs images) */}
       {images.length > 1 && (
@@ -229,19 +195,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  imageContainer: {
+  content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
     height: '100%',
   },
-  gestureContainer: {
+  scrollView: {
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  scrollContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '100%',
+  },
+  imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    height: '100%',
+    padding: 20,
   },
   fullImage: {
     width: '100%',

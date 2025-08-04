@@ -31,15 +31,11 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
   };
 
   const handleImagePress = (index: number) => {
-    setSelectedImageIndex(index);
     showModal(
       <FullscreenImageViewer 
         images={images}
         initialIndex={index}
-        onClose={() => {
-          setSelectedImageIndex(null);
-          hideModal();
-        }}
+        onClose={hideModal}
       />,
       { animationType: 'fade' }
     );
@@ -90,27 +86,17 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const itemFadeAnim = React.useRef(new Animated.Value(0)).current;
-  const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
 
   React.useEffect(() => {
     if (imageLoaded && !imageError) {
-      Animated.parallel([
-        Animated.timing(itemFadeAnim, {
-          toValue: 1,
-          duration: 300,
-          delay: index * 100,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 100,
-          friction: 8,
-          delay: index * 100,
-          useNativeDriver: true,
-        })
-      ]).start();
+      Animated.timing(itemFadeAnim, {
+        toValue: 1,
+        duration: 300,
+        delay: index * 100,
+        useNativeDriver: true,
+      }).start();
     }
-  }, [imageLoaded, imageError, itemFadeAnim, scaleAnim, index]);
+  }, [imageLoaded, imageError, itemFadeAnim, index]);
 
   const styles = createStyles(theme);
 
@@ -121,21 +107,11 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
   }, [imageBase64, index]);
 
   return (
-    <Animated.View 
-      style={[
-        styles.imageContainer,
-        {
-          width: imageWidth,
-          opacity: itemFadeAnim,
-          transform: [{ scale: scaleAnim }]
-        }
-      ]}
-    >
+    <Animated.View style={[styles.imageContainer, { width: imageWidth, opacity: itemFadeAnim }]}>
       <TouchableOpacity
         style={styles.imageButton}
         onPress={onPress}
-        activeOpacity={0.8}
-        disabled={false}
+        activeOpacity={0.7}
       >
         {imageError ? (
           <View style={[styles.errorPlaceholder, { width: imageWidth, height: imageWidth * 0.75 }]}>
@@ -162,10 +138,7 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
       {editable && (
         <TouchableOpacity 
           style={styles.removeButton} 
-          onPress={(e) => {
-            e.stopPropagation();
-            onRemove();
-          }}
+          onPress={onRemove}
         >
           <Trash2 size={14} color="#FFFFFF" />
         </TouchableOpacity>
