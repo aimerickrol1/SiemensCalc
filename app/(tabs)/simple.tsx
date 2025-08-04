@@ -329,9 +329,8 @@ export default function SimpleCalculatorScreen() {
                       <Text style={[styles.historyStatusText, { color: item.color }]}>
                         {getStatusText(item.status)}
                       </Text>
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
                   
                   <TouchableOpacity
                     style={styles.deleteHistoryItemButton}
@@ -340,26 +339,6 @@ export default function SimpleCalculatorScreen() {
                     <X size={16} color={theme.colors.error} />
                   </TouchableOpacity>
                 </View>
-              ))}
-            </View>
-          )}
-        </View>
-                    </Text>
-                    <Text style={styles.compactDataUnit}>m³/h</Text>
-                  </View>
-
-                  <View style={styles.compactResultColumn}>
-                    <Text style={[styles.compactResultValue, { color: item.color }]}>
-                      {formatDeviation(item.deviation)}
-                    </Text>
-                    <Text style={[styles.compactStatusText, { color: item.color }]}>
-                      {getStatusText(item.status)}
-                    </Text>
-                    <Text style={styles.compactTimeText}>
-                      {formatHistoryDate(item.timestamp)}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
               ))}
             </View>
           )}
