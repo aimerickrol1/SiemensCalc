@@ -326,7 +326,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   contentWeb: {
     // Ajouter un padding bottom pour éviter que le contenu soit caché par la tab bar
-    paddingBottom: Platform.OS === 'web' ? 80 : 0,
+    paddingBottom: Platform.OS === 'web' ? 120 : 0,
   },
   headerActions: {
     flexDirection: 'row',
@@ -407,7 +407,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 16,
   },
   listContainerWeb: {
-    paddingBottom: Platform.OS === 'web' ? 100 : 16, // Padding supplémentaire sur web
+    paddingBottom: Platform.OS === 'web' ? 140 : 16, // Padding augmenté pour éviter le masquage
   },
   modalContent: {
     backgroundColor: theme.colors.surface,
