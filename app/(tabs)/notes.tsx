@@ -398,16 +398,16 @@ export default function NotesScreen() {
         subtitle={strings.notesSubtitle}
         rightComponent={
           <View style={styles.headerActions}>
+            <TouchableOpacity onPress={handleSelectionMode} style={styles.selectionButton}>
+              <Text style={styles.selectionButtonText}>
+                {selectionMode ? strings.cancel : 'Sélect.'}
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => setFilterVisible(!filterVisible)} style={styles.actionButton}>
               <Filter size={20} color={theme.colors.primary} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleCreateNote} style={styles.actionButton}>
               <Plus size={24} color={theme.colors.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleSelectionMode} style={styles.selectionButton}>
-              <Text style={styles.selectionButtonText}>
-                {selectionMode ? strings.cancel : 'Sélect.'}
-              </Text>
             </TouchableOpacity>
           </View>
         }
