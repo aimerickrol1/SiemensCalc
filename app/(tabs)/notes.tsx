@@ -965,7 +965,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    zIndex: 1000,
+    zIndex: 100,
   },
   // Styles pour le modal
   modalContent: {
