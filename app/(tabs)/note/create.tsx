@@ -237,9 +237,14 @@ const createStyles = (theme: any) => StyleSheet.create({
   imageButtonContainer: {
     marginTop: 16,
     alignItems: 'center',
+    marginBottom: 16,
   },
   imageButton: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    height: 36,
+    alignSelf: 'center',
+    minWidth: 'auto',
   },
   fixedFooter: {
     position: Platform.OS === 'web' ? 'fixed' : 'absolute',
