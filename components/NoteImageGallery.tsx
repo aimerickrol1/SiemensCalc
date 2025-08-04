@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Platform, Dimensions } from 'react-native';
-import { Trash2 } from 'lucide-react-native';
+import { Trash2, X } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useModal } from '@/contexts/ModalContext';
 
 interface NoteImageGalleryProps {
   images: string[];
@@ -28,7 +29,9 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
   };
 
   const handleImagePress = (index: number) => {
-    // Pas d'action pour l'instant - images non cliquables
+    // Images non cliquables pour l'instant
+  };
+
   if (!images || images.length === 0) {
     return null;
   }
@@ -37,6 +40,8 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
   const screenWidth = Dimensions.get('window').width;
   const numColumns = screenWidth > 600 ? 3 : 2;
   const imageWidth = (screenWidth - 32 - (numColumns - 1) * 8) / numColumns; // 32 = padding, 8 = gap
+
+  const styles = createStyles(theme);
 
   return (
     <View style={styles.container}>
@@ -86,18 +91,13 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
 
   const styles = createStyles(theme);
 
-  // Debug: Afficher les premiers caractères de l'image pour vérifier le format
-  React.useEffect(() => {
-    console.log(`🖼️ Image ${index} - Format:`, imageBase64.substring(0, 30));
-    console.log(`🖼️ Image ${index} - Longueur:`, imageBase64.length);
-  }, [imageBase64, index]);
-
   return (
     <Animated.View style={[styles.imageContainer, { width: imageWidth, opacity: itemFadeAnim }]}>
       <TouchableOpacity
         style={styles.imageButton}
         onPress={onPress}
-        activeOpacity={0.7}
+        activeOpacity={1}
+        disabled={true}
       >
         {imageError ? (
           <View style={[styles.errorPlaceholder, { width: imageWidth, height: imageWidth * 0.75 }]}>
@@ -114,7 +114,6 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
             }}
             onError={(error) => {
               console.error(`❌ Erreur chargement miniature ${index}:`, error);
-              console.error(`❌ URI problématique:`, imageBase64.substring(0, 50));
               setImageError(true);
             }}
             resizeMode="cover"
