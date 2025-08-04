@@ -552,7 +552,9 @@ export default function NotesScreen() {
                 styles.listContent,
                 Platform.OS === 'web' && styles.listContentWeb
               ]}
-              showsVerticalScrollIndicator={false}
+              showsVerticalScrollIndicator={true}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
             />
           </Animated.View>
         )}
@@ -920,11 +922,11 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.surfaceSecondary,
   },
   listContent: {
-    padding: 20,
-    paddingBottom: 100,
+    padding: 16,
+    paddingBottom: Platform.OS === 'web' ? 100 : 80,
   },
   listContentWeb: {
-    paddingBottom: 120,
+    paddingBottom: 100,
   },
   emptyContainer: {
     flex: 1,
