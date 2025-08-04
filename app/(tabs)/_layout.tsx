@@ -142,6 +142,12 @@ export default function TabLayout() {
           href: null
         }}
       />
+      <Tabs.Screen
+        name="image-viewer"
+        options={{
+          href: null
+        }}
+      />
     </Tabs>
   );
 }

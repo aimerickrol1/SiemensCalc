@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Platform, Dimensions } from 'react-native';
-import { Trash2, X } from 'lucide-react-native';
+import { Trash2 } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useModal } from '@/contexts/ModalContext';
-import { FullscreenImageViewer } from '@/components/FullscreenImageViewer';
 
 interface NoteImageGalleryProps {
   images: string[];
@@ -14,7 +12,6 @@ interface NoteImageGalleryProps {
 export function NoteImageGallery({ images, onRemoveImage, editable = false }: NoteImageGalleryProps) {
   const { theme } = useTheme();
   const { showModal, hideModal } = useModal();
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const handleRemoveImage = (index: number) => {
     if (!editable) return;
@@ -31,18 +28,7 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
   };
 
   const handleImagePress = (index: number) => {
-    showModal(
-      <FullscreenImageViewer 
-        images={images}
-        initialIndex={index}
-        onClose={hideModal}
-      />,
-      { animationType: 'fade' }
-    );
-  };
-
-  const styles = createStyles(theme);
-
+    // Pas d'action pour l'instant - images non cliquables
   if (!images || images.length === 0) {
     return null;
   }
