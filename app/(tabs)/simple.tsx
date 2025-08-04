@@ -570,7 +570,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   historyItemHeader: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
@@ -582,7 +582,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   historyItemData: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   historyDataColumn: {
     flex: 1,
@@ -603,7 +603,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     textAlign: 'center',
   },
   historyItemFooter: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   historyStatusText: {
     fontSize: 12,
