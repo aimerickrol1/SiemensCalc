@@ -391,6 +391,9 @@ export default function NotesScreen() {
             <TouchableOpacity onPress={() => setFilterVisible(!filterVisible)} style={styles.actionButton}>
               <Filter size={20} color={theme.colors.primary} />
             </TouchableOpacity>
+            <TouchableOpacity onPress={handleCreateNote} style={styles.actionButton}>
+              <Plus size={24} color={theme.colors.primary} />
+            </TouchableOpacity>
             <TouchableOpacity onPress={handleSelectionMode} style={styles.selectionButton}>
               <Text style={styles.selectionButtonText}>
                 {selectionMode ? strings.cancel : 'Sélect.'}
@@ -545,14 +548,6 @@ export default function NotesScreen() {
         )}
       </View>
 
-      {/* Bouton flottant pour créer une note - Position absolue pure */}
-      <TouchableOpacity
-        style={styles.floatingButton}
-        onPress={handleCreateNote}
-        activeOpacity={0.8}
-      >
-        <Plus size={24} color="#FFFFFF" />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -950,19 +945,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Medium',
     color: theme.colors.primary,
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: Platform.OS === 'web' ? 100 : 90, // Au-dessus de la barre de navigation
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    // Supprimer complètement les ombres qui créent un carré opaque
-    zIndex: 1000, // Flotte au-dessus du contenu
   },
   // Styles pour le modal
   modalContent: {
