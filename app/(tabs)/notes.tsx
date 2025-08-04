@@ -850,10 +850,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    paddingBottom: 16, // Padding normal sans espace supplémentaire
   },
   listContentWeb: {
-    paddingBottom: 16,
   },
   noteCard: {
     backgroundColor: theme.colors.surface,
