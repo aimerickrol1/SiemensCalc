@@ -24,6 +24,8 @@ export default function NoteDetailScreen() {
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingContent, setEditingContent] = useState('');
+  const [textInputHeight, setTextInputHeight] = useState(200); // Hauteur initiale
+  const [contentHeight, setContentHeight] = useState(0);
 
   // Configure Android back button
   useAndroidBackButton(() => {
@@ -151,7 +153,21 @@ export default function NoteDetailScreen() {
     }
   };
 
+  // Fonction pour calculer la hauteur optimale du TextInput
+  const handleContentSizeChange = (event: any) => {
+    const { height } = event.nativeEvent.contentSize;
+    const minHeight = 200; // Hauteur minimale
+    const maxHeight = Platform.OS === 'web' ? 600 : 500; // Hauteur maximale
+    
+    // Calculer la nouvelle hauteur en respectant les limites
+    const newHeight = Math.max(minHeight, Math.min(height + 20, maxHeight));
+    
+    setContentHeight(height);
+    setTextInputHeight(newHeight);
+  };
 
+  // Calculer si on a besoin d'un scroll interne
+  const needsInternalScroll = contentHeight > (Platform.OS === 'web' ? 580 : 480);
   const handleAddImage = () => {
     showModal(
       <ImagePicker 
@@ -275,15 +291,21 @@ export default function NoteDetailScreen() {
         <View style={styles.contentCard}>
           <Text style={styles.contentLabel}>Note</Text>
           <TextInput
-            style={styles.contentTextInput}
+            style={[
+              styles.contentTextInput,
+              { 
+                height: textInputHeight,
+                maxHeight: Platform.OS === 'web' ? 600 : 500
+              }
+            ]}
             value={editingContent}
             onChangeText={handleContentEdit}
+            onContentSizeChange={handleContentSizeChange}
             placeholder="Cette note est vide. Tapez ici pour écrire..."
             placeholderTextColor={theme.colors.textTertiary}
             multiline={true}
-            numberOfLines={10}
             textAlignVertical="top"
-            scrollEnabled={false}
+            scrollEnabled={needsInternalScroll}
             autoCorrect={true}
             spellCheck={true}
             returnKeyType="default"
@@ -292,6 +314,11 @@ export default function NoteDetailScreen() {
               // Empêcher les modifications automatiques pendant la sélection
             }}
           />
+          {needsInternalScroll && (
+            <Text style={styles.scrollHint}>
+              💡 Faites défiler dans le champ pour voir tout le contenu
+            </Text>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -531,7 +558,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: theme.colors.text,
     lineHeight: 24,
-    minHeight: 200,
+    minHeight: 200, // Hauteur minimale de base
     padding: 0,
     margin: 0,
     borderWidth: 0,
@@ -542,6 +569,14 @@ const createStyles = (theme: any) => StyleSheet.create({
       resize: 'none',
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
     }),
+  },
+  scrollHint: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textTertiary,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   // Styles pour le modal
   modalContent: {
