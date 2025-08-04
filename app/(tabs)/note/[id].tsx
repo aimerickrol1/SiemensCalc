@@ -288,37 +288,22 @@ export default function NoteDetailScreen() {
         />
 
         {/* Contenu éditable inline */}
-        <View style={styles.contentCard}>
-          <Text style={styles.contentLabel}>Note</Text>
+        <View style={styles.contentSection}>
+          <Text style={styles.contentLabel}>{strings.noteContent}</Text>
           <TextInput
-            style={[
-              styles.contentTextInput,
-              { 
-                height: textInputHeight,
-                maxHeight: Platform.OS === 'web' ? 600 : 500
-              }
-            ]}
+            style={styles.contentTextInput}
             value={editingContent}
             onChangeText={handleContentEdit}
-            onContentSizeChange={handleContentSizeChange}
             placeholder="Cette note est vide. Tapez ici pour écrire..."
             placeholderTextColor={theme.colors.textTertiary}
             multiline={true}
             textAlignVertical="top"
-            scrollEnabled={needsInternalScroll}
+            scrollEnabled={true}
             autoCorrect={true}
             spellCheck={true}
             returnKeyType="default"
             blurOnSubmit={false}
-            onSelectionChange={() => {
-              // Empêcher les modifications automatiques pendant la sélection
-            }}
           />
-          {needsInternalScroll && (
-            <Text style={styles.scrollHint}>
-              💡 Faites défiler dans le champ pour voir tout le contenu
-            </Text>
-          )}
         </View>
       </ScrollView>
     </View>
@@ -541,42 +526,34 @@ const createStyles = (theme: any) => StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  contentSection: {
+    flex: 1,
+    minHeight: 300,
+    paddingHorizontal: 16,
+  },
   contentLabel: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: theme.colors.textSecondary,
     marginBottom: 12,
   },
-  contentEditor: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular', 
-    lineHeight: 24,
-    minHeight: 200,
-  },
   contentTextInput: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: theme.colors.text,
     lineHeight: 24,
-    minHeight: 200, // Hauteur minimale de base
+    minHeight: 300,
+    flex: 1,
     padding: 0,
     margin: 0,
-    borderWidth: 0,
     backgroundColor: 'transparent',
+    borderWidth: 0,
     textAlignVertical: 'top',
     ...(Platform.OS === 'web' && {
       outlineWidth: 0,
       resize: 'none',
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
     }),
-  },
-  scrollHint: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.textTertiary,
-    textAlign: 'center',
-    marginTop: 8,
-    fontStyle: 'italic',
   },
   // Styles pour le modal
   modalContent: {
