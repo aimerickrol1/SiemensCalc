@@ -33,7 +33,7 @@ interface PredefinedStructure {
 export default function CreateProjectScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
-  const { createProject, createBuilding, createFunctionalZone, createShutter } = useStorage();
+  const { projects, createProject, createBuilding, createFunctionalZone, createShutter } = useStorage();
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
   const [startDate, setStartDate] = useState('');
