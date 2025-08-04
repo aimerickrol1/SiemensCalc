@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Platform, Di
 import { Trash2, X } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useModal } from '@/contexts/ModalContext';
-import { ImageViewerModal } from '@/components/ImageViewerModal';
 
 interface NoteImageGalleryProps {
   images: string[];
@@ -14,7 +13,6 @@ interface NoteImageGalleryProps {
 export function NoteImageGallery({ images, onRemoveImage, editable = false }: NoteImageGalleryProps) {
   const { theme } = useTheme();
   const { showModal, hideModal } = useModal();
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const handleRemoveImage = (index: number) => {
     if (!editable) return;
@@ -30,21 +28,6 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
     );
   };
 
-  const handleImagePress = (index: number) => {
-    setSelectedImageIndex(index);
-    console.log('🖼️ Ouverture lightbox - Image', index, 'URI:', images[index]?.substring(0, 50));
-    console.log('🖼️ Total images pour lightbox:', images.length);
-    showModal(
-      <ImageViewerModal
-        images={images}
-        initialIndex={index}
-        onClose={() => {
-          setSelectedImageIndex(null);
-          hideModal();
-        }}
-      />
-    );
-  };
 
   const styles = createStyles(theme);
 
@@ -68,7 +51,7 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
             index={index}
             imageWidth={imageWidth}
             editable={editable}
-            onPress={() => handleImagePress(index)}
+            onPress={() => {}} // Désactivé
             onRemove={() => handleRemoveImage(index)}
             theme={theme}
           />
@@ -135,7 +118,8 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
       <TouchableOpacity
         style={styles.imageButton}
         onPress={onPress}
-        activeOpacity={0.8}
+        activeOpacity={1} // Désactiver l'effet de clic
+        disabled={true} // Désactiver complètement le clic
       >
         {imageError ? (
           <View style={[styles.errorPlaceholder, { width: imageWidth, height: imageWidth * 0.75 }]}>
