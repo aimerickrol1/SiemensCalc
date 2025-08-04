@@ -928,8 +928,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   // Badge de suppression zone
   deleteZoneBadge: {
     position: 'absolute',
-    top: 6,
-    right: 6,
+   top: 12, // Aligné avec le champ nom de zone
+   right: 12,
     width: 20,
     height: 20,
     borderRadius: 10,
