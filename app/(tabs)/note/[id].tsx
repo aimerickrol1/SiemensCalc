@@ -354,7 +354,7 @@ export default function NoteDetailScreen() {
             style={styles.contentTextInput}
             value={editingContent}
             onChangeText={handleContentEdit}
-            placeholder="Cette note est vide. Tapez ici pour écrire..."
+            placeholder={strings.writeYourNote}
             placeholderTextColor={theme.colors.textTertiary}
             multiline={true}
             textAlignVertical="top"
@@ -598,9 +598,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     elevation: 2,
   },
   contentSection: {
-    flex: 1,
-    minHeight: 300,
-    paddingHorizontal: 16,
+    marginTop: 16,
   },
   contentLabel: {
     fontSize: 14,
@@ -613,8 +611,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: theme.colors.text,
     lineHeight: 24,
-    minHeight: 300,
-    flex: 1,
+    minHeight: 200,
     padding: 0,
     margin: 0,
     backgroundColor: 'transparent',

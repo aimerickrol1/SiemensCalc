@@ -209,17 +209,21 @@ export default function CreateNoteScreen() {
           </View>
 
           {/* Contenu de la note */}
-          <View style={styles.contentInputContainer}>
-            <Input
-              label={strings.noteContent}
-              value={content}
-              onChangeText={setContent}
-              placeholder={strings.writeYourNote}
-              multiline
-              numberOfLines={8}
-              style={styles.contentInput}
-            />
-          </View>
+          <Text style={styles.contentLabel}>{strings.noteContent}</Text>
+          <TextInput
+            style={styles.contentTextInput}
+            value={content}
+            onChangeText={setContent}
+            placeholder={strings.writeYourNote}
+            placeholderTextColor={theme.colors.textTertiary}
+            multiline={true}
+            textAlignVertical="top"
+            scrollEnabled={true}
+            autoCorrect={true}
+            spellCheck={true}
+            returnKeyType="default"
+            blurOnSubmit={false}
+          />
 
           {/* Input caché pour web */}
           {Platform.OS === 'web' && (
@@ -263,14 +267,6 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 16,
     paddingBottom: 140, // Espace augmenté pour le bouton fixe
   },
-  contentInputContainer: {
-    flex: 1,
-    minHeight: 300,
-  },
-  contentInput: {
-    minHeight: 300,
-    textAlignVertical: 'top',
-  },
   imageButtonContainer: {
     marginTop: 16,
     alignItems: 'center',
@@ -292,6 +288,30 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: theme.colors.primary,
+  },
+  contentLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.textSecondary,
+    marginBottom: 12,
+    marginTop: 16,
+  },
+  contentTextInput: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.text,
+    lineHeight: 24,
+    minHeight: 200,
+    padding: 0,
+    margin: 0,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    textAlignVertical: 'top',
+    ...(Platform.OS === 'web' && {
+      outlineWidth: 0,
+      resize: 'none',
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+    }),
   },
   fixedFooter: {
     position: Platform.OS === 'web' ? 'fixed' : 'absolute',
