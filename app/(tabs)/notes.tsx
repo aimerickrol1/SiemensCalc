@@ -80,7 +80,10 @@ function NoteItem({ item, index, onPress, onEdit, onDelete, onToggleFavorite, is
             {selectionMode && (
               <TouchableOpacity 
                 style={styles.checkbox}
-                onPress={() => onLongPress(item)}
+                onPress={() => {
+                  console.log('📝 Sélection/désélection note:', item.id);
+                  onLongPress(item);
+                }}
               >
                 {isSelected ? (
                   <CheckSquare size={18} color={theme.colors.primary} />
@@ -272,12 +275,20 @@ export default function NotesScreen() {
 
   const confirmBulkDeleteNotes = async () => {
     try {
+      console.log('🗑️ Suppression en lot de', selectedNotes.size, 'notes');
+      console.log('📝 IDs des notes à supprimer:', Array.from(selectedNotes));
+      
       for (const noteId of selectedNotes) {
+        console.log('🗑️ Suppression de la note:', noteId);
         const success = await deleteNote(noteId);
         if (!success) {
           console.error('Erreur lors de la suppression de la note:', noteId);
+        } else {
+          console.log('✅ Note supprimée avec succès:', noteId);
         }
       }
+      
+      console.log('✅ Suppression en lot terminée');
       setSelectedNotes(new Set());
       setSelectionMode(false);
       hideModal();
