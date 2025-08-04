@@ -239,16 +239,25 @@ export default function SimpleCalculatorScreen() {
         <View style={styles.historyCard}>
           <View style={styles.historyHeader}>
             <TouchableOpacity 
-              style={styles.historyTitleContainer}
+              style={styles.historyHeaderButton}
               onPress={() => setHistoryExpanded(!historyExpanded)}
             >
-              <Clock size={18} color={theme.colors.primary} />
-              <Text style={styles.historyTitle}>Historique des calculs</Text>
-              {historyExpanded ? (
-                <ChevronDown size={16} color={theme.colors.primary} />
-              ) : (
-                <ChevronRight size={16} color={theme.colors.primary} />
-              )}
+              <View style={styles.historyHeaderContent}>
+                <Clock size={18} color={theme.colors.primary} />
+                <Text style={styles.historyTitle}>
+                  {quickCalcHistory.length > 0 
+                    ? `Historique des calculs (${quickCalcHistory.length})`
+                    : 'Historique des calculs'
+                  }
+                </Text>
+              </View>
+              <View style={styles.historyChevron}>
+                {historyExpanded ? (
+                  <ChevronDown size={16} color={theme.colors.primary} />
+                ) : (
+                  <ChevronRight size={16} color={theme.colors.primary} />
+                )}
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -486,20 +495,29 @@ const createStyles = (theme: any) => StyleSheet.create({
   historyHeader: {
     marginBottom: 16,
   },
-  historyTitleContainer: {
+  historyHeaderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+  },
+  historyHeaderContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    flex: 1,
+  },
+  historyChevron: {
+    marginLeft: 8,
   },
   historyTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.text,
-    flex: 1,
   },
   historyActions: {
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
   clearHistoryButton: {
@@ -551,7 +569,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   historyItemHeader: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     marginBottom: 8,
   },
