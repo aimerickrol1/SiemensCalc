@@ -294,6 +294,9 @@ export default function SimpleCalculatorScreen() {
                     onPress={() => useHistoryItem(item)}
                   >
                     <View style={styles.historyItemHeader}>
+                      <Text style={[styles.historyStatusText, { color: item.color }]}>
+                        {getStatusText(item.status)}
+                      </Text>
                       <Text style={styles.historyItemTime}>
                         {formatHistoryDate(item.timestamp)}
                       </Text>
@@ -323,9 +326,6 @@ export default function SimpleCalculatorScreen() {
                     </View>
                     
                     <View style={styles.historyItemFooter}>
-                      <Text style={[styles.historyStatusText, { color: item.color }]}>
-                        {getStatusText(item.status)}
-                      </Text>
                     </View>
                   </TouchableOpacity>
                   
@@ -582,7 +582,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   historyItemData: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   historyDataColumn: {
     flex: 1,
@@ -603,7 +603,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     textAlign: 'center',
   },
   historyItemFooter: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   historyStatusText: {
     fontSize: 12,
