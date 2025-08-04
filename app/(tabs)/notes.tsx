@@ -755,7 +755,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     gap: 8,
   },
   actionButton: {
-    padding: 8,
+    padding: 4,
   },
   selectionButton: {
     paddingHorizontal: 8,
