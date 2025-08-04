@@ -953,8 +953,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   floatingButton: {
     position: 'absolute',
-    bottom: Platform.OS === 'web' ? 100 : 90, // Au-dessus de la barre de navigation
-    right: 20,
+    bottom: Platform.OS === 'web' ? 20 : 16, // Juste au-dessus de la barre de navigation
+    right: 16,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -966,7 +966,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    zIndex: 1000, // Élevé pour flotter au-dessus de tout
+    zIndex: 999, // Flotte au-dessus du contenu mais sous les modales
   },
   // Styles pour le modal
   modalContent: {
