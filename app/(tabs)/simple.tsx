@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Clock, Trash2 } from 'lucide-react-native';
+import { Clock, Trash2, ChevronDown, ChevronRight, X } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Input } from '@/components/Input';
 import { ComplianceIndicator } from '@/components/ComplianceIndicator';
@@ -14,9 +14,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 export default function SimpleCalculatorScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
-  const { quickCalcHistory, addQuickCalcHistory, clearQuickCalcHistory } = useStorage();
+  const { quickCalcHistory, addQuickCalcHistory, clearQuickCalcHistory, removeQuickCalcHistoryItem } = useStorage();
   const [referenceFlow, setReferenceFlow] = useState('');
   const [measuredFlow, setMeasuredFlow] = useState('');
+  const [historyExpanded, setHistoryExpanded] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -57,6 +58,14 @@ export default function SimpleCalculatorScreen() {
       await clearQuickCalcHistory();
     } catch (error) {
       console.error('Erreur lors de l\'effacement de l\'historique:', error);
+    }
+  };
+
+  const removeHistoryItem = async (itemId: string) => {
+    try {
+      await removeQuickCalcHistoryItem(itemId);
+    } catch (error) {
+      console.error('Erreur lors de la suppression de l\'élément:', error);
     }
   };
 
@@ -229,10 +238,18 @@ export default function SimpleCalculatorScreen() {
 
         <View style={styles.historyCard}>
           <View style={styles.historyHeader}>
-            <View style={styles.historyTitleContainer}>
+            <TouchableOpacity 
+              style={styles.historyTitleContainer}
+              onPress={() => setHistoryExpanded(!historyExpanded)}
+            >
               <Clock size={18} color={theme.colors.primary} />
               <Text style={styles.historyTitle}>Historique des calculs</Text>
-            </View>
+              {historyExpanded ? (
+                <ChevronDown size={16} color={theme.colors.primary} />
+              ) : (
+                <ChevronRight size={16} color={theme.colors.primary} />
+              )}
+            </TouchableOpacity>
             {quickCalcHistory.length > 0 && (
               <TouchableOpacity 
                 style={styles.clearHistoryButton}
@@ -244,39 +261,89 @@ export default function SimpleCalculatorScreen() {
             )}
           </View>
 
-          {quickCalcHistory.length === 0 ? (
+          {!historyExpanded ? (
+            <View style={styles.collapsedHistoryContainer}>
+              <Text style={styles.collapsedHistoryText}>
+                {quickCalcHistory.length === 0 
+                  ? 'Aucun calcul sauvegardé'
+                  : `${quickCalcHistory.length} calcul${quickCalcHistory.length > 1 ? 's' : ''} sauvegardé${quickCalcHistory.length > 1 ? 's' : ''}`
+                }
+              </Text>
+              <Text style={styles.collapsedHistorySubtext}>
+                Cliquez pour {historyExpanded ? 'masquer' : 'afficher'}
+              </Text>
+            </View>
+          ) : quickCalcHistory.length === 0 ? (
             <View style={styles.emptyHistoryContainer}>
               <Text style={styles.emptyHistoryText}>
                 Aucun calcul effectué récemment
               </Text>
               <Text style={styles.emptyHistorySubtext}>
-                Les 5 derniers calculs apparaîtront ici
+                Vos calculs sauvegardés apparaîtront ici
               </Text>
             </View>
           ) : (
             <View style={styles.historyList}>
-              <View style={styles.compactLabelsRow}>
-                <Text style={styles.compactLabel}>Débit de réf.</Text>
-                <Text style={styles.compactLabel}>Débit mesuré</Text>
-                <Text style={styles.compactLabel}>Résultat</Text>
-              </View>
-
               {quickCalcHistory.map((item, index) => (
-                <TouchableOpacity
+                <View
                   key={item.id}
-                  style={styles.compactHistoryItem}
-                  onPress={() => useHistoryItem(item)}
+                  style={styles.historyItem}
                 >
-                  <View style={styles.compactDataColumn}>
-                    <Text style={styles.compactDataValue}>
-                      {item.referenceFlow.toFixed(0)}
+                  <TouchableOpacity
+                    style={styles.historyItemContent}
+                    onPress={() => useHistoryItem(item)}
+                  >
+                    <View style={styles.historyItemHeader}>
+                      <Text style={styles.historyItemTitle}>
+                        Calcul #{quickCalcHistory.length - index}
+                      </Text>
+                      <Text style={styles.historyItemTime}>
+                        {formatHistoryDate(item.timestamp)}
+                      </Text>
+                    </View>
+                    
+                    <View style={styles.historyItemData}>
+                      <View style={styles.historyDataColumn}>
+                        <Text style={styles.historyDataLabel}>Référence</Text>
+                        <Text style={styles.historyDataValue}>
+                          {item.referenceFlow.toFixed(0)} m³/h
+                        </Text>
+                      </View>
+                      
+                      <View style={styles.historyDataColumn}>
+                        <Text style={styles.historyDataLabel}>Mesuré</Text>
+                        <Text style={styles.historyDataValue}>
+                          {item.measuredFlow.toFixed(0)} m³/h
+                        </Text>
+                      </View>
+                      
+                      <View style={styles.historyDataColumn}>
+                        <Text style={styles.historyDataLabel}>Écart</Text>
+                        <Text style={[styles.historyDataValue, { color: item.color }]}>
+                          {formatDeviation(item.deviation)}
+                        </Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.historyItemFooter}>
+                      <Text style={[styles.historyStatusText, { color: item.color }]}>
+                        {getStatusText(item.status)}
+                      </Text>
                     </Text>
-                    <Text style={styles.compactDataUnit}>m³/h</Text>
-                  </View>
-
-                  <View style={styles.compactDataColumn}>
-                    <Text style={styles.compactDataValue}>
-                      {item.measuredFlow.toFixed(0)}
+                    </View>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={styles.deleteHistoryItemButton}
+                    onPress={() => removeHistoryItem(item.id)}
+                  >
+                    <X size={16} color={theme.colors.error} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
                     </Text>
                     <Text style={styles.compactDataUnit}>m³/h</Text>
                   </View>
@@ -457,12 +524,14 @@ const createStyles = (theme: any) => StyleSheet.create({
   historyTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    flex: 1,
   },
   historyTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.text,
+    flex: 1,
   },
   clearHistoryButton: {
     flexDirection: 'row',
@@ -477,6 +546,21 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 9,
     fontFamily: 'Inter-Medium',
     color: theme.colors.error,
+  },
+  collapsedHistoryContainer: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  collapsedHistoryText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.textSecondary,
+    marginBottom: 4,
+  },
+  collapsedHistorySubtext: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textTertiary,
   },
   emptyHistoryContainer: {
     alignItems: 'center',
@@ -494,69 +578,76 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.textTertiary,
   },
   historyList: {
-    gap: 1,
+    gap: 8,
   },
-  compactLabelsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginBottom: 8,
-  },
-  compactLabel: {
-    flex: 1,
-    fontSize: 10,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
-  compactHistoryItem: {
+  historyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
     backgroundColor: theme.colors.surfaceSecondary,
-    borderRadius: 8,
-    marginBottom: 6,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    overflow: 'hidden',
   },
-  compactDataColumn: {
+  historyItemContent: {
+    flex: 1,
+    padding: 12,
+  },
+  historyItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  historyItemTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+  },
+  historyItemTime: {
+    fontSize: 11,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textTertiary,
+  },
+  historyItemData: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8,
+  },
+  historyDataColumn: {
     flex: 1,
     alignItems: 'center',
   },
-  compactDataValue: {
-    fontSize: 15,
-    fontFamily: 'Inter-Bold',
-    color: theme.colors.text,
-    marginBottom: 1,
-  },
-  compactDataUnit: {
-    fontSize: 9,
+  historyDataLabel: {
+    fontSize: 10,
     fontFamily: 'Inter-Medium',
     color: theme.colors.textSecondary,
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  compactResultColumn: {
-    flex: 1,
+  historyDataValue: {
+    fontSize: 13,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+  historyItemFooter: {
     alignItems: 'center',
   },
-  compactResultValue: {
-    fontSize: 15,
-    fontFamily: 'Inter-Bold',
-    marginBottom: 2,
-  },
-  compactStatusText: {
-    fontSize: 9,
-    fontFamily: 'Inter-SemiBold',
+  historyStatusText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
     textTransform: 'uppercase',
-    letterSpacing: 0.2,
-    marginBottom: 4,
+    letterSpacing: 0.5,
   },
-  compactTimeText: {
-    fontSize: 9,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
+  deleteHistoryItemButton: {
+    width: 44,
+    height: '100%',
+    backgroundColor: theme.colors.error + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderLeftWidth: 1,
+    borderLeftColor: theme.colors.error + '40',
   },
 });

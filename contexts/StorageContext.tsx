@@ -59,6 +59,7 @@ interface StorageContextType {
   // Actions pour l'historique
   addQuickCalcHistory: (item: Omit<QuickCalcHistoryItem, 'id' | 'timestamp'>) => Promise<void>;
   clearQuickCalcHistory: () => Promise<void>;
+  removeQuickCalcHistoryItem: (itemId: string) => Promise<void>;
   getQuickCalcHistory: () => Promise<QuickCalcHistoryItem[]>;
   
   // Actions pour les notes
@@ -814,7 +815,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
       timestamp: new Date()
     };
     
-    const newHistory = [newItem, ...quickCalcHistory].slice(0, 5);
+    const newHistory = [newItem, ...quickCalcHistory];
     
     await safeStorageOperation(
       () => AsyncStorage.setItem(STORAGE_KEYS.QUICK_CALC_HISTORY, JSON.stringify(newHistory)),
@@ -831,6 +832,17 @@ export function StorageProvider({ children }: StorageProviderProps) {
       'clearQuickCalcHistory'
     );
     setQuickCalcHistoryState([]);
+  };
+
+  const removeQuickCalcHistoryItem = async (itemId: string) => {
+    const newHistory = quickCalcHistory.filter(item => item.id !== itemId);
+    
+    await safeStorageOperation(
+      () => AsyncStorage.setItem(STORAGE_KEYS.QUICK_CALC_HISTORY, JSON.stringify(newHistory)),
+      undefined,
+      'removeQuickCalcHistoryItem'
+    );
+    setQuickCalcHistoryState(newHistory);
   };
 
   const getQuickCalcHistory = async (): Promise<QuickCalcHistoryItem[]> => {
@@ -1004,6 +1016,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     setFavoriteNotes,
     addQuickCalcHistory,
     clearQuickCalcHistory,
+    removeQuickCalcHistoryItem,
     getQuickCalcHistory,
     createNote,
     updateNote,
