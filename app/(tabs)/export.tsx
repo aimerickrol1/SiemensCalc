@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, Platform, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, Platform, RefreshControl, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
@@ -38,6 +38,8 @@ const loadNativeModules = async () => {
   }
 };
 
+type ExportFilter = 'projects' | 'notes';
+
 export default function ExportScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
@@ -49,6 +51,8 @@ export default function ExportScreen() {
   const [error, setError] = useState<string | null>(null);
   const [nativeModulesReady, setNativeModulesReady] = useState(false);
   const [selectedNotesForProject, setSelectedNotesForProject] = useState<{[projectId: string]: string[]}>({});
+  const [activeFilter, setActiveFilter] = useState<ExportFilter>('projects');
+  const fadeAnim = React.useRef(new Animated.Value(1)).current;
 
   // Charger les modules natifs au montage
   useEffect(() => {
@@ -1491,6 +1495,63 @@ Pour toute question: aimeric.krol@siemens.com
     );
   };
 
+  const handleFilterChange = (filter: ExportFilter) => {
+    if (filter === activeFilter) return;
+    
+    // Animation de transition
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start(() => {
+      setActiveFilter(filter);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+    });
+  };
+
+  const renderFilterTabs = () => (
+    <View style={styles.filterContainer}>
+      <Text style={styles.filterTitle}>Type d'export</Text>
+      <View style={styles.filterTabs}>
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            activeFilter === 'projects' && styles.filterTabActive
+          ]}
+          onPress={() => handleFilterChange('projects')}
+        >
+          <Ionicons name="business-outline" size={16} color={activeFilter === 'projects' ? '#ffffff' : theme.colors.primary} />
+          <Text style={[
+            styles.filterTabText,
+            activeFilter === 'projects' && styles.filterTabTextActive
+          ]}>
+            Projets ({projects.length})
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            activeFilter === 'notes' && styles.filterTabActive
+          ]}
+          onPress={() => handleFilterChange('notes')}
+        >
+          <Ionicons name="document-text-outline" size={16} color={activeFilter === 'notes' ? '#ffffff' : theme.colors.primary} />
+          <Text style={[
+            styles.filterTabText,
+            activeFilter === 'notes' && styles.filterTabTextActive
+          ]}>
+            Notes ({notes.length})
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   const styles = createStyles(theme);
 
   if (loading) {
@@ -1526,10 +1587,15 @@ Pour toute question: aimeric.krol@siemens.com
 
   return (
     <View style={styles.container}>
-      <Header title={strings.exportTitle} subtitle={strings.exportSubtitle} />
+      <Header 
+        title={strings.exportTitle} 
+        subtitle={strings.exportSubtitle}
+      />
+      
+      {renderFilterTabs()}
       
       <ScrollView 
-        style={styles.content} 
+        style={styles.content}
         contentContainerStyle={[
           styles.contentContainer,
           Platform.OS === 'web' && styles.contentContainerWeb
@@ -1539,55 +1605,43 @@ Pour toute question: aimeric.krol@siemens.com
         }
         showsVerticalScrollIndicator={false}
       >
-        {projects.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="document-text-outline" size={48} color={theme.colors.textTertiary} />
-            <Text style={styles.emptyTitle}>{strings.noProjectsToExport}</Text>
-            <Text style={styles.emptySubtitle}>
-              {strings.noProjectsToExportDesc}
-            </Text>
-            <Button
-              title="Créer votre premier projet"
-              onPress={handleCreateFirstProject}
-              style={styles.refreshButton}
-            />
-          </View>
-        ) : (
-          <>
-            <View style={styles.infoCard}>
-              <Text style={styles.infoTitle}>🏢 Rapport Professionnel Siemens</Text>
-              <View style={styles.formatList}>
-                <View style={styles.formatItem}>
-                  <Ionicons name="document-text-outline" size={16} color={theme.colors.primary} />
-                  <Text style={styles.formatText}>
-                    <Text style={styles.formatName}>Rapport HTML :</Text> Document professionnel avec graphiques et mise en page élégante
-                  </Text>
-                </View>
-                <View style={styles.formatItem}>
-                  <Ionicons name="print-outline" size={16} color={theme.colors.warning} />
-                  <Text style={styles.formatText}>
-                    <Text style={styles.formatName}>Partage facile :</Text> {Platform.OS === 'android' ? 'Partagez directement depuis votre appareil Android' : 'Téléchargement direct du fichier'}
-                  </Text>
-                </View>
-                <View style={styles.formatItem}>
-                  <Ionicons name="shield-checkmark-outline" size={16} color={theme.colors.success} />
-                  <Text style={styles.formatText}>
-                    <Text style={styles.formatName}>Qualité :</Text> Mise en page optimisée pour l'impression et la présentation professionnelle
-                  </Text>
-                </View>
+        <Animated.View style={{ opacity: fadeAnim }}>
+          {activeFilter === 'projects' ? (
+            projects.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="business-outline" size={64} color={theme.colors.textTertiary} />
+                <Text style={styles.emptyTitle}>{strings.noProjectsToExport}</Text>
+                <Text style={styles.emptySubtitle}>
+                  {strings.noProjectsToExportDesc}
+                </Text>
               </View>
-            </View>
-
-            <Text style={styles.sectionTitle}>{strings.availableProjects}</Text>
-            <Text style={styles.sectionSubtitle}>
-              Générez des rapports professionnels
-            </Text>
-            {projects.map(renderProject)}
-          </>
-        )}
-
-        {/* Section Notes */}
-        {renderNotesSection()}
+            ) : (
+              <View style={styles.projectsSection}>
+                <Text style={styles.sectionTitle}>
+                  {strings.availableProjects} ({projects.length})
+                </Text>
+                {projects.map((project) => renderProject(project))}
+              </View>
+            )
+          ) : (
+            notes.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="document-text-outline" size={64} color={theme.colors.textTertiary} />
+                <Text style={styles.emptyTitle}>Aucune note à exporter</Text>
+                <Text style={styles.emptySubtitle}>
+                  Créez des notes pour pouvoir les exporter
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.notesSection}>
+                <Text style={styles.sectionTitle}>
+                  Notes disponibles ({notes.length})
+                </Text>
+                {notes.map((note) => renderNote(note))}
+              </View>
+            )
+          )}
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -1606,6 +1660,85 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   contentContainerWeb: {
     paddingBottom: Platform.OS === 'web' ? 100 : 16,
+  },
+  filterContainer: {
+    backgroundColor: theme.colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  filterTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+    marginBottom: 12,
+  },
+  filterTabs: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 12,
+    padding: 4,
+  },
+  filterTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  filterTabActive: {
+    backgroundColor: theme.colors.primary,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  filterTabText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.primary,
+    textAlign: 'center',
+  },
+  filterTabTextActive: {
+    color: '#ffffff',
+  },
+  projectsSection: {
+    marginBottom: 24,
+  },
+  notesSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+    marginBottom: 16,
+  },
+  emptyContainer: {
+    paddingVertical: 64,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 24,
   },
   loadingContainer: {
     flex: 1,
@@ -1640,28 +1773,6 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   retryButton: {
     paddingHorizontal: 32,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 64,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.colors.text,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
   },
   refreshButton: {
     paddingHorizontal: 32,
@@ -1704,12 +1815,6 @@ const createStyles = (theme: any) => StyleSheet.create({
   formatName: {
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.text,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.colors.text,
-    marginBottom: 8,
   },
   sectionSubtitle: {
     fontSize: 16,
