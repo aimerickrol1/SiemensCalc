@@ -40,17 +40,25 @@ function NoteItem({ item, index, onPress, onEdit, onDelete, onToggleFavorite, is
   }, [itemFadeAnim, index]);
 
   const formatDate = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return 'À l\'instant';
+    if (diffMins < 60) return `${diffMins}min`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}j`;
+    
     return new Intl.DateTimeFormat('fr-FR', {
       day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(date));
+      month: 'short'
+    }).format(date);
   };
 
   const getPreviewText = (content: string) => {
-    return content.length > 100 ? content.substring(0, 100) + '...' : content;
+    return content.length > 120 ? content.substring(0, 120) + '...' : content;
   };
 
   const styles = createStyles(theme);
@@ -66,70 +74,72 @@ function NoteItem({ item, index, onPress, onEdit, onDelete, onToggleFavorite, is
         onPress={() => selectionMode ? onLongPress(item) : onPress(item)}
         onLongPress={() => onLongPress(item)}
       >
+        {/* En-tête simplifié */}
         <View style={styles.noteHeader}>
-          {selectionMode && (
-            <TouchableOpacity 
-              style={styles.checkbox}
-              onPress={() => onLongPress(item)}
-            >
-              {isSelected ? (
-                <CheckSquare size={20} color={theme.colors.primary} />
-              ) : (
-                <Square size={20} color={theme.colors.textTertiary} />
-              )}
-            </TouchableOpacity>
-          )}
-          <View style={styles.noteInfo}>
-            <TouchableOpacity 
-              style={[styles.noteTitleContainer, selectionMode && styles.noteTitleContainerSelection]}
-              onPress={() => !selectionMode && onEdit(item)}
-              disabled={selectionMode}
-            >
+          <View style={styles.noteHeaderLeft}>
+            {selectionMode && (
+              <TouchableOpacity 
+                style={styles.checkbox}
+                onPress={() => onLongPress(item)}
+              >
+                {isSelected ? (
+                  <CheckSquare size={18} color={theme.colors.primary} />
+                ) : (
+                  <Square size={18} color={theme.colors.textTertiary} />
+                )}
+              </TouchableOpacity>
+            )}
+            
+            <View style={styles.noteMainInfo}>
               <Text style={styles.noteTitle} numberOfLines={1}>
                 {item.title || strings.untitledNote}
               </Text>
-              {!selectionMode && <Text style={styles.editIcon}>✏️</Text>}
-            </TouchableOpacity>
-            <View style={styles.noteMeta}>
-              <Calendar size={12} color={theme.colors.textTertiary} />
               <Text style={styles.noteDate}>
                 {formatDate(item.updatedAt)}
               </Text>
             </View>
           </View>
           
-          {!selectionMode && (
-            <View style={styles.noteActions}>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => onToggleFavorite(item.id)}
-              >
-                <Star 
-                  size={14} 
-                  color={isFavorite ? "#F59E0B" : theme.colors.textTertiary} 
-                  fill={isFavorite ? "#F59E0B" : "none"}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => onDelete(item)}
-              >
-                <Trash2 size={14} color={theme.colors.error} />
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={styles.noteHeaderRight}>
+            {item.images && item.images.length > 0 && (
+              <View style={styles.imageIndicator}>
+                <Text style={styles.imageCount}>{item.images.length}</Text>
+              </View>
+            )}
+            
+            {!selectionMode && (
+              <View style={styles.noteActions}>
+                {isFavorite && (
+                  <View style={styles.favoriteIndicator}>
+                    <Star size={12} color="#F59E0B" fill="#F59E0B" />
+                  </View>
+                )}
+                <TouchableOpacity 
+                  style={styles.actionButton}
+                  onPress={() => onToggleFavorite(item.id)}
+                >
+                  <Star 
+                    size={16} 
+                    color={isFavorite ? "#F59E0B" : theme.colors.textTertiary} 
+                    fill={isFavorite ? "#F59E0B" : "none"}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.actionButton}
+                  onPress={() => onDelete(item)}
+                >
+                  <Trash2 size={16} color={theme.colors.error} />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
 
+        {/* Aperçu du contenu */}
         {item.content && (
-          <Text style={styles.notePreview} numberOfLines={3}>
+          <Text style={styles.notePreview} numberOfLines={2}>
             {getPreviewText(item.content)}
           </Text>
-        )}
-
-        {item.images && item.images.length > 0 && (
-          <View style={styles.imagePreview}>
-            <Text style={styles.imageCount}>📷 {item.images.length} image{item.images.length > 1 ? 's' : ''}</Text>
-          </View>
         )}
       </TouchableOpacity>
     </Animated.View>
@@ -779,171 +789,170 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   filterSection: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   filterSectionTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.text,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   filterScroll: {
     flexGrow: 0,
   },
   filterButtons: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
   },
   filterButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     backgroundColor: theme.colors.surfaceSecondary,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
   },
   filterButtonActive: {
     backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   filterButtonText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
+    fontSize: 13,
+    fontFamily: 'Inter-SemiBold',
     color: theme.colors.textSecondary,
     textAlign: 'center',
   },
   filterButtonTextActive: {
     color: '#ffffff',
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 64,
-    minHeight: '60%',
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: theme.colors.text,
-    marginTop: 24,
-    marginBottom: 12,
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  createButton: {
-    paddingHorizontal: 32,
-  },
-  listContainer: {
-    flex: 1,
-  },
-  listContent: {
-    padding: 16,
-  },
-  listContentWeb: {
-    paddingBottom: 16,
-  },
   noteCard: {
     backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   selectedCard: {
     borderWidth: 2,
     borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primary + '20',
+    backgroundColor: theme.colors.primary + '10',
   },
   favoriteCard: {
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: '#F59E0B',
   },
   noteHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  noteHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  noteHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   checkbox: {
-    padding: 2,
-    marginRight: 8,
+    padding: 4,
     flexShrink: 0,
   },
-  noteInfo: {
+  noteMainInfo: {
     flex: 1,
-    marginRight: 12,
-  },
-  noteTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    backgroundColor: theme.colors.surfaceSecondary,
-    marginBottom: 4,
-  },
-  noteTitleContainerSelection: {
-    backgroundColor: 'transparent',
+    minWidth: 0,
   },
   noteTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 17,
+    fontFamily: 'Inter-Bold',
     color: theme.colors.text,
-    flex: 1,
-  },
-  editIcon: {
-    fontSize: 12,
-  },
-  noteMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    marginBottom: 4,
   },
   noteDate: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.textTertiary,
+    fontSize: 13,
+    fontFamily: 'Inter-Medium',
+    color: theme.colors.textSecondary,
+  },
+  imageIndicator: {
+    backgroundColor: theme.colors.primary + '20',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginRight: 8,
+  },
+  imageCount: {
+    fontSize: 11,
+    fontFamily: 'Inter-Bold',
+    color: theme.colors.primary,
+  },
+  favoriteIndicator: {
+    marginRight: 4,
   },
   noteActions: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
-    flexShrink: 0,
   },
   notePreview: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: theme.colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 22,
+    marginTop: 4,
   },
-  imagePreview: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.separator,
+  actionButton: {
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: theme.colors.surfaceSecondary,
   },
-  imageCount: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: theme.colors.primary,
+  listContent: {
+    padding: 20,
+    paddingBottom: 100,
+  },
+  listContentWeb: {
+    paddingBottom: 120,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingVertical: 80,
+    minHeight: '60%',
+  },
+  emptyTitle: {
+    fontSize: 26,
+    fontFamily: 'Inter-Bold',
+    color: theme.colors.text,
+    marginTop: 32,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 17,
+    fontFamily: 'Inter-Regular',
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 40,
+    lineHeight: 26,
+  },
+  createButton: {
+    paddingHorizontal: 40,
+    paddingVertical: 16,
   },
   // Styles pour le modal
   modalContent: {
