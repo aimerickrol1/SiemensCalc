@@ -797,7 +797,8 @@ export default function SearchScreen() {
                   renderItem={renderResult}
                   keyExtractor={(item) => item.shutter.id}
                   showsVerticalScrollIndicator={false}
-                  scrollEnabled={false}
+                  scrollEnabled={true}
+                  nestedScrollEnabled={true}
                 />
               </Animated.View>
             ) : (
