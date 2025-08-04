@@ -73,7 +73,7 @@ export default function CreateNoteScreen() {
       
       const note = await createNote({
         title: finalTitle,
-        content: '',
+        content: content.trim(),
         images: images.length > 0 ? images : undefined,
       });
 
@@ -206,6 +206,19 @@ export default function CreateNoteScreen() {
               <Camera size={16} color={theme.colors.primary} />
               <Text style={styles.addPhotoText}>Ajouter une photo</Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Contenu de la note */}
+          <View style={styles.contentInputContainer}>
+            <Input
+              label={strings.noteContent}
+              value={content}
+              onChangeText={setContent}
+              placeholder={strings.writeYourNote}
+              multiline
+              numberOfLines={8}
+              style={styles.contentInput}
+            />
           </View>
 
           {/* Input caché pour web */}
