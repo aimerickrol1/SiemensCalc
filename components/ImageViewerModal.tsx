@@ -229,13 +229,16 @@ export function ImageViewerModal({ images, initialIndex, onClose }: ImageViewerM
 
 const createStyles = (theme: any) => StyleSheet.create({
   overlay: {
-    position: 'absolute',
+    position: 'fixed',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    backgroundColor: '#000000',
     zIndex: 2147483647,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     position: 'absolute',
@@ -271,23 +274,31 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    height: '100%',
   },
   scrollView: {
     flex: 1,
+    width: '100%',
+    height: '100%',
   },
   scrollContent: {
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '100%',
   },
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    width: '100%',
+    height: '100%',
+    padding: 20,
   },
   fullImage: {
     width: '100%',
     height: '100%',
-    maxWidth: Dimensions.get('window').width - 40,
-    maxHeight: Dimensions.get('window').height - 200,
+    maxWidth: '100%',
+    maxHeight: '100%',
   },
   navButton: {
     position: 'absolute',
@@ -329,12 +340,12 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: 4,
   },
   errorContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    height: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 12,
-    margin: 20,
   },
   errorText: {
     color: '#FFFFFF',
