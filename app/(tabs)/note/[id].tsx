@@ -131,24 +131,24 @@ export default function NoteDetailScreen() {
       
       try {
         console.log('💾 Auto-save content:', value.substring(0, 50) + '...');
-        const updatedNote = await updateNote(note.id, {
-          content: value.trim(),
+        await updateNote(note.id, {
+          content: value,
         });
         
-        if (updatedNote) {
-          setNote(updatedNote);
-          console.log('✅ Contenu sauvegardé automatiquement');
-        }
+        console.log('✅ Contenu sauvegardé automatiquement');
       } catch (error) {
         console.error('Erreur auto-save content:', error);
       }
-    }, 2000), // Délai augmenté pour éviter trop de sauvegardes
+    }, 3000), // Délai augmenté pour éviter les conflits
     [note, updateNote]
   );
 
   const handleContentEdit = (value: string) => {
     setEditingContent(value);
-    autoSaveNote(value);
+    // Seulement auto-save si la valeur n'est pas vide
+    if (value.length > 0) {
+      autoSaveNote(value);
+    }
   };
 
 
