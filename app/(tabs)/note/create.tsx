@@ -1,27 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity, useRef } from 'react-native';
 import { router } from 'expo-router';
 import { Camera } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
-import { ImagePicker } from '@/components/ImagePicker';
 import { NoteImageGallery } from '@/components/NoteImageGallery';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useModal } from '@/contexts/ModalContext';
 
 export default function CreateNoteScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
-  const { showModal, hideModal } = useModal();
   const { createNote } = useStorage();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ title?: string }>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleBack = () => {
     safeNavigate('/(tabs)/notes');
@@ -88,15 +86,68 @@ export default function CreateNoteScreen() {
   };
 
   const handleAddImage = () => {
-    showModal(
-      <ImagePicker 
-        onImageSelected={(imageBase64) => {
-          console.log('📝 Image ajoutée à la note, format:', imageBase64.substring(0, 30));
-          setImages(prev => [...prev, imageBase64]);
-        }}
-        onClose={hideModal}
-      />
-    );
+    if (Platform.OS === 'web' && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculer les nouvelles dimensions en gardant le ratio
+        const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
+        const newWidth = img.width * ratio;
+        const newHeight = img.height * ratio;
+
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+
+        // Dessiner l'image redimensionnée
+        ctx?.drawImage(img, 0, 0, newWidth, newHeight);
+
+        // Convertir en base64 avec compression
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        console.log('Image compressée, format:', compressedBase64.substring(0, 30));
+        resolve(compressedBase64);
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleFileSelect = async (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    
+    if (file && file.type.startsWith('image/')) {
+      try {
+        console.log('📸 Image sélectionnée:', file.name, 'Taille:', file.size, 'Type:', file.type);
+        
+        // Compresser l'image pour le stockage
+        const compressedBase64 = await compressImage(file);
+        console.log('💾 Image compressée pour stockage, taille:', compressedBase64.length);
+        
+        // Ajouter l'image compressée
+        setImages(prev => [...prev, compressedBase64]);
+      } catch (error) {
+        console.error('Erreur lors de la compression de l\'image:', error);
+        // Fallback sans compression
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const base64 = e.target?.result as string;
+          console.log('📄 Fallback Base64 créé:', base64.substring(0, 30));
+          setImages(prev => [...prev, base64]);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    // Reset input
+    target.value = '';
   };
 
   const handleRemoveImage = (index: number) => {
@@ -149,6 +200,17 @@ export default function CreateNoteScreen() {
               <Text style={styles.addPhotoText}>Ajouter une photo</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Input caché pour web */}
+          {Platform.OS === 'web' && (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => handleFileSelect(e as any)}
+            />
+          )}
 
           {/* Champ de contenu simplifié */}
           <View style={styles.contentSection}>

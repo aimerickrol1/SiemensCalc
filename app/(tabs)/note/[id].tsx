@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, TextInput, useRef } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { CreditCard as Edit3, Trash2, Calendar, X, Check, Camera } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/Button';
 import { InlineNoteEditor } from '@/components/InlineNoteEditor';
 import { NoteImageGallery } from '@/components/NoteImageGallery';
-import { ImagePicker } from '@/components/ImagePicker';
 import { Note } from '@/types';
 import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -26,6 +25,7 @@ export default function NoteDetailScreen() {
   const [editingContent, setEditingContent] = useState('');
   const [textInputHeight, setTextInputHeight] = useState(200); // Hauteur initiale
   const [contentHeight, setContentHeight] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Configure Android back button
   useAndroidBackButton(() => {
@@ -169,24 +169,84 @@ export default function NoteDetailScreen() {
   // Calculer si on a besoin d'un scroll interne
   const needsInternalScroll = contentHeight > (Platform.OS === 'web' ? 580 : 480);
   const handleAddImage = () => {
-    showModal(
-      <ImagePicker 
-        onImageSelected={async (imageBase64) => {
-          console.log('📝 Image ajoutée à la note, format:', imageBase64.substring(0, 30));
+    if (Platform.OS === 'web' && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculer les nouvelles dimensions en gardant le ratio
+        const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
+        const newWidth = img.width * ratio;
+        const newHeight = img.height * ratio;
+
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+
+        // Dessiner l'image redimensionnée
+        ctx?.drawImage(img, 0, 0, newWidth, newHeight);
+
+        // Convertir en base64 avec compression
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        console.log('Image compressée, format:', compressedBase64.substring(0, 30));
+        resolve(compressedBase64);
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleFileSelect = async (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    
+    if (file && file.type.startsWith('image/')) {
+      try {
+        console.log('📸 Image sélectionnée:', file.name, 'Taille:', file.size, 'Type:', file.type);
+        
+        // Compresser l'image pour le stockage
+        const compressedBase64 = await compressImage(file);
+        console.log('💾 Image compressée pour stockage, taille:', compressedBase64.length);
+        
+        if (note) {
+          const currentImages = note.images || [];
+          const updatedNote = await updateNote(note.id, {
+            images: [...currentImages, compressedBase64],
+          });
+          if (updatedNote) {
+            setNote(updatedNote);
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors de la compression de l\'image:', error);
+        // Fallback sans compression
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const base64 = e.target?.result as string;
+          console.log('📄 Fallback Base64 créé:', base64.substring(0, 30));
           if (note) {
             const currentImages = note.images || [];
-            const updatedNote = await updateNote(note.id, {
-              images: [...currentImages, imageBase64],
+            updateNote(note.id, {
+              images: [...currentImages, base64],
+            }).then(updatedNote => {
+              if (updatedNote) {
+                setNote(updatedNote);
+              }
             });
-            if (updatedNote) {
-              setNote(updatedNote);
-            }
           }
-          hideModal();
-        }}
-        onClose={hideModal}
-      />
-    );
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    // Reset input
+    target.value = '';
   };
 
   const handleRemoveImage = async (index: number) => {
