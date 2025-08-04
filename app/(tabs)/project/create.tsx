@@ -697,6 +697,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   dateInputContainer: {
     marginBottom: 0,
+    flex: 1,
   },
   
   // Section structure prédéfinie améliorée
