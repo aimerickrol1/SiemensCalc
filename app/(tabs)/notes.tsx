@@ -961,11 +961,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    // Supprimer complètement les ombres qui créent un carré opaque
     zIndex: 999, // Flotte au-dessus du contenu mais sous les modales
   },
   // Styles pour le modal
