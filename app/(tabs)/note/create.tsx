@@ -13,7 +13,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 export default function CreateNoteScreen() {
   const { strings } = useLanguage();
   const { theme } = useTheme();
-  const { createNote } = useStorage();
+  const { createNote, notes } = useStorage();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState<string[]>([]);
