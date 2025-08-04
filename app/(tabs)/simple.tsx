@@ -330,8 +330,8 @@ export default function SimpleCalculatorScreen() {
                         {getStatusText(item.status)}
                       </Text>
                     </Text>
-                    </View>
-                  </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
                   
                   <TouchableOpacity
                     style={styles.deleteHistoryItemButton}
@@ -368,7 +368,7 @@ export default function SimpleCalculatorScreen() {
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>NF S61-933 Annexe H</Text>
           <Text style={styles.infoText}>
-            {strings.nfStandardDesc}<Text>{'\n\n'}</Text><Text>• </Text><Text style={{ color: '#10B981', fontFamily: 'Inter-SemiBold' }}>{strings.compliant}</Text><Text> : {strings.deviation} ≤ ±10%</Text><Text>{'\n'}</Text><Text>• </Text><Text style={{ color: '#F59E0B', fontFamily: 'Inter-SemiBold' }}>{strings.acceptable}</Text><Text> : {strings.deviation} ±10% - ±20%</Text><Text>{'\n'}</Text><Text>• </Text><Text style={{ color: '#EF4444', fontFamily: 'Inter-SemiBold' }}>{strings.nonCompliant}</Text><Text> : {strings.deviation} > ±20%</Text>
+            {strings.nfStandardDesc}{'\n\n'}• <Text style={{ color: '#10B981', fontFamily: 'Inter-SemiBold' }}>{strings.compliant}</Text> : {strings.deviation} ≤ ±10%{'\n'}• <Text style={{ color: '#F59E0B', fontFamily: 'Inter-SemiBold' }}>{strings.acceptable}</Text> : {strings.deviation} ±10% - ±20%{'\n'}• <Text style={{ color: '#EF4444', fontFamily: 'Inter-SemiBold' }}>{strings.nonCompliant}</Text> : {strings.deviation} > ±20%
           </Text>
         </View>
       </ScrollView>
@@ -389,7 +389,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingBottom: 100,
   },
   contentContainerWeb: {
-    paddingBottom: Platform.OS === 'web' ? 120 : 100, // Padding supplémentaire sur web
+    paddingBottom: Platform.OS === 'web' ? 120 : 100,
   },
   calculatorHeader: {
     flexDirection: 'row',
