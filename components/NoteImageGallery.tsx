@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Platform, Di
 import { Trash2, X } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useModal } from '@/contexts/ModalContext';
+import { FullscreenImageViewer } from '@/components/FullscreenImageViewer';
 
 interface NoteImageGalleryProps {
   images: string[];
@@ -13,6 +14,7 @@ interface NoteImageGalleryProps {
 export function NoteImageGallery({ images, onRemoveImage, editable = false }: NoteImageGalleryProps) {
   const { theme } = useTheme();
   const { showModal, hideModal } = useModal();
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const handleRemoveImage = (index: number) => {
     if (!editable) return;
@@ -28,6 +30,20 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
     );
   };
 
+  const handleImagePress = (index: number) => {
+    setSelectedImageIndex(index);
+    showModal(
+      <FullscreenImageViewer 
+        images={images}
+        initialIndex={index}
+        onClose={() => {
+          setSelectedImageIndex(null);
+          hideModal();
+        }}
+      />,
+      { animationType: 'fade' }
+    );
+  };
 
   const styles = createStyles(theme);
 
@@ -51,7 +67,7 @@ export function NoteImageGallery({ images, onRemoveImage, editable = false }: No
             index={index}
             imageWidth={imageWidth}
             editable={editable}
-            onPress={() => {}} // Désactivé
+            onPress={() => handleImagePress(index)}
             onRemove={() => handleRemoveImage(index)}
             theme={theme}
           />
@@ -118,8 +134,8 @@ function NoteImageItem({ imageBase64, index, imageWidth, editable, onPress, onRe
       <TouchableOpacity
         style={styles.imageButton}
         onPress={onPress}
-        activeOpacity={1} // Désactiver l'effet de clic
-        disabled={true} // Désactiver complètement le clic
+        activeOpacity={0.8}
+        disabled={false}
       >
         {imageError ? (
           <View style={[styles.errorPlaceholder, { width: imageWidth, height: imageWidth * 0.75 }]}>
