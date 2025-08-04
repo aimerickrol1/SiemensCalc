@@ -106,7 +106,7 @@ export default function EditNoteScreen() {
       
       const updatedNote = await updateNote(note.id, {
         title: title.trim() || strings.untitledNote,
-        content: content.trim(),
+        content: note.content, // Garder le contenu existant
         images: images.length > 0 ? images : undefined,
       });
 
@@ -190,24 +190,6 @@ export default function EditNoteScreen() {
             error={errors.title}
           />
 
-          {/* Champ de contenu simplifié */}
-          <View style={styles.contentSection}>
-            <Text style={styles.contentLabel}>{strings.noteContent}</Text>
-            <TextInput
-              style={styles.contentTextInput}
-              value={content}
-              onChangeText={setContent}
-              placeholder={strings.writeYourNote}
-              placeholderTextColor={theme.colors.textTertiary}
-              multiline={true}
-              textAlignVertical="top"
-              scrollEnabled={true}
-              autoCorrect={true}
-              spellCheck={true}
-              returnKeyType="default"
-              blurOnSubmit={false}
-            />
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -268,34 +250,6 @@ const createStyles = (theme: any) => StyleSheet.create({
   contentInput: {
     minHeight: 300,
     textAlignVertical: 'top',
-  },
-  contentSection: {
-    flex: 1,
-    minHeight: 300,
-  },
-  contentLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: theme.colors.textSecondary,
-    marginBottom: 12,
-  },
-  contentTextInput: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.text,
-    lineHeight: 24,
-    minHeight: 300,
-    flex: 1,
-    padding: 0,
-    margin: 0,
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    textAlignVertical: 'top',
-    ...(Platform.OS === 'web' && {
-      outlineWidth: 0,
-      resize: 'none',
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
-    }),
   },
   infoText: {
     fontSize: 14,
