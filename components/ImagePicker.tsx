@@ -98,8 +98,9 @@ export function ImagePicker({ onImageSelected, onClose }: ImagePickerProps) {
         <View style={styles.optionIcon}>
           <Camera size={24} color={theme.colors.primary} />
         </View>
-        <Text style={styles.optionTitle}>Ajouter une photo</Text>
-        <Text style={styles.optionSubtitle}>Galerie, appareil photo ou fichiers</Text>
+        <View style={styles.optionContent}>
+          <Text style={styles.optionTitle}>Ajouter une photo</Text>
+        </View>
       </TouchableOpacity>
 
       {/* Inputs cachés pour web */}
@@ -168,15 +169,14 @@ const createStyles = (theme: any) => StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
   },
+  optionContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   optionTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: theme.colors.text,
-    marginBottom: 4,
-  },
-  optionSubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: theme.colors.textSecondary,
+    textAlign: 'center',
   },
 });
