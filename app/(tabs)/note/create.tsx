@@ -182,10 +182,10 @@ export default function CreateNoteScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Input
-            label={strings.noteTitle}
+            label="Titre de la note"
             value={title}
             onChangeText={setTitle}
-            placeholder="Titre de la note (optionnel)"
+            placeholder="Titre de la note"
             error={errors.title}
           />
 

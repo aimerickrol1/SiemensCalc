@@ -415,15 +415,15 @@ export default function CreateProjectScreen() {
             <Text style={styles.sectionTitle}>📋 Informations du projet</Text>
             
             <Input
-              label="Nom du projet *"
+              label="Nom du projet"
               value={name}
               onChangeText={setName}
-              placeholder="Nom du projet (optionnel)"
+              placeholder="Nom du projet"
               error={errors.name}
             />
 
             <Input
-              label="Ville (optionnel)"
+              label="Ville"
               value={city}
               onChangeText={setCity}
               placeholder="Ex: Paris, Lyon, Marseille"
@@ -432,7 +432,7 @@ export default function CreateProjectScreen() {
             <View style={styles.dateRow}>
               <View style={styles.dateField}>
                 <DateInput
-                  label="Date de début (optionnel)"
+                  label="Date de début"
                   value={startDate}
                   onChangeText={setStartDate}
                   placeholder="JJ/MM/AAAA"
@@ -442,7 +442,7 @@ export default function CreateProjectScreen() {
               </View>
               <View style={styles.dateField}>
                 <DateInput
-                  label="Date de fin (optionnel)"
+                  label="Date de fin"
                   value={endDate}
                   onChangeText={setEndDate}
                   placeholder="JJ/MM/AAAA"
