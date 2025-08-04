@@ -471,7 +471,6 @@ export default function CreateProjectScreen() {
                     <Text style={styles.buildingsSectionTitle}>🏢 Bâtiments ({predefinedStructure.buildings.length})</Text>
                     <TouchableOpacity style={styles.addBuildingButtonCompact} onPress={addBuilding}>
                       <Plus size={16} color={theme.colors.primary} />
-                      <Text style={styles.addBuildingTextCompact}>Ajouter</Text>
                     </TouchableOpacity>
                   </View>
 
