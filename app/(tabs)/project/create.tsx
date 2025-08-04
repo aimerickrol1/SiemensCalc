@@ -452,114 +452,119 @@ export default function CreateProjectScreen() {
                   <ScrollView style={styles.buildingsScroll} nestedScrollEnabled showsVerticalScrollIndicator={false}>
                     {predefinedStructure.buildings.map((building, buildingIndex) => (
                       <View key={building.id} style={styles.buildingCard}>
-                        {/* En-tête du bâtiment */}
-                        <View style={styles.buildingHeader}>
-                          <View style={styles.buildingTitleRow}>
-                            <Text style={styles.buildingNumber}>#{buildingIndex + 1}</Text>
-                            <TextInput
-                              style={styles.buildingNameInput}
-                              value={building.name}
-                              onChangeText={(text) => updateBuildingName(building.id, text)}
-                              placeholder="Nom du bâtiment"
-                              placeholderTextColor={theme.colors.textTertiary}
-                            />
-                            <TouchableOpacity
-                              style={styles.removeBuildingButton}
-                              onPress={() => removeBuilding(building.id)}
-                            >
-                              <Trash2 size={16} color={theme.colors.error} />
-                            </TouchableOpacity>
-                          </View>
+                        {/* Badge de suppression en haut à droite */}
+                        <TouchableOpacity
+                          style={styles.deleteBuildingBadge}
+                          onPress={() => removeBuilding(building.id)}
+                        >
+                          <Trash2 size={14} color="#FFFFFF" />
+                        </TouchableOpacity>
+
+                        {/* En-tête du bâtiment amélioré */}
+                        <View style={styles.buildingHeaderImproved}>
+                          <Text style={styles.buildingNumberBadge}>#{buildingIndex + 1}</Text>
+                          <TextInput
+                            style={styles.buildingNameInputImproved}
+                            value={building.name}
+                            onChangeText={(text) => updateBuildingName(building.id, text)}
+                            placeholder="Nom du bâtiment"
+                            placeholderTextColor={theme.colors.textTertiary}
+                          />
                         </View>
 
                         {/* Zones du bâtiment */}
-                        <View style={styles.zonesContainer}>
-                          <View style={styles.zonesHeader}>
-                            <Text style={styles.zonesTitle}>Zones ({building.zones.length})</Text>
+                        <View style={styles.zonesContainerImproved}>
+                          <View style={styles.zonesHeaderImproved}>
+                            <Text style={styles.zonesTitleImproved}>Zones ({building.zones.length})</Text>
                             <TouchableOpacity
-                              style={styles.addZoneButtonCompact}
+                              style={styles.addZoneButtonImproved}
                               onPress={() => addZone(building.id)}
                             >
-                              <Plus size={14} color={theme.colors.primary} />
-                              <Text style={styles.addZoneTextCompact}>Zone</Text>
+                              <Plus size={16} color={theme.colors.primary} />
+                              <Text style={styles.addZoneTextImproved}>+ Zone</Text>
                             </TouchableOpacity>
                           </View>
 
                           {building.zones.map((zone, zoneIndex) => (
-                            <View key={zone.id} style={styles.zoneCard}>
-                              <View style={styles.zoneHeader}>
-                                <View style={styles.zoneTitleRow}>
-                                  <Text style={styles.zoneNumber}>Z{zoneIndex + 1}</Text>
-                                  <TextInput
-                                    style={styles.zoneNameInput}
-                                    value={zone.name}
-                                    onChangeText={(text) => updateZoneName(building.id, zone.id, text)}
-                                    placeholder="Nom de la zone"
-                                    placeholderTextColor={theme.colors.textTertiary}
-                                  />
-                                  <TouchableOpacity
-                                    style={styles.removeZoneButton}
-                                    onPress={() => removeZone(building.id, zone.id)}
-                                  >
-                                    <X size={12} color={theme.colors.error} />
-                                  </TouchableOpacity>
-                                </View>
+                            <View key={zone.id} style={styles.zoneCardImproved}>
+                              {/* Badge de suppression zone */}
+                              <TouchableOpacity
+                                style={styles.deleteZoneBadge}
+                                onPress={() => removeZone(building.id, zone.id)}
+                              >
+                                <X size={12} color="#FFFFFF" />
+                              </TouchableOpacity>
+
+                              {/* En-tête zone amélioré */}
+                              <View style={styles.zoneHeaderImproved}>
+                                <Text style={styles.zoneNumberBadge}>Z{zoneIndex + 1}</Text>
+                                <TextInput
+                                  style={styles.zoneNameInputImproved}
+                                  value={zone.name}
+                                  onChangeText={(text) => updateZoneName(building.id, zone.id, text)}
+                                  placeholder="Nom de la zone"
+                                  placeholderTextColor={theme.colors.textTertiary}
+                                />
                               </View>
 
                               {/* Compteurs de volets améliorés */}
-                              <View style={styles.shutterCountersRow}>
-                                <View style={styles.shutterCounter}>
-                                  <View style={styles.shutterCounterHeader}>
-                                    <View style={[styles.shutterTypeDot, { backgroundColor: '#10B981' }]} />
-                                    <Text style={styles.shutterCounterLabel}>VH</Text>
+                              <View style={styles.shutterCountersImproved}>
+                                <View style={styles.shutterCounterImproved}>
+                                  <View style={styles.shutterCounterHeaderImproved}>
+                                    <View style={[styles.shutterTypeDotImproved, { backgroundColor: '#10B981' }]} />
+                                    <Text style={styles.shutterCounterLabelImproved}>VH</Text>
                                   </View>
-                                  <View style={styles.counterControls}>
+                                  <View style={styles.counterControlsImproved}>
                                     <TouchableOpacity
-                                      style={styles.counterButton}
+                                      style={[styles.counterButtonImproved, zone.highShutters <= 0 && styles.counterButtonDisabled]}
                                       onPress={() => updateShutterCount(building.id, zone.id, 'high', zone.highShutters - 1)}
                                       disabled={zone.highShutters <= 0}
+                                      activeOpacity={0.7}
                                     >
-                                      <Minus size={12} color={zone.highShutters <= 0 ? theme.colors.textTertiary : theme.colors.primary} />
+                                      <Minus size={16} color={zone.highShutters <= 0 ? theme.colors.textTertiary : '#FFFFFF'} />
                                     </TouchableOpacity>
-                                    <Text style={styles.counterValue}>{zone.highShutters}</Text>
+                                    <Text style={styles.counterValueImproved}>{zone.highShutters}</Text>
                                     <TouchableOpacity
-                                      style={styles.counterButton}
+                                      style={[styles.counterButtonImproved, zone.highShutters >= 30 && styles.counterButtonDisabled]}
                                       onPress={() => updateShutterCount(building.id, zone.id, 'high', zone.highShutters + 1)}
                                       disabled={zone.highShutters >= 30}
+                                      activeOpacity={0.7}
                                     >
-                                      <Plus size={12} color={zone.highShutters >= 30 ? theme.colors.textTertiary : theme.colors.primary} />
+                                      <Plus size={16} color={zone.highShutters >= 30 ? theme.colors.textTertiary : '#FFFFFF'} />
                                     </TouchableOpacity>
                                   </View>
                                 </View>
 
-                                <View style={styles.shutterCounter}>
-                                  <View style={styles.shutterCounterHeader}>
-                                    <View style={[styles.shutterTypeDot, { backgroundColor: '#F59E0B' }]} />
-                                    <Text style={styles.shutterCounterLabel}>VB</Text>
+                                <View style={styles.shutterCounterImproved}>
+                                  <View style={styles.shutterCounterHeaderImproved}>
+                                    <View style={[styles.shutterTypeDotImproved, { backgroundColor: '#F59E0B' }]} />
+                                    <Text style={styles.shutterCounterLabelImproved}>VB</Text>
                                   </View>
-                                  <View style={styles.counterControls}>
+                                  <View style={styles.counterControlsImproved}>
                                     <TouchableOpacity
-                                      style={styles.counterButton}
+                                      style={[styles.counterButtonImproved, zone.lowShutters <= 0 && styles.counterButtonDisabled]}
                                       onPress={() => updateShutterCount(building.id, zone.id, 'low', zone.lowShutters - 1)}
                                       disabled={zone.lowShutters <= 0}
+                                      activeOpacity={0.7}
                                     >
-                                      <Minus size={12} color={zone.lowShutters <= 0 ? theme.colors.textTertiary : theme.colors.primary} />
+                                      <Minus size={16} color={zone.lowShutters <= 0 ? theme.colors.textTertiary : '#FFFFFF'} />
                                     </TouchableOpacity>
-                                    <Text style={styles.counterValue}>{zone.lowShutters}</Text>
+                                    <Text style={styles.counterValueImproved}>{zone.lowShutters}</Text>
                                     <TouchableOpacity
-                                      style={styles.counterButton}
+                                      style={[styles.counterButtonImproved, zone.lowShutters >= 30 && styles.counterButtonDisabled]}
                                       onPress={() => updateShutterCount(building.id, zone.id, 'low', zone.lowShutters + 1)}
                                       disabled={zone.lowShutters >= 30}
+                                      activeOpacity={0.7}
                                     >
-                                      <Plus size={12} color={zone.lowShutters >= 30 ? theme.colors.textTertiary : theme.colors.primary} />
+                                      <Plus size={16} color={zone.lowShutters >= 30 ? theme.colors.textTertiary : '#FFFFFF'} />
                                     </TouchableOpacity>
                                   </View>
                                 </View>
                               </View>
 
                               {/* Résumé de la zone */}
-                              <View style={styles.zoneSummary}>
-                                <Text style={styles.zoneSummaryText}>
+                              <View style={styles.zoneSummaryImproved}>
+                                <Text style={styles.zoneSummaryTextImproved}>
                                   Total: {zone.highShutters + zone.lowShutters} volets
                                 </Text>
                               </View>
@@ -776,7 +781,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   buildingCard: {
     backgroundColor: theme.colors.surfaceSecondary,
     borderRadius: 16,
-    padding: 16,
+    padding: 12,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: theme.colors.border,
@@ -785,191 +790,250 @@ const createStyles = (theme: any) => StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
+    position: 'relative',
   },
-  buildingHeader: {
-    marginBottom: 16,
+  
+  // Badge de suppression bâtiment (en haut à droite)
+  deleteBuildingBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: theme.colors.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    zIndex: 10,
   },
-  buildingTitleRow: {
+  
+  // En-tête bâtiment amélioré
+  buildingHeaderImproved: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    marginBottom: 16,
+    paddingRight: 36, // Espace pour le badge de suppression
   },
-  buildingNumber: {
+  buildingNumberBadge: {
     fontSize: 14,
+    fontFamily: 'Inter-Bold',
+    color: theme.colors.primary,
+    backgroundColor: theme.colors.primary + '20',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    minWidth: 36,
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '40',
+  },
+  buildingNameInputImproved: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    fontFamily: 'Inter-Medium',
+    backgroundColor: theme.colors.inputBackground,
+    color: theme.colors.text,
+    minHeight: 48,
+  },
+  
+  // Conteneur zones amélioré
+  zonesContainerImproved: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  zonesHeaderImproved: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  zonesTitleImproved: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+  },
+  addZoneButtonImproved: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: theme.colors.primary + '20',
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '40',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  addZoneTextImproved: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.primary,
+  },
+  
+  // Cartes zone complètement repensées
+  zoneCardImproved: {
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  
+  // Badge de suppression zone
+  deleteZoneBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: theme.colors.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
+    zIndex: 10,
+  },
+  
+  // En-tête zone amélioré
+  zoneHeaderImproved: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+    paddingRight: 32, // Espace pour le badge de suppression
+  },
+  zoneNumberBadge: {
+    fontSize: 12,
     fontFamily: 'Inter-Bold',
     color: theme.colors.primary,
     backgroundColor: theme.colors.primary + '20',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    minWidth: 32,
+    minWidth: 28,
     textAlign: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '40',
   },
-  buildingNameInput: {
+  zoneNameInputImproved: {
     flex: 1,
     borderWidth: 1,
     borderColor: theme.colors.border,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: 'Inter-Medium',
-    backgroundColor: theme.colors.inputBackground,
+    backgroundColor: theme.colors.surface,
     color: theme.colors.text,
-    minHeight: 44,
-  },
-  removeBuildingButton: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: theme.colors.error + '20',
-    borderWidth: 1,
-    borderColor: theme.colors.error + '40',
+    minHeight: 40,
   },
   
-  // Zones améliorées
-  zonesContainer: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 12,
-  },
-  zonesHeader: {
+  // Compteurs de volets complètement repensés
+  shutterCountersImproved: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    gap: 16,
     marginBottom: 12,
   },
-  zonesTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.colors.textSecondary,
+  shutterCounterImproved: {
     flex: 1,
+    backgroundColor: theme.colors.surface + 'F0',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border + '80',
   },
-  addZoneButtonCompact: {
+  shutterCounterHeaderImproved: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    backgroundColor: theme.colors.primary + '20',
-  },
-  addZoneTextCompact: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: theme.colors.primary,
-  },
-  
-  // Cartes de zone améliorées
-  zoneCard: {
-    backgroundColor: theme.colors.surfaceSecondary,
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.separator,
-  },
-  zoneHeader: {
+    justifyContent: 'center',
+    gap: 6,
     marginBottom: 10,
   },
-  zoneTitleRow: {
+  shutterTypeDotImproved: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  shutterCounterLabelImproved: {
+    fontSize: 13,
+    fontFamily: 'Inter-SemiBold',
+    color: theme.colors.text,
+  },
+  counterControlsImproved: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    gap: 12,
   },
-  zoneNumber: {
-    fontSize: 12,
+  counterButtonImproved: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  counterButtonDisabled: {
+    backgroundColor: theme.colors.textTertiary,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  counterValueImproved: {
+    fontSize: 18,
     fontFamily: 'Inter-Bold',
-    color: theme.colors.textSecondary,
-    backgroundColor: theme.colors.surfaceSecondary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    color: theme.colors.text,
     minWidth: 24,
     textAlign: 'center',
   },
-  zoneNameInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    backgroundColor: theme.colors.inputBackground,
-    color: theme.colors.text,
-    minHeight: 36,
-  },
-  removeZoneButton: {
-    padding: 6,
-    borderRadius: 6,
-    backgroundColor: theme.colors.error + '20',
-  },
   
-  // Compteurs de volets améliorés
-  shutterCountersRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 8,
-  },
-  shutterCounter: {
-    flex: 1,
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  shutterCounterHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    marginBottom: 6,
-  },
-  shutterTypeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  shutterCounterLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.colors.textSecondary,
-  },
-  counterControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  counterButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    backgroundColor: theme.colors.surfaceSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  counterValue: {
-    fontSize: 14,
-    fontFamily: 'Inter-Bold',
-    color: theme.colors.text,
-    minWidth: 20,
-    textAlign: 'center',
-  },
-  zoneSummary: {
-    alignItems: 'center',
-    paddingTop: 6,
+  // Résumé zone amélioré
+  zoneSummaryImproved: {
+    alignItems: 'center', 
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.separator,
+    borderTopColor: theme.colors.border + '60',
+    marginTop: 4,
   },
-  zoneSummaryText: {
-    fontSize: 11,
+  zoneSummaryTextImproved: {
+    fontSize: 12,
     fontFamily: 'Inter-Medium',
-    color: theme.colors.textSecondary,
+    color: theme.colors.textSecondary + 'E0',
+    fontStyle: 'italic',
   },
   
   // Bouton fixe en bas
