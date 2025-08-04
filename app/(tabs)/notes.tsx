@@ -543,20 +543,19 @@ export default function NotesScreen() {
             </Text>
           </Animated.View>
         ) : (
-          <Animated.View style={[styles.listContainer, { opacity: fadeAnim }]}>
-            <FlatList
-              data={filteredNotes}
-              renderItem={renderNote}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={[
-                styles.listContent,
-                Platform.OS === 'web' && styles.listContentWeb
-              ]}
-              showsVerticalScrollIndicator={true}
-              scrollEnabled={true}
-              nestedScrollEnabled={true}
-            />
-          </Animated.View>
+          <FlatList
+            data={filteredNotes}
+            renderItem={renderNote}
+            keyExtractor={(item) => item.id}
+            style={styles.flatList}
+            contentContainerStyle={[
+              styles.listContent,
+              Platform.OS === 'web' && styles.listContentWeb
+            ]}
+            showsVerticalScrollIndicator={true}
+            scrollEnabled={true}
+            removeClippedSubviews={false}
+          />
         )}
       </View>
 
@@ -734,7 +733,10 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
   },
   contentWeb: {
-    paddingBottom: Platform.OS === 'web' ? 100 : 0,
+    paddingBottom: 0,
+  },
+  flatList: {
+    flex: 1,
   },
   headerActions: {
     flexDirection: 'row',
@@ -923,10 +925,10 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    paddingBottom: Platform.OS === 'web' ? 100 : 80,
+    paddingBottom: Platform.OS === 'web' ? 120 : 100,
   },
   listContentWeb: {
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   emptyContainer: {
     flex: 1,
