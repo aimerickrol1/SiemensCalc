@@ -366,6 +366,17 @@ export default function NoteDetailScreen() {
           />
         </View>
       </ScrollView>
+
+      {/* Input caché pour web */}
+      {Platform.OS === 'web' && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => handleFileSelect(e as any)}
+        />
+      )}
     </View>
   );
 }
