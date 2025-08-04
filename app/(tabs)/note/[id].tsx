@@ -318,53 +318,57 @@ export default function NoteDetailScreen() {
         }
       />
 
-      <View style={styles.content}>
-        {/* Section fixe en haut avec méta et images */}
-        <View style={styles.topSection}>
-          <View style={styles.metaCard}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.metaCard}>
+          <View style={styles.metaRow}>
+            <Calendar size={16} color={theme.colors.textSecondary} />
+            <Text style={styles.metaLabel}>Créé le</Text>
+            <Text style={styles.metaValue}>{formatDate(note.createdAt)}</Text>
+          </View>
+          {note.updatedAt.getTime() !== note.createdAt.getTime() && (
             <View style={styles.metaRow}>
               <Calendar size={16} color={theme.colors.textSecondary} />
-              <Text style={styles.metaLabel}>Créé le</Text>
-              <Text style={styles.metaValue}>{formatDate(note.createdAt)}</Text>
+              <Text style={styles.metaLabel}>Modifié le</Text>
+              <Text style={styles.metaValue}>{formatDate(note.updatedAt)}</Text>
             </View>
-            {note.updatedAt.getTime() !== note.createdAt.getTime() && (
-              <View style={styles.metaRow}>
-                <Calendar size={16} color={theme.colors.textSecondary} />
-                <Text style={styles.metaLabel}>Modifié le</Text>
-                <Text style={styles.metaValue}>{formatDate(note.updatedAt)}</Text>
-              </View>
-            )}
-          </View>
-
-          {/* Galerie d'images */}
-          <NoteImageGallery 
-            images={note.images || []}
-            onRemoveImage={handleRemoveImage}
-            editable={true}
-          />
-
-          {/* Label du contenu */}
-          <Text style={styles.contentLabel}>{strings.noteContent}</Text>
+          )}
         </View>
 
-        {/* Champ de contenu qui remplit tout l'espace restant */}
-        <View style={styles.contentContainer}>
+        {/* Galerie d'images */}
+        <NoteImageGallery 
+          images={note.images || []}
+          onRemoveImage={handleRemoveImage}
+          editable={true}
+        />
+
+        {/* Contenu de la note */}
+        <View style={styles.contentSection}>
+          <Text style={styles.contentLabel}>{strings.noteContent}</Text>
           <TextInput
-            style={styles.contentTextInput}
+            style={[
+              styles.contentTextInput,
+              { height: textInputHeight },
+              needsInternalScroll && { maxHeight: Platform.OS === 'web' ? 600 : 500 }
+            ]}
             value={editingContent}
             onChangeText={handleContentEdit}
+            onContentSizeChange={handleContentSizeChange}
             placeholder={strings.writeYourNote}
             placeholderTextColor={theme.colors.textTertiary}
             multiline={true}
             textAlignVertical="top"
-            scrollEnabled={true}
+            scrollEnabled={needsInternalScroll}
             autoCorrect={true}
             spellCheck={true}
             returnKeyType="default"
             blurOnSubmit={false}
           />
         </View>
-      </View>
+      </ScrollView>
 
       {/* Input caché pour web */}
       {Platform.OS === 'web' && (
@@ -514,13 +518,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   content: {
     flex: 1,
   },
-  topSection: {
-    padding: 16,
-    paddingBottom: 8,
-  },
   contentContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
+    padding: 16,
     paddingBottom: Platform.OS === 'web' ? 100 : 80, // Espace pour la barre de navigation
   },
   errorContainer: {
@@ -571,15 +570,18 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     textAlign: 'right',
   },
+  contentSection: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
   contentLabel: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: theme.colors.textSecondary,
-    marginBottom: 8,
+    marginBottom: 12,
     marginTop: 16,
   },
   contentTextInput: {
-    flex: 1,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: theme.colors.text,
