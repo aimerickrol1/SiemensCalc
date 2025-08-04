@@ -1201,9 +1201,19 @@ Pour toute question: aimeric.krol@siemens.com
                 </div>
                 ` : '<p style="font-style: italic; color: #888;">Cette note ne contient pas de texte.</p>'}
                 ${note.images && note.images.length > 0 ? `
-                <p style="margin-top: 10px; font-size: 12px; color: #009999;">
-                    📷 ${note.images.length} image${note.images.length > 1 ? 's' : ''} attachée${note.images.length > 1 ? 's' : ''}
-                </p>
+                <div style="margin-top: 16px;">
+                  <h4 style="color: #6B7280; font-size: 14px; margin-bottom: 12px; font-weight: 600;">📷 Images attachées (${note.images.length})</h4>
+                  <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                    ${note.images.map((image, imgIndex) => `
+                    <div style="border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden; max-width: 300px; background: #F9FAFB;">
+                      <img src="${image}" alt="Image ${imgIndex + 1}" style="width: 100%; height: auto; max-height: 200px; object-fit: contain; display: block;" />
+                      <div style="padding: 8px; text-align: center;">
+                        <span style="color: #9CA3AF; font-size: 12px;">Image ${imgIndex + 1}</span>
+                      </div>
+                    </div>
+                    `).join('')}
+                  </div>
+                </div>
                 ` : ''}
             </div>
             `).join('')}
