@@ -852,6 +852,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     padding: 16,
   },
   listContentWeb: {
+    paddingBottom: 16,
   },
   noteCard: {
     backgroundColor: theme.colors.surface,
