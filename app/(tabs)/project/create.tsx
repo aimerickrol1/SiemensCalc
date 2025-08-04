@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, Text, TouchableOpacity, TextInput } from 'react-native';
 import { router } from 'expo-router';
-import { Plus, Minus, X } from 'lucide-react-native';
+import { Plus, Minus, X, Trash2 } from 'lucide-react-native';
 import { Header } from '@/components/Header';
 import { Input } from '@/components/Input';
 import { DateInput } from '@/components/DateInput';
 import { Button } from '@/components/Button';
-import { useStorage, createBuilding, createFunctionalZone, createShutter } from '@/contexts/StorageContext';
+import { useStorage } from '@/contexts/StorageContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
