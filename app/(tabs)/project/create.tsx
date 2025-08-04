@@ -991,3 +991,5 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   createButton: {
     width: '100%',
+  },
+});
