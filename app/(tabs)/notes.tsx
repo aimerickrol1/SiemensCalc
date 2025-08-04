@@ -545,7 +545,7 @@ export default function NotesScreen() {
         )}
       </View>
 
-      {/* Bouton flottant pour créer une note - Position absolue sans container */}
+      {/* Bouton flottant pour créer une note - Position absolue pure */}
       <TouchableOpacity
         style={styles.floatingButton}
         onPress={handleCreateNote}
@@ -855,10 +855,10 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    paddingBottom: 100, // Espace pour le bouton flottant
+    paddingBottom: 16, // Padding normal sans espace pour le bouton
   },
   listContentWeb: {
-    paddingBottom: Platform.OS === 'web' ? 120 : 100,
+    paddingBottom: Platform.OS === 'web' ? 16 : 16,
   },
   noteCard: {
     backgroundColor: theme.colors.surface,
@@ -953,7 +953,7 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   floatingButton: {
     position: 'absolute',
-    bottom: Platform.OS === 'web' ? 120 : 100, // Au-dessus de la barre de navigation
+    bottom: Platform.OS === 'web' ? 100 : 90, // Au-dessus de la barre de navigation
     right: 20,
     width: 56,
     height: 56,
@@ -966,7 +966,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    zIndex: 10, // Réduit pour éviter les conflits avec les modales
+    zIndex: 1000, // Élevé pour flotter au-dessus de tout
   },
   // Styles pour le modal
   modalContent: {
