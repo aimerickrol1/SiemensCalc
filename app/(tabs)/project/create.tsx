@@ -506,7 +506,7 @@ export default function CreateProjectScreen() {
                               onPress={() => addZone(building.id)}
                             >
                               <Plus size={16} color={theme.colors.primary} />
-                              <Text style={styles.addZoneTextImproved}>+ Zone</Text>
+                             <Text style={styles.addZoneTextImproved}>Zone</Text>
                             </TouchableOpacity>
                           </View>
 
