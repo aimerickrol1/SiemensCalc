@@ -49,9 +49,8 @@ export default function CreateNoteScreen() {
   const validateForm = () => {
     const newErrors: { title?: string } = {};
 
-    if (!title.trim() && !content.trim() && images.length === 0) {
-      newErrors.title = 'Le titre ou le contenu est requis';
-    }
+    // Plus de validation obligatoire pour le titre
+    // Un titre sera généré automatiquement si nécessaire
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -60,12 +59,20 @@ export default function CreateNoteScreen() {
   const handleCreate = async () => {
     if (!validateForm()) return;
 
+    // Générer un titre automatique si aucun titre n'est fourni
+    let finalTitle = title.trim();
+    if (!finalTitle) {
+      const existingTitles = notes.map(n => n.title).filter(t => t.startsWith('Note sans titre'));
+      const nextNumber = existingTitles.length + 1;
+      finalTitle = `Note sans titre ${nextNumber}`;
+    }
+
     setLoading(true);
     try {
-      console.log('📝 Création de la note:', title.trim() || 'Note sans titre');
+      console.log('📝 Création de la note:', finalTitle);
       
       const note = await createNote({
-        title: title.trim() || strings.untitledNote,
+        title: finalTitle,
         content: content.trim(),
         images: images.length > 0 ? images : undefined,
       });
@@ -178,7 +185,7 @@ export default function CreateNoteScreen() {
             label={strings.noteTitle}
             value={title}
             onChangeText={setTitle}
-            placeholder="Ex: Observations chantier, Mesures particulières..."
+            placeholder="Titre de la note (optionnel)"
             error={errors.title}
           />
 

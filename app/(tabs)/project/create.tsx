@@ -55,9 +55,8 @@ export default function CreateProjectScreen() {
   const validateForm = () => {
     const newErrors: { name?: string; startDate?: string; endDate?: string } = {};
 
-    if (!name.trim()) {
-      newErrors.name = 'Le nom du projet est requis';
-    }
+    // Plus de validation obligatoire pour le nom
+    // Un nom sera généré automatiquement si nécessaire
 
     if (startDate && !isValidDate(startDate)) {
       newErrors.startDate = 'Format de date invalide (JJ/MM/AAAA)';
@@ -102,10 +101,18 @@ export default function CreateProjectScreen() {
   const handleCreate = async () => {
     if (!validateForm()) return;
 
+    // Générer un titre automatique si aucun titre n'est fourni
+    let finalName = name.trim();
+    if (!finalName) {
+      const existingNames = projects.map(p => p.name).filter(n => n.startsWith('Projet sans titre'));
+      const nextNumber = existingNames.length + 1;
+      finalName = `Projet sans titre ${nextNumber}`;
+    }
+
     setLoading(true);
     try {
       const projectData: any = {
-        name: name.trim(),
+        name: finalName,
       };
 
       if (city.trim()) {
@@ -411,7 +418,7 @@ export default function CreateProjectScreen() {
               label="Nom du projet *"
               value={name}
               onChangeText={setName}
-              placeholder="Ex: Mesures centre commercial Rivoli"
+              placeholder="Nom du projet (optionnel)"
               error={errors.name}
             />
 
