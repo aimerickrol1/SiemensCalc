@@ -855,10 +855,10 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    paddingBottom: 16, // Padding normal sans espace pour le bouton
+    paddingBottom: 16, // Padding normal sans espace supplémentaire
   },
   listContentWeb: {
-    paddingBottom: Platform.OS === 'web' ? 16 : 16,
+    paddingBottom: 16,
   },
   noteCard: {
     backgroundColor: theme.colors.surface,
@@ -953,8 +953,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   floatingButton: {
     position: 'absolute',
-    bottom: Platform.OS === 'web' ? 20 : 16, // Juste au-dessus de la barre de navigation
-    right: 16,
+    bottom: Platform.OS === 'web' ? 100 : 90, // Au-dessus de la barre de navigation
+    right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -962,7 +962,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     // Supprimer complètement les ombres qui créent un carré opaque
-    zIndex: 999, // Flotte au-dessus du contenu mais sous les modales
+    zIndex: 1000, // Flotte au-dessus du contenu
   },
   // Styles pour le modal
   modalContent: {
