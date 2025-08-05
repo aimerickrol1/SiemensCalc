@@ -17,7 +17,7 @@ type FilterOption = 'all' | 'with-images' | 'text-only';
 function NoteItem({ item, index, onPress, onEdit, onDelete, onToggleFavorite, isSelected, isFavorite, selectionMode, onLongPress, theme, strings }: {
   item: Note;
   index: number;
-  onPress: (note: Note) => void;
+  onPress: () => void;
   onEdit: (note: Note) => void;
   onDelete: (note: Note) => void;
   onToggleFavorite: (noteId: string) => void;
@@ -71,7 +71,7 @@ function NoteItem({ item, index, onPress, onEdit, onDelete, onToggleFavorite, is
           isSelected && styles.selectedCard,
           isFavorite && styles.favoriteCard
         ]}
-        onPress={() => selectionMode ? onLongPress(item) : onPress(item)}
+        onPress={onPress}
         onLongPress={() => onLongPress(item)}
       >
         {/* En-tête simplifié */}
@@ -80,10 +80,7 @@ function NoteItem({ item, index, onPress, onEdit, onDelete, onToggleFavorite, is
             {selectionMode && (
               <TouchableOpacity 
                 style={styles.checkbox}
-                onPress={() => {
-                  console.log('📝 Sélection/désélection note:', item.id);
-                  onLongPress(item);
-                }}
+                onPress={onPress}
               >
                 {isSelected ? (
                   <CheckSquare size={18} color={theme.colors.primary} />
@@ -242,12 +239,10 @@ export default function NotesScreen() {
   };
 
   const handleNoteLongPress = (note: Note) => {
-    if (selectionMode) {
-      handleNoteSelection(note.id);
-    } else {
+    if (!selectionMode) {
       setSelectionMode(true);
-      handleNoteSelection(note.id);
     }
+    handleNoteSelection(note.id);
   };
 
   const handleNoteSelection = (noteId: string) => {
@@ -278,7 +273,10 @@ export default function NotesScreen() {
       console.log('🗑️ Suppression en lot de', selectedNotes.size, 'notes');
       console.log('📝 IDs des notes à supprimer:', Array.from(selectedNotes));
       
-      for (const noteId of selectedNotes) {
+      const noteIdsToDelete = Array.from(selectedNotes);
+      console.log('📋 Liste finale des IDs à supprimer:', noteIdsToDelete);
+      
+      for (const noteId of noteIdsToDelete) {
         console.log('🗑️ Suppression de la note:', noteId);
         const success = await deleteNote(noteId);
         if (!success) {
@@ -288,7 +286,7 @@ export default function NotesScreen() {
         }
       }
       
-      console.log('✅ Suppression en lot terminée');
+      console.log('✅ Suppression en lot terminée, notes supprimées:', noteIdsToDelete.length);
       setSelectedNotes(new Set());
       setSelectionMode(false);
       hideModal();
@@ -384,7 +382,7 @@ export default function NotesScreen() {
       <NoteItem
         item={item}
         index={index}
-        onPress={handleNotePress}
+        onPress={selectionMode ? () => handleNoteSelection(item.id) : () => handleNotePress(item)}
         onEdit={handleEditNote}
         onDelete={handleDeleteNote}
         onToggleFavorite={handleToggleFavorite}
