@@ -888,11 +888,18 @@ const createStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
+  noteTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   noteTitle: {
     fontSize: 17,
     fontFamily: 'Inter-Bold',
     color: theme.colors.text,
-    marginBottom: 4,
+    flex: 1,
+    minWidth: 0,
   },
   noteDate: {
     fontSize: 13,
@@ -903,8 +910,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Medium',
     color: theme.colors.primary,
-    marginTop: 2,
-    marginBottom: 2,
+    flexShrink: 0,
   },
   favoriteIndicator: {
     marginRight: 4,
