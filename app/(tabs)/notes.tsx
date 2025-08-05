@@ -917,9 +917,6 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   noteActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   notePreview: {
     fontSize: 15,
     fontFamily: 'Inter-Regular',
