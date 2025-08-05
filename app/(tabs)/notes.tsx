@@ -917,17 +917,15 @@ const createStyles = (theme: any) => StyleSheet.create({
   },
   noteActions: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   notePreview: {
     fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: theme.colors.textSecondary,
     lineHeight: 22,
     marginTop: 4,
-  },
-  actionButton: {
-    padding: 6,
-    borderRadius: 6,
-    backgroundColor: theme.colors.surfaceSecondary,
   },
   listContent: {
     padding: 16,
