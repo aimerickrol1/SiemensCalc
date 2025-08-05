@@ -94,6 +94,11 @@ function NoteItem({ item, index, onPress, onEdit, onDelete, onToggleFavorite, is
               <Text style={styles.noteTitle} numberOfLines={1}>
                 {item.title || strings.untitledNote}
               </Text>
+              {item.images && item.images.length > 0 && (
+                <Text style={styles.photoIndicator}>
+                  {item.images.length} photo{item.images.length > 1 ? 's' : ''}
+                </Text>
+              )}
               <Text style={styles.noteDate}>
                 {formatDate(item.updatedAt)}
               </Text>
@@ -101,12 +106,6 @@ function NoteItem({ item, index, onPress, onEdit, onDelete, onToggleFavorite, is
           </View>
           
           <View style={styles.noteHeaderRight}>
-            {item.images && item.images.length > 0 && (
-              <View style={styles.imageIndicator}>
-                <Text style={styles.imageCount}>{item.images.length}</Text>
-              </View>
-            )}
-            
             {!selectionMode && (
               <View style={styles.noteActions}>
                 {isFavorite && (
@@ -900,17 +899,12 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: theme.colors.textSecondary,
   },
-  imageIndicator: {
-    backgroundColor: theme.colors.primary + '20',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginRight: 8,
-  },
-  imageCount: {
-    fontSize: 11,
-    fontFamily: 'Inter-Bold',
+  photoIndicator: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
     color: theme.colors.primary,
+    marginTop: 2,
+    marginBottom: 2,
   },
   favoriteIndicator: {
     marginRight: 4,
